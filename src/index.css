@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  font-family: "Mona Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Theme-based text colors */
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: var(--heading-color, #162230);
+}
+
+p,
+span {
+  color: var(--text-color, #5a5a5a);
+}
+
+.text-font {
+  font-family: "Mona Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.google-btn {
+  width: 100%;
+  max-width: 480px;
+  height: 44px;
+  border-radius: 10px;
+  /* Gradient border - dark mode */
+  background: linear-gradient(#0f1724, #0f1724) padding-box,
+    linear-gradient(90deg, #9133ea 0%, #2962eb 100%) border-box;
+  border: 1px solid transparent;
+  /* Inner shadow from Figma */
+  box-shadow: inset 7px -6px 30px rgba(0, 0, 0, 0.32);
+}
+
+/* Light mode styles for Google button */
+[data-theme="light"] .google-btn {
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(90deg, #9133ea 0%, #2962eb 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow: none;
+  color: #162230;
+}
+
+@media (min-width: 768px) {
+  .google-btn {
+    height: 48px;
+  }
+}
+
+.google-btn-mobile {
+  width: 100%;
+  max-width: 480px;
+  height: 44px;
+  border-radius: 10px;
+  /* Gradient border */
+  background: linear-gradient(#0f1724, #0f1724) padding-box,
+    linear-gradient(90deg, #9133ea 0%, #2962eb 100%) border-box;
+  border: 1px solid transparent;
+  /* Inner shadow from Figma */
+  box-shadow: inset 7px -6px 30px rgba(0, 0, 0, 0.32);
+}
+
+/* Dark mode styles (default) */
+.sigin-border {
+  background: linear-gradient(#0f1724, #0f1724) padding-box,
+    linear-gradient(90deg, #9133ea 0%, #2962eb 100%) border-box;
+  border: 0.5px solid transparent;
+  /* Outer shadow from Figma: X: 7, Y: -6, Blur: 30, Spread: 0 - using gradient colors */
+  box-shadow: 7px -6px 30px 0 rgba(145, 51, 234, 0.04),
+    -7px -6px 30px 0 rgba(41, 98, 235, 0.04);
+  border-radius: 40px;
+}
+
+/* Light mode styles */
+[data-theme="light"] .sigin-border {
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(
+        76.27deg,
+        #cc51d6 -2.26%,
+        rgba(90, 104, 232, 0.6) 28.13%,
+        #e1b1ff 53.17%
+      )
+      border-box;
+  border: 0.5px solid transparent;
+  box-shadow: 7px -6px 30px 0px rgba(0, 0, 0, 0.08);
+  border-radius: 40px;
+}
+
+.sidebar-active-light {
+  background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
+}
+
+.sidebar-active-dark {
+  background: linear-gradient(#0f1724, #0f1724) padding-box,
+    linear-gradient(90deg, #9133ea 0%, #2962eb 100%) border-box;
+  border: 0.5px solid transparent;
+}
