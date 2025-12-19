@@ -4,7 +4,10 @@ import {
   AgentsIcon,
   UserIcon,
   TemplateIcon,
+  LogoutIcon,
 } from "@/components/Icons";
+import SettingIcon from "@/components/Icons/SettingIcon";
+import ProfileIcon from "@/components/Icons/ProfileIcon";
 
 export interface SidebarItem {
   label: string;
@@ -19,3 +22,8 @@ export const menuItems: SidebarItem[] = [
   { label: "Templates", icon: TemplateIcon, path: "/templates" },
 ];
 
+export const settingItems: SidebarItem[] = [
+  { label: "Settings", icon: SettingIcon, path: "/settings" },
+  { label: "Profile", icon: ProfileIcon, path: "/profile" },
+  { label: "Logout", icon: LogoutIcon, path: "/logout" },
+];

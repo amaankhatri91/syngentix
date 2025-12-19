@@ -3,8 +3,7 @@ import { useAppSelector } from "@/store";
 import { siginLogo } from "@/utils/logoUtils";
 import useAuth from "@/utils/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
-import LogoutIcon from "@/components/Icons/LogoutIcon";
-import { menuItems } from "@/constants/navigation.constant";
+import { menuItems, settingItems } from "@/constants/navigation.constant";
 
 const Sidebar: React.FC = () => {
   const { theme, userName, avatar } = useAppSelector((state) => state.auth);
@@ -40,7 +39,7 @@ const Sidebar: React.FC = () => {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center text-md justify-between px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`w-full flex items-center text-md justify-between px-4 py-2 rounded-lg transition-[background-color,color] duration-200 ${
                 isActive(item.path)
                   ? theme === "dark"
                     ? "text-white sidebar-active-dark"
@@ -73,52 +72,53 @@ const Sidebar: React.FC = () => {
           ))}
         </nav>
         <div
-          className={`p-4 border-t ${
+          className={`py-4 border-t ${
             theme === "dark" ? "border-[#1E293B]" : "border-gray-200"
           }`}
         >
-          <div
-            className={`flex items-center gap-3 p-3 rounded-lg ${
-              theme === "dark"
-                ? "bg-[#1E293B] hover:bg-[#334155]"
-                : "bg-gray-50 hover:bg-gray-100"
-            } transition-colors cursor-pointer`}
-          >
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={userName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-white font-semibold text-sm">
-                  {userName?.charAt(0).toUpperCase() || "U"}
-                </span>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium truncate`}>
-                {userName || "User"}
-              </p>
-              <p className={`text-xs truncate`}>Admin</p>
-            </div>
+          <nav className="flex-1 px-5 space-y-2 overflow-y-auto">
+          {settingItems?.map((item) => (
             <button
-              className={`p-2 rounded-lg transition-colors ${
-                theme === "dark"
-                  ? "hover:bg-[#334155] text-[#BDC9F5]"
-                  : "hover:bg-gray-200 text-gray-600"
-              }`}
+              key={item.path}
               onClick={() => {
-                signOut();
+                if (item.label === "Logout") {
+                  signOut();
+                } else {
+                  navigate(item.path);
+                }
               }}
+              className={`w-full flex items-center text-md justify-between px-4 py-2 rounded-lg transition-[background-color,color] duration-200 ${
+                isActive(item.path)
+                  ? theme === "dark"
+                    ? "text-white sidebar-active-dark"
+                    : "text-white sidebar-active-light"
+                  : theme === "dark"
+                  ? "text-[#BDC9F5] hover:bg-[#1E293B]"
+                  : "text-[#646567] hover:bg-gray-100"
+              }`}
             >
-              <LogoutIcon
-                color={theme === "dark" ? "#BDC9F5" : "#6B7280"}
-                size={18}
-              />
+              <div className="flex items-center gap-3">
+                {React.createElement(item.icon, {
+                  color: getIconColor(item.path),
+                  size: 20,
+                })}
+                <span
+                  className={`font-medium ${
+                    isActive(item.path)
+                      ? theme === "dark"
+                        ? "text-white"
+                        : "text-white"
+                      : theme === "dark"
+                      ? "text-[#BDC9F5] hover:bg-[#1E293B]"
+                      : "text-[#646567] hover:bg-gray-100"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </div>
             </button>
-          </div>
+          ))}
+        </nav>
         </div>
       </div>
     </aside>

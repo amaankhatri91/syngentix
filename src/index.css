@@ -114,3 +114,10 @@ span {
     linear-gradient(90deg, #9133ea 0%, #2962eb 100%) border-box;
   border: 0.5px solid transparent;
 }
+
+/* Prevent border transition on sidebar navigation items to avoid blinking */
+nav button {
+  transition-property: background-color, color, background;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}

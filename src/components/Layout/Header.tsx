@@ -1,7 +1,8 @@
 import React from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import { setTheme } from "@/store/auth/authSlice";
-import { searchIcon, sidebarIcon } from "@/utils/logoUtils";
+import { sidebarIcon } from "@/utils/logoUtils";
+import { SearchInput } from "@/components/SearchInput";
 import darkSwitchIcon from "@/assets/switchIcon/dark-switch.svg";
 import lightSwitchIcon from "@/assets/switchIcon/light-switch.svg";
 
@@ -39,25 +40,15 @@ const Header: React.FC = () => {
               "
             />
           </button>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for..."
-              className="
-                w-60 h-10 px-4 pl-10
-                bg-white rounded-lg
-                text-gray-900 placeholder-gray-600
-                border-none outline-none
-                focus:outline-none
-                transition-all duration-200
-              "
-            />
-            <img
-              src={searchIcon()}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none"
-              alt="search"
-            />
-          </div>
+          <SearchInput
+            placeholder="Search for..."
+            onSearch={(value) => {
+              // Handle debounced search here
+              console.log("Searching for:", value);
+            }}
+            className="text-sm text-[#0C1116]"
+            debounceDelay={300}
+          />
         </div>
       </div>
     </header>
