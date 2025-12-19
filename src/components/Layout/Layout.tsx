@@ -5,7 +5,7 @@ import { LayoutRouteProps } from "react-router-dom";
 import { useAppSelector } from "@/store";
 
 const Layout: React.FC<LayoutRouteProps> = ({ children }) => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { theme, sidebarOpen } = useAppSelector((state) => state.auth);
 
   return (
     <div
@@ -15,7 +15,7 @@ const Layout: React.FC<LayoutRouteProps> = ({ children }) => {
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:ml-56">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? "lg:ml-56" : "lg:ml-16"}`}>
         {/* Header */}
         <Header />
 

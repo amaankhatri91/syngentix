@@ -1,12 +1,12 @@
-import React from "react";
+import React, { createElement } from "react";
 import { useAppSelector } from "@/store";
-import { siginLogo } from "@/utils/logoUtils";
+import { finalytixLogoSmall, siginLogo } from "@/utils/logoUtils";
 import useAuth from "@/utils/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { menuItems, settingItems } from "@/constants/navigation.constant";
 
 const Sidebar: React.FC = () => {
-  const { theme, userName, avatar } = useAppSelector((state) => state.auth);
+  const { theme, sidebarOpen } = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
@@ -24,22 +24,46 @@ const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-full w-56 z-20 transition-all duration-300 hidden lg:block ${
+      className={`fixed left-0 top-0 h-full z-20 transition-all duration-300 hidden lg:block ${
+        sidebarOpen ? "w-56" : "w-16"
+      } ${
         theme === "dark"
           ? "bg-[#0C1116] border-r border-[#0B1739]"
           : "bg-[#F5F7FA] border-r border-[#E3E6EB]"
       }`}
     >
       <div className="flex flex-col h-full">
-        <div className="p-6 flex ">
-          <img src={siginLogo(theme)} alt="Logo" className="h-[75px] w-auto" />
+        <div
+          className={` flex ${
+            sidebarOpen ? "justify-start p-6" : "justify-center p-4"
+          }`}
+        >
+          {sidebarOpen ? (
+            <img
+              src={siginLogo(theme)}
+              alt="Logo"
+              className="h-[75px] w-auto"
+            />
+          ) : (
+            <img
+              src={finalytixLogoSmall(theme)}
+              alt="Logo"
+              className="h-12 w-12 object-contain"
+            />
+          )}
         </div>
-        <nav className="flex-1 px-5 space-y-2 overflow-y-auto">
+        <nav
+          className={`flex-1 space-y-2 overflow-y-auto ${
+            sidebarOpen ? "px-5" : "px-2"
+          }`}
+        >
           {menuItems?.map((item) => (
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center text-md justify-between px-4 py-2 rounded-lg transition-[background-color,color] duration-200 ${
+              className={`w-full flex items-center text-md rounded-lg transition-[background-color,color] duration-200 ${
+                sidebarOpen ? "justify-between px-4" : "justify-center px-2"
+              } py-2 ${
                 isActive(item.path)
                   ? theme === "dark"
                     ? "text-white sidebar-active-dark"
@@ -48,77 +72,94 @@ const Sidebar: React.FC = () => {
                   ? "text-[#BDC9F5] hover:bg-[#1E293B]"
                   : "text-[#646567] hover:bg-gray-100"
               }`}
+              title={!sidebarOpen ? item.label : undefined}
             >
-              <div className="flex items-center gap-3">
-                {React.createElement(item.icon, {
-                  color: getIconColor(item.path),
+              <div
+                className={`flex items-center ${sidebarOpen ? "gap-3" : ""}`}
+              >
+                {createElement(item?.icon, {
+                  color: getIconColor(item?.path),
                   size: 20,
                 })}
-                <span
-                  className={`font-medium ${
-                    isActive(item.path)
-                      ? theme === "dark"
-                        ? "text-white"
-                        : "text-white"
-                      : theme === "dark"
-                      ? "text-[#BDC9F5] hover:bg-[#1E293B]"
-                      : "text-[#646567] hover:bg-gray-100"
-                  }`}
-                >
-                  {item.label}
-                </span>
+                {sidebarOpen && (
+                  <span
+                    className={`font-medium ${
+                      isActive(item?.path)
+                        ? theme === "dark"
+                          ? "text-white"
+                          : "text-white"
+                        : theme === "dark"
+                        ? "text-[#BDC9F5] hover:bg-[#1E293B]"
+                        : "text-[#646567] hover:bg-gray-100"
+                    }`}
+                  >
+                    {item?.label}
+                  </span>
+                )}
               </div>
             </button>
           ))}
         </nav>
-        <div
-          className={`py-4 border-t ${
-            theme === "dark" ? "border-[#1E293B]" : "border-gray-200"
+        <hr
+          className={`${sidebarOpen ? "mx-4" : "mx-2"} ${
+            theme === "dark" ? "border-[#2B3643]" : "border-[#DFE1E8]"
           }`}
-        >
-          <nav className="flex-1 px-5 space-y-2 overflow-y-auto">
-          {settingItems?.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => {
-                if (item.label === "Logout") {
-                  signOut();
-                } else {
-                  navigate(item.path);
-                }
-              }}
-              className={`w-full flex items-center text-md justify-between px-4 py-2 rounded-lg transition-[background-color,color] duration-200 ${
-                isActive(item.path)
-                  ? theme === "dark"
-                    ? "text-white sidebar-active-dark"
-                    : "text-white sidebar-active-light"
-                  : theme === "dark"
-                  ? "text-[#BDC9F5] hover:bg-[#1E293B]"
-                  : "text-[#646567] hover:bg-gray-100"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {React.createElement(item.icon, {
-                  color: getIconColor(item.path),
-                  size: 20,
-                })}
-                <span
-                  className={`font-medium ${
-                    isActive(item.path)
-                      ? theme === "dark"
-                        ? "text-white"
-                        : "text-white"
-                      : theme === "dark"
-                      ? "text-[#BDC9F5] hover:bg-[#1E293B]"
-                      : "text-[#646567] hover:bg-gray-100"
-                  }`}
+        />
+        <div className="py-4">
+          <nav
+            className={`flex-1 space-y-2 overflow-y-auto ${
+              sidebarOpen ? "px-5" : "px-2"
+            }`}
+          >
+            {settingItems?.map((item) => (
+              <button
+                key={item?.path}
+                onClick={() => {
+                  if (item.label === "Logout") {
+                    signOut();
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
+                className={`w-full flex items-center text-md rounded-lg transition-[background-color,color] duration-200 ${
+                  sidebarOpen ? "justify-between px-4" : "justify-center px-2"
+                } py-2 ${
+                  isActive(item.path)
+                    ? theme === "dark"
+                      ? "text-white sidebar-active-dark"
+                      : "text-white sidebar-active-light"
+                    : theme === "dark"
+                    ? "text-[#BDC9F5] hover:bg-[#1E293B]"
+                    : "text-[#646567] hover:bg-gray-100"
+                }`}
+                title={!sidebarOpen ? item.label : undefined}
+              >
+                <div
+                  className={`flex items-center ${sidebarOpen ? "gap-3" : ""}`}
                 >
-                  {item.label}
-                </span>
-              </div>
-            </button>
-          ))}
-        </nav>
+                  {createElement(item.icon, {
+                    color: getIconColor(item.path),
+                    size: 20,
+                  })}
+                  {sidebarOpen && (
+                    <span
+                      className={`font-medium ${
+                        isActive(item.path)
+                          ? theme === "dark"
+                            ? "text-white"
+                            : "text-white"
+                          : theme === "dark"
+                          ? "text-[#BDC9F5] hover:bg-[#1E293B]"
+                          : "text-[#646567] hover:bg-gray-100"
+                      }`}
+                    >
+                      {item?.label}
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
     </aside>

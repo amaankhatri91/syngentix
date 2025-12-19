@@ -3,11 +3,12 @@ import finalytixLight from "@/assets/logos/finalytix-light.svg";
 import google from "@/assets/logos/google.svg";
 import siginBottom from "@/assets/background/Back.svg";
 import siginTop from "@/assets/background/Upper Back.svg";
-import finalytixSmallDark from "@/assets/logos/finalytix-small-dark.png";
-import finalytixSmallLight from "@/assets/logos/finalytix-small-light.png";
+import finalytixSmallDark from "@/assets/logos/finalytix-small-dark.svg";
+import finalytixSmallLight from "@/assets/logos/finalytix-small-light.svg";
 import sidebarOpen from "@/assets/switchIcon/open.svg";
 import sidebarClose from "@/assets/switchIcon/close.svg";
 import search from "@/assets/icons/search.svg";
+
 
 export const siginLogo = (theme?: string) => {
   return theme === "light" ? finalytixLight : finalytixDark;
@@ -30,9 +31,11 @@ export const finalytixLogoSmall = (theme?: string) => {
 };
 
 export const sidebarIcon = (isOpen?: boolean) => {
-  return isOpen ? sidebarOpen : sidebarClose;
+  return isOpen ? sidebarClose : sidebarOpen;
 };
 
 export const searchIcon = () => {
   return search;
 };
+
+

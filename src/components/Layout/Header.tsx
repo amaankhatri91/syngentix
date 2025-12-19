@@ -1,6 +1,6 @@
 import React from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { setTheme } from "@/store/auth/authSlice";
+import { setSidebarOpen, setTheme } from "@/store/auth/authSlice";
 import { sidebarIcon } from "@/utils/logoUtils";
 import { SearchInput } from "@/components/SearchInput";
 import darkSwitchIcon from "@/assets/switchIcon/dark-switch.svg";
@@ -17,12 +17,17 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 lg:left-56 right-0 h-16 z-10 transition-all duration-300`}
+      className={`fixed top-0 left-0 right-0 h-16 z-10 transition-all duration-300 ${sidebarOpen ? "lg:left-56" : "lg:left-16"}`}
     >
       <div className="flex items-center justify-between h-full px-6">
-        <div className="flex-1 max-w-md">
+        <button
+          onClick={() => {
+            dispatch(setSidebarOpen(!sidebarOpen));
+          }}
+          className="flex-1 max-w-md"
+        >
           <img src={sidebarIcon(sidebarOpen)} alt="icon" />
-        </div>
+        </button>
         <div className="flex items-center gap-3">
           <button
             onClick={handleThemeToggle}

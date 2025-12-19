@@ -5,9 +5,9 @@ import {
   UserIcon,
   TemplateIcon,
   LogoutIcon,
+  SettingIcon,
+  ProfileIcon,
 } from "@/components/Icons";
-import SettingIcon from "@/components/Icons/SettingIcon";
-import ProfileIcon from "@/components/Icons/ProfileIcon";
 
 export interface SidebarItem {
   label: string;
