@@ -1,6 +1,55 @@
-import { ActionButtons, DataTableColumn, StatusBadge } from "@/components/DataTable";
-import { HiPaperClip, HiTrash, HiWifi } from "react-icons/hi2";
+import {
+  ActionButtons,
+  DataTableColumn,
+  StatusBadge,
+} from "@/components/DataTable";
 import { FinancialAgent } from "./type";
+import Connectivity from "@/components/Icons/Connectivity";
+import EditIcon from "@/components/Icons/EditIcon";
+import DeleteIcon from "@/components/Icons/DeleteIcon";
+import { useAppSelector } from "@/store";
+import React from "react";
+
+// Wrapper component for Actions cell to access theme from auth
+const ActionsCell: React.FC<{ row: FinancialAgent }> = ({ row }) => {
+  const { theme } = useAppSelector((state) => state.auth);
+  
+
+  return (
+    <ActionButtons
+      actions={[
+        {
+          icon: <Connectivity theme={theme}  />,
+          label: "Connect",
+          onClick: (row) => {
+            console.log("Connect clicked for:", row);
+            // Handle connect action
+          },
+          variant: "primary",
+        },
+        {
+          icon: <EditIcon theme={theme}  />,
+          label: "Link",
+          onClick: (row) => {
+            console.log("Link clicked for:", row);
+            // Handle link action
+          },
+          variant: "secondary",
+        },
+        {
+          icon: <DeleteIcon theme={theme}  />,
+          label: "Delete",
+          onClick: (row) => {
+            console.log("Delete clicked for:", row);
+            // Handle delete action
+          },
+          variant: "danger",
+        },
+      ]}
+      row={row}
+    />
+  );
+};
 
 export const columns: DataTableColumn<FinancialAgent>[] = [
   {
@@ -86,39 +135,6 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     enableSorting: false,
     size: 150,
     align: "center",
-    cell: (value, row) => (
-      <ActionButtons
-        actions={[
-          {
-            icon: <HiWifi className="w-4 h-4" />,
-            label: "Connect",
-            onClick: (row) => {
-              console.log("Connect clicked for:", row);
-              // Handle connect action
-            },
-            variant: "primary",
-          },
-          {
-            icon: <HiPaperClip className="w-4 h-4" />,
-            label: "Link",
-            onClick: (row) => {
-              console.log("Link clicked for:", row);
-              // Handle link action
-            },
-            variant: "secondary",
-          },
-          {
-            icon: <HiTrash className="w-4 h-4" />,
-            label: "Delete",
-            onClick: (row) => {
-              console.log("Delete clicked for:", row);
-              // Handle delete action
-            },
-            variant: "danger",
-          },
-        ]}
-        row={row}
-      />
-    ),
+    cell: (value, row) => <ActionsCell row={row} />,
   },
 ];
