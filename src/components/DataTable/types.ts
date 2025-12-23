@@ -19,6 +19,7 @@ export interface DataTableColumn<T> {
   header: string;
   accessorKey?: keyof T;
   cell?: (value: any, row: T) => ReactNode;
+  align?: "left" | "center" | "right";
   enableSorting?: boolean;
   enableResizing?: boolean;
   size?: number;

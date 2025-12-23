@@ -38,6 +38,9 @@ const DataTable = <T extends Record<string, any>>({
       id: col.id,
       header: col.header,
       accessorKey: col.accessorKey as string,
+      meta: {
+        align: col.align ?? "left",
+      },
       enableSorting: col.enableSorting !== false && enableSorting,
       size: col.size,
       minSize: col.minSize,
@@ -118,11 +121,27 @@ const DataTable = <T extends Record<string, any>>({
                   const isSelectColumn = header.id === "select";
                   const isFirst = index === 0;
                   const isLast = index === headerGroup.headers.length - 1;
+                  const align =
+                    (header.column.columnDef.meta as {
+                      align?: "left" | "center" | "right";
+                    })?.align ?? "left";
+                  const textAlignClass =
+                    align === "center"
+                      ? "text-center"
+                      : align === "right"
+                      ? "text-right"
+                      : "text-start";
+                  const headerJustifyClass =
+                    align === "center"
+                      ? "justify-center"
+                      : align === "right"
+                      ? "justify-end"
+                      : "justify-start";
 
                   return (
                     <th
                       key={header.id}
-                      className={`px-4 py-2 text-left text-sm font-medium ${
+                      className={`px-4 py-2 ${textAlignClass} text-sm font-medium ${
                         isDark ? "text-[#FFFFFF]" : "text-[#162230]"
                       } ${
                         !isDark
@@ -169,7 +188,7 @@ const DataTable = <T extends Record<string, any>>({
                         />
                       ) : (
                         <div
-                          className={`flex items-center gap-2 ${
+                          className={`flex items-center gap-2 ${headerJustifyClass} ${
                             canSort ? "cursor-pointer select-none" : ""
                           }`}
                           onClick={header.column.getToggleSortingHandler()}
@@ -251,10 +270,20 @@ const DataTable = <T extends Record<string, any>>({
                       const isSelectCell = cell.column.id === "select";
                       const isFirst = index === 0;
                       const isLast = index === cells.length - 1;
+                      const align =
+                        (cell.column.columnDef.meta as {
+                          align?: "left" | "center" | "right";
+                        })?.align ?? "left";
+                      const textAlignClass =
+                        align === "center"
+                          ? "text-center"
+                          : align === "right"
+                          ? "text-right"
+                          : "text-start";
                       return (
                         <td
                           key={cell.id}
-                          className={`px-4 py-1 text-sm ${
+                          className={`px-4 py-1 text-sm ${textAlignClass} ${
                             isFirst ? "rounded-tl-lg rounded-bl-lg" : ""
                           } ${isLast ? "rounded-tr-lg rounded-br-lg" : ""} ${
                             isDark ? "!text-white" : "!text-gray-700"

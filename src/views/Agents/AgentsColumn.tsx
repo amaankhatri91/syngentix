@@ -9,6 +9,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     accessorKey: "id",
     enableSorting: false,
     size: 60,
+    align: "left",
   },
   {
     id: "name",
@@ -16,6 +17,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     accessorKey: "name",
     enableSorting: true,
     size: 200,
+    align: "left",
     cell: (value, row) => <span className="font-medium">{row.name}</span>,
   },
   {
@@ -24,6 +26,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     accessorKey: "workflows",
     enableSorting: true,
     size: 120,
+    align: "center",
     cell: (value) => (
       <span className="font-mono">{String(value).padStart(2, "0")}</span>
     ),
@@ -34,6 +37,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     accessorKey: "conversations",
     enableSorting: true,
     size: 140,
+    align: "center",
     cell: (value) => (
       <span className="font-mono">{String(value).padStart(2, "0")}</span>
     ),
@@ -44,6 +48,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     accessorKey: "users",
     enableSorting: true,
     size: 100,
+    align: "center",
     cell: (value) => (
       <span className="font-mono">{String(value).padStart(2, "0")}</span>
     ),
@@ -54,6 +59,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     accessorKey: "files",
     enableSorting: true,
     size: 100,
+    align: "center",
     cell: (value) => (
       <span className="font-mono">{String(value).padStart(2, "0")}</span>
     ),
@@ -64,6 +70,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     accessorKey: "status",
     enableSorting: true,
     size: 120,
+    align: "center",
     cell: (value, row) => (
       <StatusBadge
         status={{
@@ -78,6 +85,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     header: "Actions",
     enableSorting: false,
     size: 150,
+    align: "center",
     cell: (value, row) => (
       <ActionButtons
         actions={[
