@@ -7,6 +7,7 @@ import {
   LogoutIcon,
   SettingIcon,
   ProfileIcon,
+  WorkFlowIcon,
 } from "@/components/Icons";
 
 export interface SidebarItem {
@@ -26,4 +27,25 @@ export const settingItems: SidebarItem[] = [
   { label: "Settings", icon: SettingIcon, path: "/settings" },
   { label: "Profile", icon: ProfileIcon, path: "/profile" },
   { label: "Logout", icon: LogoutIcon, path: "/logout" },
+];
+
+export const stats = [
+  {
+    title: "Total Agents",
+    value: "00",
+    icon: AgentsIcon,
+    isCustomIcon: true,
+  },
+  {
+    title: "Total Workflows",
+    value: "00",
+    icon: WorkFlowIcon,
+    isCustomIcon: true,
+  },
+  {
+    title: "Total Users",
+    value: "00",
+    icon: UserIcon,
+    isCustomIcon: true,
+  },
 ];

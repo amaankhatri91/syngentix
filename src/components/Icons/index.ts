@@ -5,6 +5,8 @@ export { default as TemplateIcon } from "./TemplateIcon";
 export { default as LogoutIcon } from "./LogoutIcon";
 export { default as SettingIcon } from "./SettingIcon";
 export { default as ProfileIcon } from "./ProfileIcon";
+export { default as WorkFlowIcon } from "./WorkFlowIcon";
+
 
 
 

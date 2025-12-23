@@ -17,17 +17,25 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 h-16 z-10 transition-all duration-300 ${sidebarOpen ? "lg:left-56" : "lg:left-16"}`}
+      className={`fixed top-0 left-0 right-0 h-16 z-10 transition-all  duration-300 ${
+        sidebarOpen ? "lg:left-56" : "lg:left-16"
+      }`}
     >
       <div className="flex items-center justify-between h-full px-6">
-        <button
-          onClick={() => {
-            dispatch(setSidebarOpen(!sidebarOpen));
-          }}
-          className="flex-1 max-w-md"
-        >
-          <img src={sidebarIcon(sidebarOpen)} alt="icon" />
-        </button>
+        <div className="flex gap-5 items-center">
+          <button
+            onClick={() => {
+              dispatch(setSidebarOpen(!sidebarOpen));
+            }}
+            className="flex-1 max-w-md"
+          >
+            <img src={sidebarIcon(sidebarOpen)} alt="icon" />
+          </button>
+          <div>
+            <h3 className="text-lg">Welcome, John!!!</h3>
+            <span className="text-sm">Create your workspace</span>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleThemeToggle}
