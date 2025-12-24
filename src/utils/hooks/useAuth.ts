@@ -54,8 +54,9 @@ function useAuth() {
   > => {
     try {
       const resp = await apiGoogleSignIn(values);
-      if (resp?.data) {
-        const { token, user, workspace } = resp.data;
+      console.log(resp , "Login Api Integration")
+      if (resp?.data?.data) {
+        const { token, user, workspace } = resp.data?.data;
         dispatch(
           signInSuccess({
             accessToken: token.access_token,

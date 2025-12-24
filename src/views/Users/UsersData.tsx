@@ -1,4 +1,5 @@
 import { User } from "./types";
+import userAvatar from "@/assets/icons/avatar.svg";
 
 // Sample user data
 export const sampleUsers: User[] = [
@@ -9,6 +10,7 @@ export const sampleUsers: User[] = [
     role: "User",
     status: "active",
     joinDate: "2025-09-23",
+    avatar: userAvatar,
   },
   {
     id: "2",
@@ -17,6 +19,7 @@ export const sampleUsers: User[] = [
     role: "User",
     status: "active",
     joinDate: "2025-09-23",
+    avatar: userAvatar,
   },
   {
     id: "3",
@@ -25,6 +28,7 @@ export const sampleUsers: User[] = [
     role: "User",
     status: "active",
     joinDate: "2025-09-23",
+    avatar: userAvatar,
   },
   {
     id: "4",
@@ -33,6 +37,7 @@ export const sampleUsers: User[] = [
     role: "User",
     status: "active",
     joinDate: "2025-09-23",
+    avatar: userAvatar,
   },
   {
     id: "5",
@@ -41,6 +46,6 @@ export const sampleUsers: User[] = [
     role: "User",
     status: "active",
     joinDate: "2025-09-23",
+    avatar: userAvatar,
   },
 ];
-

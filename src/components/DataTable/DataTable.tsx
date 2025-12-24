@@ -13,6 +13,7 @@ import useTheme from "@/utils/hooks/useTheme";
 import { DataTableProps, DataTableColumn, ActionButton } from "./types";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi2";
 import CheckboxCell from "./CheckboxCell";
+import { TableSkeleton } from "./TableSkeleton";
 
 const DataTable = <T extends Record<string, any>>({
   data,
@@ -233,16 +234,12 @@ const DataTable = <T extends Record<string, any>>({
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className={`px-4 py-8 text-center ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Loading...
-                </td>
-              </tr>
+              <TableSkeleton
+                columns={columns}
+                rows={pageSize}
+                enableRowSelection={enableRowSelection}
+                isDark={isDark}
+              />
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td

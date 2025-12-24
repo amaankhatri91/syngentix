@@ -64,7 +64,7 @@ export const columns: DataTableColumn<Agent>[] = [
     header: "",
     accessorKey: "id",
     enableSorting: false,
-    size: 60,
+    size: 5,
     align: "left",
   },
   {

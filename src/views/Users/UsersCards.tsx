@@ -27,43 +27,23 @@ const UsersCards: React.FC = () => {
         {sampleUsers.map((user, index) => (
           <Card
             key={user.id}
-            className={`rounded-[10px] border bg-transparent shadow-none relative ${
-              isDark
-                ? "border-[#2B3643]"
-                : "border-[#EEF4FF] shadow-[0_6px_18px_rgba(33,84,238,0.12)]"
+            className={`rounded-[16px]  relative ${
+              isDark ? "border border-[#2B3643]" : "border border-[#EEF4FF]"
             }`}
           >
             <CardBody
               className={`p-4 ${
                 isDark
-                  ? index === 0
-                    ? "bg-[#0D131A] rounded-[10px]"
-                    : "bg-[#0D131A]"
-                  : "bg-white"
+                  ? "bg-[#0F1724] rounded-[14px]"
+                  : "bg-[#FFFFFF] rounded-[14px]"
               }`}
             >
               {/* Avatar */}
               <div className="flex justify-center mb-4 -mt-2">
-                <div
-                  className={`relative ${
-                    isDark && index === 0
-                      ? "ring-2 ring-offset-2 ring-offset-[#0D131A] ring-gradient-to-r from-[#9133ea] to-[#2962eb]"
-                      : ""
-                  }`}
-                  style={
-                    isDark && index === 0
-                      ? {
-                          background:
-                            "linear-gradient(90deg, #9133ea 0%, #2962eb 100%)",
-                          borderRadius: "50%",
-                          padding: "2px",
-                        }
-                      : undefined
-                  }
-                >
+                <div className={`relative`}>
                   <div
-                    className={`w-16 h-16 rounded-full ${
-                      isDark ? "bg-[#1C2643]" : "bg-[#F3F5F8]"
+                    className={`w-20 h-20 rounded-full p-1 ${
+                      isDark ? "bg-[#1C2643] " : "bg-[#F5F7FA]"
                     } flex items-center justify-center overflow-hidden`}
                   >
                     {user.avatar ? (
@@ -80,13 +60,11 @@ const UsersCards: React.FC = () => {
                   </div>
                 </div>
               </div>
-
               {/* Name and Role */}
               <div className="text-center mb-3">
                 <h5 className="font-medium mb-1">{user.name}</h5>
                 <span className="text-sm opacity-70">({user.role})</span>
               </div>
-
               {/* Status */}
               <div className="flex justify-center mb-4">
                 <StatusBadge
@@ -96,7 +74,6 @@ const UsersCards: React.FC = () => {
                   }}
                 />
               </div>
-
               {/* Email */}
               <div className="flex items-center gap-2 mb-2">
                 <EnvelopeIcon
@@ -105,7 +82,6 @@ const UsersCards: React.FC = () => {
                 />
                 <span className="text-sm">{user.email}</span>
               </div>
-
               {/* Join Date */}
               <div className="flex items-center gap-2 mb-4">
                 <CalendarIcon
@@ -114,7 +90,6 @@ const UsersCards: React.FC = () => {
                 />
                 <span className="text-sm">Joined on {user.joinDate}</span>
               </div>
-
               {/* Footer Buttons */}
               <FooterButtons
                 onCancel={() => handleInactive(user)}

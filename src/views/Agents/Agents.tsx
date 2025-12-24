@@ -10,10 +10,15 @@ const Agents: React.FC = () => {
 
   // RTK Query hook - automatically caches data and won't refetch on navigation
   // Only refetches on page refresh or when cache expires (1 hour)
-  const { data, isLoading, error, refetch } = useGetAgentsQuery(undefined, {
-    // Skip query if no token (user not logged in)
-    skip: !token,
-  });
+  const { data, isLoading, error, refetch }: any = useGetAgentsQuery(
+    undefined,
+    {
+      // Skip query if no token (user not logged in)
+      skip: !token,
+    }
+  );
+
+  console.log(data, "Data Visiblitliyt");
 
   const handleRowSelectionChange = (selectedRows: Agent[]) => {
     console.log("Selected rows:", selectedRows);
@@ -23,7 +28,7 @@ const Agents: React.FC = () => {
   return (
     <div className="rounded-lg overflow-hidden">
       <DataTable
-        data={data || []}
+        data={data?.data || []}
         columns={columns}
         enableRowSelection={true}
         enableSorting={true}
