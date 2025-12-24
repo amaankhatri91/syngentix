@@ -60,7 +60,6 @@ const AgentDialog = () => {
         }) => (
           <Form>
             <div>
-              {/* Agent Name Field */}
               <div className="space-y-1">
                 <h5 className="text-sm 2xl:text-[16px] font-medium">
                   Agent Name

@@ -2,13 +2,31 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const SLICE_NAME = "auth";
 
+export type WorkspaceSettings = {
+  input_guardrails: boolean;
+  output_guardrails: boolean;
+};
+
+export type Workspace = {
+  id: string;
+  name: string;
+  owner_id: string;
+  settings: WorkspaceSettings;
+  created_at: string;
+  type: string;
+};
+
 export type UserState = {
   avatar?: string;
   userName?: string;
   email?: string;
-  username?: string;
-  authority?: string[];
+  userId?: string;
+  userType?: string;
+  googleId?: string;
+  agents?: string[];
+  workspace?: Workspace;
   token: string | null;
+  refreshToken?: string | null;
   persist: boolean;
   theme?: string;
   sidebarOpen?: boolean;
@@ -17,10 +35,14 @@ export type UserState = {
 const initialState: UserState = {
   avatar: "",
   userName: "",
-  username: "",
   email: "",
-  authority: [],
+  userId: "",
+  userType: "",
+  googleId: "",
+  agents: [],
+  workspace: undefined,
   token: null,
+  refreshToken: null,
   persist: false,
   theme: "dark",
   sidebarOpen: true,
@@ -30,11 +52,31 @@ const userSlice = createSlice({
   name: `${SLICE_NAME}`,
   initialState,
   reducers: {
-    signInSuccess(state, action: any) {
-      state.token = action?.payload?.accessToken;
-      state.userName = action?.payload?.firstName;
-      state.avatar = action?.payload?.image;
-      state.email = action?.payload?.email;
+    signInSuccess(
+      state,
+      action: PayloadAction<{
+        accessToken: string;
+        refreshToken?: string;
+        userName: string;
+        email: string;
+        avatar?: string;
+        userId?: string;
+        userType?: string;
+        googleId?: string;
+        agents?: string[];
+        workspace?: Workspace;
+      }>
+    ) {
+      state.token = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken ?? null;
+      state.userName = action.payload.userName;
+      state.email = action.payload.email;
+      state.avatar = action.payload.avatar;
+      state.userId = action.payload.userId;
+      state.userType = action.payload.userType;
+      state.googleId = action.payload.googleId;
+      state.agents = action.payload.agents ?? [];
+      state.workspace = action.payload.workspace;
     },
     signOutSuccess(state, action) {
       const { avatar, userName, email, token } = action.payload;
@@ -42,6 +84,12 @@ const userSlice = createSlice({
       state.avatar = avatar;
       state.email = email;
       state.token = token;
+      state.refreshToken = null;
+      state.userId = "";
+      state.userType = "";
+      state.googleId = "";
+      state.agents = [];
+      state.workspace = undefined;
     },
     setPersist: (state, action) => {
       state.persist = action.payload;

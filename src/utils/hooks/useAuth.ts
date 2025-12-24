@@ -1,75 +1,117 @@
-import {
-    useAppSelector,
-    useAppDispatch,
-} from '@/store'
-import { useNavigate } from 'react-router-dom'
-import { SignInCredential } from '@/@types/auth'
-import { apiSignIn } from '@/services/AuthService'
-import { signInSuccess, signOutSuccess } from '@/store/auth/authSlice'
-
-type Status = 'success' | 'failed'
+import { useAppSelector, useAppDispatch } from "@/store";
+import { useNavigate } from "react-router-dom";
+import { GoogleSignUpCredential, SignInCredential } from "@/@types/auth";
+import { apiGoogleSignIn, apiSignIn } from "@/services/AuthService";
+import { signInSuccess, signOutSuccess } from "@/store/auth/authSlice";
 
 function useAuth() {
-    const dispatch = useAppDispatch()
-    const navigate = useNavigate()
-    const { token } = useAppSelector((state) => state.auth)
-    const signIn = async (
-        values: SignInCredential
-    ): Promise<
-        | {
-              status: 'success' | 'failed';
-              message: string;
-          }
-        | undefined
-    > => {
-        try {
-            const resp = await apiSignIn(values);
-            console.log(resp, 'Verify Response and Check It');
-    
-            if (resp?.data) {
-                const data:any = resp.data;  // assuming the response contains a token
-                dispatch(signInSuccess(data));  // Dispatch success action with the token
-                 navigate('/')
-                return {
-                    status: 'success',
-                    message: 'Login successful',
-                };
-            }
-        } catch (errors: any) {
-            return {
-                status: 'failed',
-                message: errors?.response?.data?.message || errors.message || 'Something went wrong',
-            };
-        }
-    };
-    
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { token } = useAppSelector((state) => state.auth);
 
-    const handleSignOut = () => {
+  const signIn = async (
+    values: SignInCredential
+  ): Promise<
+    | {
+        status: "success" | "failed";
+        message: string;
+      }
+    | undefined
+  > => {
+    try {
+      const resp = await apiSignIn(values);
+      console.log(resp, "Verify Response and Check It");
+      if (resp?.data) {
+        const data: any = resp.data;
+        dispatch(signInSuccess(data));
+        navigate("/");
+        return {
+          status: "success",
+          message: "Login successful",
+        };
+      }
+    } catch (errors: any) {
+      return {
+        status: "failed",
+        message:
+          errors?.response?.data?.message ||
+          errors.message ||
+          "Something went wrong",
+      };
+    }
+  };
+
+  const googleSignIn = async (
+    values: GoogleSignUpCredential
+  ): Promise<
+    | {
+        status: "success" | "failed";
+        message: string;
+      }
+    | undefined
+  > => {
+    try {
+      const resp = await apiGoogleSignIn(values);
+      if (resp?.data) {
+        const { token, user, workspace } = resp.data;
         dispatch(
-            signOutSuccess({
-                avatar: '',
-                userName: '',
-                email: '',
-                token: null
-            })
-        )
-        navigate('/sign-in')
+          signInSuccess({
+            accessToken: token.access_token,
+            refreshToken: token.refresh_token,
+            userName: user.display_name,
+            email: user.email,
+            avatar: user.photo_url,
+            userId: user.id,
+            userType: user.type,
+            googleId: user.google_id,
+            agents: user.agents,
+            workspace: workspace,
+          })
+        );
+        navigate("/");
+        return {
+          status: "success",
+          message: "Login successful",
+        };
+      }
+    } catch (error: any) {
+      return {
+        status: "failed",
+        message:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong",
+      };
     }
+  };
 
-    const signOut = async () => {
-        try {
-            // await apiSignOut()  
-            handleSignOut()     
-        } catch (error) {
-            console.error('Sign out failed:', error)
-        }
-    }
+  const handleSignOut = () => {
+    dispatch(
+      signOutSuccess({
+        avatar: "",
+        userName: "",
+        email: "",
+        token: null,
+      })
+    );
+    navigate("/sign-in");
+  };
 
-    return {
-        authenticated: token,
-        signIn,
-        signOut,
+  const signOut = async () => {
+    try {
+      // await apiSignOut()
+      handleSignOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
     }
+  };
+
+  return {
+    authenticated: token,
+    signIn,
+    signOut,
+    googleSignIn,
+  };
 }
 
-export default useAuth
+export default useAuth;
