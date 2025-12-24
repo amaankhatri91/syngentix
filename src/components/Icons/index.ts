@@ -6,6 +6,8 @@ export { default as LogoutIcon } from "./LogoutIcon";
 export { default as SettingIcon } from "./SettingIcon";
 export { default as ProfileIcon } from "./ProfileIcon";
 export { default as WorkFlowIcon } from "./WorkFlowIcon";
+export { default as EnvelopeIcon } from "./EnvelopeIcon";
+export { default as CalendarIcon } from "./CalendarIcon";
 
 
 
