@@ -1,15 +1,16 @@
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import { Formik, Form, Field, ErrorMessage, FormikProps } from "formik";
 import { Input, Textarea } from "@material-tailwind/react";
 import { Dialog } from "@/components/Dialog";
 import { Button } from "@/components/Button";
+import useTheme from "@/utils/hooks/useTheme";
+import { FormValues } from "./types";
+import { AgentSchema } from "./AgentSchema";
 import { useAppSelector } from "@/store";
-import { FormValues } from "./type";
-import { agentSchema } from "./agentSchema";
 
 const AgentDialog = () => {
-  const { theme } = useAppSelector((state) => state.auth);
-  const isDark = theme === "dark";
+  const { isDark } = useTheme();
+  const { agentDailog } = useAppSelector((state) => state.agent);
 
   const handleCancel = (resetForm: () => void) => {};
 
@@ -17,18 +18,18 @@ const AgentDialog = () => {
 
   return (
     <Dialog
-      open={true}
+      open={agentDailog}
       handler={handler}
       title="Create New Agent"
       size="sm"
-      bodyClassName=""
+      bodyClassName="!px-8 !pb-5"
     >
       <Formik<FormValues>
         initialValues={{
           agentName: "",
           description: "",
         }}
-        validationSchema={agentSchema}
+        validationSchema={AgentSchema}
         onSubmit={(values: FormValues) => {
           console.log(values, "Verify Values");
         }}
@@ -46,7 +47,9 @@ const AgentDialog = () => {
             <div>
               {/* Agent Name Field */}
               <div className="space-y-1">
-                <h5 className={`text-sm font-medium `}>Agent Name</h5>
+                <h5 className="text-sm 2xl:text-[16px] font-medium">
+                  Agent Name
+                </h5>
                 <Field name="agentName">
                   {({ field }: any) => (
                     <Input
@@ -62,7 +65,9 @@ const AgentDialog = () => {
                         }
                         !bg-white
                         !rounded-xl
-                        ${isDark ? "!text-gray-900" : "!text-gray-900"}
+                        ${
+                          isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
+                        }
                       `}
                       labelProps={{
                         className: "hidden",
@@ -78,16 +83,18 @@ const AgentDialog = () => {
                     />
                   )}
                 </Field>
-                <ErrorMessage
-                  name="agentName"
-                  component="div"
-                  className="text-red-500 text-xs mt-1"
-                />
+                <div className="min-h-[17px]">
+                  <ErrorMessage
+                    name="agentName"
+                    component="div"
+                    className="text-red-500 text-xs 2xl:text-sm mt-1"
+                  />
+                </div>
               </div>
-
-              {/* Description Field */}
               <div className="space-y-1">
-                <h5 className={`text-sm font-medium `}>Description</h5>
+                <h5 className="text-sm 2xl:text-[16px] font-medium">
+                  Description
+                </h5>
                 <Field name="description">
                   {({ field }: any) => (
                     <Textarea
@@ -103,7 +110,9 @@ const AgentDialog = () => {
                         }
                         !bg-white
                         !rounded-xl
-                        ${isDark ? "!text-gray-900" : "!text-gray-900"}
+                        ${
+                          isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
+                        }
                         !resize-none
                       `}
                       labelProps={{
@@ -128,28 +137,26 @@ const AgentDialog = () => {
               </div>
             </div>
             {/* Footer Buttons */}
-            <div className="flex justify-end gap-3 w-full pt-6 ">
+            <div className="flex justify-end gap-3 w-full pt-4">
               <Button
                 type="button"
                 onClick={() => handleCancel(resetForm)}
                 backgroundColor={
                   isDark
                     ? "bg-gray-600 hover:bg-gray-700 text-white"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                    : "bg-[#E6E6E6] hover:bg-gray-300 text-gray-900"
                 }
-                width="w-auto"
-                height="h-10"
-                className="px-6 !rounded-xl"
+                width="w-full"
+                className="px-6 !rounded-xl py-2.5"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                backgroundColor="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                width="w-auto"
-                height="h-10"
-                className="px-6 !rounded-xl"
+                backgroundColor="!bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-white"
+                width="w-full"
+                className="px-6 !rounded-xl py-2.5"
                 loading={isSubmitting}
               >
                 Create Agent

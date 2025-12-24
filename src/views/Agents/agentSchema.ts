@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 
-export const agentSchema = Yup.object().shape({
+export const AgentSchema = Yup.object().shape({
   agentName: Yup.string()
     .required("Required")
     .min(2, "must be at least 2 characters")

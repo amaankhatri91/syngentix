@@ -1,17 +1,19 @@
 import React from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import { setSidebarOpen, setTheme } from "@/store/auth/authSlice";
+import useTheme from "@/utils/hooks/useTheme";
 import { sidebarIcon } from "@/utils/logoUtils";
 import { SearchInput } from "@/components/SearchInput";
 import darkSwitchIcon from "@/assets/switchIcon/dark-switch.svg";
 import lightSwitchIcon from "@/assets/switchIcon/light-switch.svg";
 
 const Header: React.FC = () => {
-  const { theme, sidebarOpen } = useAppSelector((state) => state.auth);
+  const { sidebarOpen } = useAppSelector((state) => state.auth);
+  const { theme, isDark } = useTheme();
   const dispatch = useAppDispatch();
 
   const handleThemeToggle = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
+    const newTheme = isDark ? "light" : "dark";
     dispatch(setTheme(newTheme));
   };
 
@@ -39,13 +41,13 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleThemeToggle}
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
             className="relative flex items-center justify-center"
           >
             <img
               key={theme}
-              src={theme === "dark" ? darkSwitchIcon : lightSwitchIcon}
-              alt={theme === "dark" ? "Dark mode" : "Light mode"}
+              src={isDark ? darkSwitchIcon : lightSwitchIcon}
+              alt={isDark ? "Dark mode" : "Light mode"}
               className="
                 h-8 object-contain
                 transition-all duration-500 ease-in-out

@@ -1,10 +1,10 @@
 import { combineReducers, CombinedState, AnyAction, Reducer } from 'redux'
 import RtkQueryService from '@/services/RtkQueryService'
 import authReducer from './auth/authSlice'
-import productReducer from './product/productSlice'
+import agentReducer from './agent/agentSlice'
 export type RootState = CombinedState<{
     auth: ReturnType<typeof authReducer>
-    product: ReturnType<typeof productReducer>
+    agent: ReturnType<typeof agentReducer>
     /* eslint-disable @typescript-eslint/no-explicit-any */
     [RtkQueryService.reducerPath]: any
 }>
@@ -15,7 +15,7 @@ export interface AsyncReducers {
 
 const staticReducers = {
     auth : authReducer,
-    product : productReducer,
+    agent : agentReducer,
 }
 
 const rootReducer =

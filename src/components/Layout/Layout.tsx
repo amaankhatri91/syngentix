@@ -5,7 +5,7 @@ import { LayoutRouteProps } from "react-router-dom";
 import { useAppSelector } from "@/store";
 
 const Layout: React.FC<LayoutRouteProps> = ({ children }) => {
-  const { theme, sidebarOpen } = useAppSelector((state) => state.auth);
+  const { sidebarOpen } = useAppSelector((state) => state.auth);
 
   return (
     <div className={`flex min-h-screen`}>

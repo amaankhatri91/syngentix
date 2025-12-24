@@ -1,4 +1,4 @@
-import { FinancialAgent } from "./type";
+import { FinancialAgent } from "./types";
 
 // Sample data
 export const sampleAgents: FinancialAgent[] = [

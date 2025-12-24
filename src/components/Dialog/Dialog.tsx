@@ -5,7 +5,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 
 export interface DialogProps {
   /**
@@ -65,8 +65,7 @@ const Dialog: React.FC<DialogProps> = ({
   showCloseButton = true,
   size = "md",
 }) => {
-  const { theme } = useAppSelector((state) => state.auth);
-  const isDark = theme === "dark";
+  const { isDark } = useTheme();
 
   // Get background and border colors based on theme
   const bgColor = isDark ? "bg-[#0D131A]" : "bg-white";
@@ -81,7 +80,7 @@ const Dialog: React.FC<DialogProps> = ({
         ${bgColor}
         ${borderColor}
         border
-        rounded-3xl
+        rounded-[28px]
         ${width}
         ${className}
       `}

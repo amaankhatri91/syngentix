@@ -2,11 +2,13 @@ import React, { createElement } from "react";
 import { useAppSelector } from "@/store";
 import { finalytixLogoSmall, siginLogo } from "@/utils/logoUtils";
 import useAuth from "@/utils/hooks/useAuth";
+import useTheme from "@/utils/hooks/useTheme";
 import { useNavigate, useLocation } from "react-router-dom";
 import { menuItems, settingItems } from "@/constants/navigation.constant";
 
 const Sidebar: React.FC = () => {
-  const { theme, sidebarOpen } = useAppSelector((state) => state.auth);
+  const { sidebarOpen } = useAppSelector((state) => state.auth);
+  const { theme, isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
@@ -19,7 +21,7 @@ const Sidebar: React.FC = () => {
     if (isActive(path)) {
       return "white";
     }
-    return theme === "dark" ? "#BDC9F5" : "#646567";
+    return isDark ? "#BDC9F5" : "#646567";
   };
 
   return (
@@ -27,7 +29,7 @@ const Sidebar: React.FC = () => {
       className={`fixed left-0 top-0 h-full z-20 transition-all duration-300 hidden lg:block ${
         sidebarOpen ? "w-56" : "w-16"
       } ${
-        theme === "dark"
+        isDark
           ? "bg-[#0C1116] border-r border-[#0B1739]"
           : "bg-[#F5F7FA] border-r border-[#E3E6EB]"
       }`}
@@ -65,10 +67,10 @@ const Sidebar: React.FC = () => {
                 sidebarOpen ? "justify-between px-4" : "justify-center px-2"
               } py-2 ${
                 isActive(item.path)
-                  ? theme === "dark"
+                  ? isDark
                     ? "text-white sidebar-active-dark"
                     : "text-white sidebar-active-light"
-                  : theme === "dark"
+                  : isDark
                   ? "text-[#BDC9F5] hover:bg-[#1E293B]"
                   : "text-[#646567] hover:bg-gray-100"
               }`}
@@ -85,10 +87,10 @@ const Sidebar: React.FC = () => {
                   <span
                     className={`font-medium ${
                       isActive(item?.path)
-                        ? theme === "dark"
+                        ? isDark
                           ? "text-white"
                           : "text-white"
-                        : theme === "dark"
+                        : isDark
                         ? "text-[#BDC9F5] hover:bg-[#1E293B]"
                         : "text-[#646567] hover:bg-gray-100"
                     }`}
@@ -102,7 +104,7 @@ const Sidebar: React.FC = () => {
         </nav>
         <hr
           className={`${sidebarOpen ? "mx-4" : "mx-2"} ${
-            theme === "dark" ? "border-[#2B3643]" : "border-[#DFE1E8]"
+            isDark ? "border-[#2B3643]" : "border-[#DFE1E8]"
           }`}
         />
         <div className="py-4">
@@ -125,10 +127,10 @@ const Sidebar: React.FC = () => {
                   sidebarOpen ? "justify-between px-4" : "justify-center px-2"
                 } py-2 ${
                   isActive(item.path)
-                    ? theme === "dark"
+                    ? isDark
                       ? "text-white sidebar-active-dark"
                       : "text-white sidebar-active-light"
-                    : theme === "dark"
+                    : isDark
                     ? "text-[#BDC9F5] hover:bg-[#1E293B]"
                     : "text-[#646567] hover:bg-gray-100"
                 }`}
@@ -145,10 +147,10 @@ const Sidebar: React.FC = () => {
                     <span
                       className={`font-medium ${
                         isActive(item.path)
-                          ? theme === "dark"
+                          ? isDark
                             ? "text-white"
                             : "text-white"
-                          : theme === "dark"
+                          : isDark
                           ? "text-[#BDC9F5] hover:bg-[#1E293B]"
                           : "text-[#646567] hover:bg-gray-100"
                       }`}

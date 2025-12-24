@@ -2,7 +2,7 @@ import React from "react";
 import {
   DataTable,
 } from "@/components/DataTable";
-import { FinancialAgent } from "./type";
+import { FinancialAgent } from "./types";
 import { sampleAgents } from "./AgentsData";
 import { columns } from "./AgentsColumn";
 

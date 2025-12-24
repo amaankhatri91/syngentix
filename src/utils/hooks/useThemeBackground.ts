@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { useAppSelector } from "@/store";
+import useTheme from "./useTheme";
 
 const useThemeBackground = () => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { theme, isDark } = useTheme();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -11,18 +11,18 @@ const useThemeBackground = () => {
     root.setAttribute("data-theme", theme);
     
     // Background colors
-    const backgroundColor = theme === "dark" ? "#0C1116" : "#ffffff";
+    const backgroundColor = isDark ? "#0C1116" : "#ffffff";
     root.style.backgroundColor = backgroundColor;
     document.body.style.backgroundColor = backgroundColor;
     
     // Heading text colors (h1, h2, h3, h4, h5)
-    const headingColor = theme === "dark" ? "#ffffff" : "#162230";
+    const headingColor = isDark ? "#ffffff" : "#162230";
     root.style.setProperty("--heading-color", headingColor);
     
     // Paragraph and span text colors
-    const textColor = theme === "dark" ? "#BDC9F5" : "#5A5A5A";
+    const textColor = isDark ? "#BDC9F5" : "#5A5A5A";
     root.style.setProperty("--text-color", textColor);
-  }, [theme]);
+  }, [theme, isDark]);
 };
 
 export default useThemeBackground;

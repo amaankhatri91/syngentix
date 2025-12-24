@@ -1,5 +1,5 @@
 import React from "react";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 import check from "@/assets/icons/Check.svg";
 
 interface CheckboxCellProps {
@@ -13,8 +13,7 @@ const CheckboxCell: React.FC<CheckboxCellProps> = ({
   onChange,
   className = "",
 }) => {
-  const { theme } = useAppSelector((state) => state.auth);
-  const isDark = theme === "dark";
+  const { isDark } = useTheme();
 
   return (
     <button

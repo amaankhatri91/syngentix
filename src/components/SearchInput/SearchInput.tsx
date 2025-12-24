@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 import { searchIcon } from "@/utils/logoUtils";
 
 export interface SearchInputProps {
@@ -77,7 +77,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   iconSrc,
   disabled = false,
 }) => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { theme } = useTheme();
   const [internalValue, setInternalValue] = useState<string>(
     controlledValue ?? defaultValue
   );

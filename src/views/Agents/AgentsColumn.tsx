@@ -3,16 +3,16 @@ import {
   DataTableColumn,
   StatusBadge,
 } from "@/components/DataTable";
-import { FinancialAgent } from "./type";
+import { FinancialAgent } from "./types";
 import Connectivity from "@/components/Icons/Connectivity";
 import EditIcon from "@/components/Icons/EditIcon";
 import DeleteIcon from "@/components/Icons/DeleteIcon";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
 
 // Wrapper component for Actions cell to access theme from auth
 const ActionsCell: React.FC<{ row: FinancialAgent }> = ({ row }) => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { theme } = useTheme();
 
   return (
     <ActionButtons

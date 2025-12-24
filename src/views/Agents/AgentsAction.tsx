@@ -1,10 +1,10 @@
 import { Button } from "@/components/Button";
 import Add from "@/components/Icons/Add";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
 
 const AgentsAction = () => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { isDark } = useTheme();
   return (
     <div className="mb-2">
       <div className="flex justify-between items-center mb-3">
@@ -16,7 +16,7 @@ const AgentsAction = () => {
           Create Agent
         </Button>
       </div>
-      {theme === "dark" && <hr className="border-t border-[#2B3643]" />}
+      {isDark && <hr className="border-t border-[#2B3643]" />}
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import React from "react";
 import { Card, CardBody } from "@material-tailwind/react";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 import { stats } from "@/constants/navigation.constant";
 
 const Dashboard = () => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { theme, isDark } = useTheme();
  
   return (
     <div className="w-full">
@@ -15,7 +15,7 @@ const Dashboard = () => {
             <Card
               key={index}
               className={`rounded-[10px] border bg-transparent shadow-none ${
-                theme === "dark" ? "border-[#2B3643]" : "border-[#EEF4FF] shadow-[0_6px_18px_rgba(33,84,238,0.12)]"
+                isDark ? "border-[#2B3643]" : "border-[#EEF4FF] shadow-[0_6px_18px_rgba(33,84,238,0.12)]"
               }`}
             >
               <CardBody className="p-3">
@@ -23,11 +23,11 @@ const Dashboard = () => {
                   <div className="flex items-center gap-4">
                     <div
                       className={`w-12 h-12 rounded-full  flex items-center justify-center ${
-                        theme === "dark" ? "bg-[#1C2643]" : "bg-[#F3F5F8]"
+                        isDark ? "bg-[#1C2643]" : "bg-[#F3F5F8]"
                       }`}
                     >
                       <IconComponent
-                        color={theme === "dark" ? "white" : "#9133EA"}
+                        color={isDark ? "white" : "#9133EA"}
                         size={24}
                       />
                     </div>

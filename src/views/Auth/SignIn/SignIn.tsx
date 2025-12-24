@@ -1,5 +1,6 @@
-import { useAppDispatch, useAppSelector } from "@/store";
+import { useAppDispatch } from "@/store";
 import { signInSuccess } from "@/store/auth/authSlice";
+import useTheme from "@/utils/hooks/useTheme";
 import {
   googleLogo,
   siginBottomImg,
@@ -8,13 +9,13 @@ import {
 } from "@/utils/logoUtils";
 
 const SignIn = () => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { theme, isDark } = useTheme();
   const dispatch = useAppDispatch();
 
   return (
     <div className="fixed inset-0  w-full flex items-center justify-center px-4 overflow-hidden">
       <div className="sigin-border relative">
-        {theme === "dark" && (
+        {isDark && (
           <>
             <img
               src={siginUpperImg()}
@@ -30,7 +31,7 @@ const SignIn = () => {
         )}
         <div
           className={`relative rounded-[40px] p-7 md:p-12 text-center text-white overflow-hidden z-10 ${
-            theme === "dark" ? "bg-[#0F1724]" : "bg-white"
+            isDark ? "bg-[#0F1724]" : "bg-white"
           }`}
         >
           <div className="relative z-10 flex flex-col items-center">

@@ -1,5 +1,5 @@
 import React from "react";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 import { StatusBadge as StatusBadgeType } from "./types";
 
 interface StatusBadgeProps {
@@ -11,8 +11,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   className = "",
 }) => {
-  const { theme } = useAppSelector((state) => state.auth);
-  const isDark = theme === "dark";
+  const { isDark } = useTheme();
 
   const getStatusStyles = () => {
     switch (status.variant) {

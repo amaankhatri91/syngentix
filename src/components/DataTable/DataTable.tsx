@@ -9,7 +9,7 @@ import {
   SortingState,
   RowSelectionState,
 } from "@tanstack/react-table";
-import { useAppSelector } from "@/store";
+import useTheme from "@/utils/hooks/useTheme";
 import { DataTableProps, DataTableColumn, ActionButton } from "./types";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi2";
 import CheckboxCell from "./CheckboxCell";
@@ -28,7 +28,7 @@ const DataTable = <T extends Record<string, any>>({
   emptyMessage = "No data available",
   loading = false,
 }: DataTableProps<T>) => {
-  const { theme } = useAppSelector((state) => state.auth);
+  const { theme, isDark } = useTheme();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
@@ -92,8 +92,6 @@ const DataTable = <T extends Record<string, any>>({
       onRowSelectionChange(selectedRows);
     }
   }, [rowSelection, enableRowSelection, onRowSelectionChange, table]);
-
-  const isDark = theme === "dark";
 
   return (
     <div className={`data-table-container ${className}`} data-theme={theme}>
