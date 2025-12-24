@@ -3,16 +3,21 @@ import {
   DataTableColumn,
   StatusBadge,
 } from "@/components/DataTable";
-import { FinancialAgent } from "./types";
+import { Agent } from "./types";
 import Connectivity from "@/components/Icons/Connectivity";
 import EditIcon from "@/components/Icons/EditIcon";
 import DeleteIcon from "@/components/Icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
+import { Button } from "@/components/Button";
+import { useAppDispatch } from "@/store";
+import { setAgentDailog } from "@/store/agent/agentSlice";
 
 // Wrapper component for Actions cell to access theme from auth
-const ActionsCell: React.FC<{ row: FinancialAgent }> = ({ row }) => {
+const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
   const { theme } = useTheme();
+  const dispatch = useAppDispatch();
+  console.log(row, "Verify Row Data");
 
   return (
     <ActionButtons
@@ -31,6 +36,12 @@ const ActionsCell: React.FC<{ row: FinancialAgent }> = ({ row }) => {
           onClick: (row) => {
             console.log("Link clicked for:", row);
             // Handle link action
+            dispatch(
+              setAgentDailog({
+                agentDailog: true,
+                agentRow: row,
+              })
+            );
           },
         },
         {
@@ -47,7 +58,7 @@ const ActionsCell: React.FC<{ row: FinancialAgent }> = ({ row }) => {
   );
 };
 
-export const columns: DataTableColumn<FinancialAgent>[] = [
+export const columns: DataTableColumn<Agent>[] = [
   {
     id: "select",
     header: "",
@@ -63,7 +74,16 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     enableSorting: true,
     size: 200,
     align: "left",
-    cell: (value, row) => <h5 className="font-medium">{row.name}</h5>,
+    cell: (value, row) => <h5 className="font-medium">{row.name || "-"}</h5>,
+  },
+  {
+    id: "description",
+    header: "Description",
+    accessorKey: "description",
+    enableSorting: true,
+    size: 300,
+    align: "left",
+    cell: (value) => <h5 className="text-sm">{value || "-"}</h5>,
   },
   {
     id: "workflows",
@@ -73,18 +93,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     size: 120,
     align: "center",
     cell: (value) => (
-      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
-    ),
-  },
-  {
-    id: "conversations",
-    header: "Conversations",
-    accessorKey: "conversations",
-    enableSorting: true,
-    size: 140,
-    align: "center",
-    cell: (value) => (
-      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
+      <h5 className="font-mono">{Array.isArray(value) ? value.length : "-"}</h5>
     ),
   },
   {
@@ -94,9 +103,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     enableSorting: true,
     size: 100,
     align: "center",
-    cell: (value) => (
-      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
-    ),
+    cell: (value) => <h5 className="font-mono">{"-"}</h5>,
   },
   {
     id: "files",
@@ -105,9 +112,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     enableSorting: true,
     size: 100,
     align: "center",
-    cell: (value) => (
-      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
-    ),
+    cell: (value) => <h5 className="font-mono">{"-"}</h5>,
   },
   {
     id: "status",
@@ -119,8 +124,8 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     cell: (value, row) => (
       <StatusBadge
         status={{
-          label: row.status === "active" ? "Active" : "Offline",
-          variant: row.status === "active" ? "active" : "offline",
+          label: row.status !== "active" ? "Active" : "Offline",
+          variant: row.status !== "active" ? "active" : "offline",
         }}
       />
     ),

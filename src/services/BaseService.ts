@@ -10,28 +10,48 @@ const unauthorizedCode = [401];
 const BaseService = axios.create({
     timeout: 60000,
     baseURL: appConfig.apiPrefix,
+    // Ensure headers are sent with redirects
+    maxRedirects: 5,
+    validateStatus: (status) => status < 500, // Don't throw on 4xx errors
 });
 
 // Request interceptor
 BaseService.interceptors.request.use(
     (config) => {
-        const rawPersistData = localStorage.getItem(PERSIST_STORE_NAME);
-        const persistData = deepParseJson(rawPersistData);
-        console.log("Verify Step 1")
-        let accessToken = (persistData as any)?.auth?.token || '';
-        console.log(accessToken, "verify Access Token")
+        // Ensure headers object exists
+        if (!config.headers) {
+            config.headers = {} as any;
+        }
+        // Try to get token from Redux store first (most reliable)
+        const state = store.getState();
+        let accessToken = state?.auth?.token;
+
+        // Fallback to persisted localStorage if not found in store
         if (!accessToken) {
-            const { auth } = store.getState() || "";
-            accessToken = auth?.token;
+            try {
+                const rawPersistData = localStorage.getItem(PERSIST_STORE_NAME);
+                if (rawPersistData) {
+                    const persistData = deepParseJson(rawPersistData);
+                    accessToken = (persistData as any)?.auth?.token;
+                }
+            } catch (error) {
+                console.error('Error reading persisted data:', error);
+            }
         }
-        console.log("Verify Step 2")
-        if (accessToken) {
-            config.headers[REQUEST_HEADER_AUTH_KEY] = `${TOKEN_TYPE} ${accessToken}`;
+       
+        // Set Authorization header if token exists and is a valid string
+        if (accessToken && typeof accessToken === 'string' && accessToken.trim() !== '') {
+            // Ensure header is set correctly for axios
+            const authHeaderValue = `${TOKEN_TYPE} ${accessToken.trim()}`;
+            // Set header using direct assignment (standard way)
+            config.headers[REQUEST_HEADER_AUTH_KEY] = authHeaderValue;
+        } else {
+            console.warn('❌ No access token found for request:', config.url, {
+                stateToken: state?.auth?.token,
+                stateAuthExists: !!state?.auth,
+                persistDataExists: !!localStorage.getItem(PERSIST_STORE_NAME)
+            });
         }
-
-        // Logging request data
-        console.log('Request:', config.url, config.method, config.headers);
-
         return config;
     },
     (error) => {

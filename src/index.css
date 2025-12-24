@@ -130,3 +130,75 @@ nav button {
 .button-color {
   background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
 }
+
+/* React Toastify Theme Styles */
+/* Dark Mode Toast Styles */
+.toast-dark {
+  background-color: #0D131A !important;
+  color: #BDC9F5 !important;
+  border: 1px solid #2B3643 !important;
+  border-radius: 12px !important;
+}
+
+.toast-body-dark {
+  color: #BDC9F5 !important;
+  font-family: "Mona Sans", sans-serif !important;
+}
+
+.toast-dark .Toastify__toast-icon {
+  color: #BDC9F5 !important;
+}
+
+.toast-dark .Toastify__close-button {
+  color: #BDC9F5 !important;
+  opacity: 0.8 !important;
+}
+
+.toast-dark .Toastify__close-button:hover {
+  opacity: 1 !important;
+}
+
+.toast-dark .Toastify__progress-bar {
+  background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%) !important;
+}
+
+/* Light Mode Toast Styles */
+.toast-light {
+  background-color: #ffffff !important;
+  color: #5A5A5A !important;
+  border: 1px solid #E6E6E6 !important;
+  border-radius: 12px !important;
+}
+
+.toast-body-light {
+  color: #5A5A5A !important;
+  font-family: "Mona Sans", sans-serif !important;
+}
+
+.toast-light .Toastify__toast-icon {
+  color: #5A5A5A !important;
+}
+
+.toast-light .Toastify__close-button {
+  color: #5A5A5A !important;
+  opacity: 0.8 !important;
+}
+
+.toast-light .Toastify__close-button:hover {
+  opacity: 1 !important;
+}
+
+.toast-light .Toastify__progress-bar {
+  background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%) !important;
+}
+
+/* Toast Title/Heading Styles */
+.toast-dark .Toastify__toast-title {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.toast-light .Toastify__toast-title {
+  color: #162230 !important;
+  font-weight: 600 !important;
+}

@@ -7,10 +7,11 @@ import useTheme from "@/utils/hooks/useTheme";
 const AgentsAction = () => {
   const { isDark } = useTheme();
   const dispatch = useAppDispatch();
+
   return (
     <div className="mb-2">
       <div className="flex justify-between items-center mb-3">
-        <h2>Agents</h2>
+        <h2 className="!text-sm !lg:text-[16px]">Agents</h2>
         <Button
           onClick={() => {
             dispatch(

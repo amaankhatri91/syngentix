@@ -2,6 +2,7 @@ import { Formik, Form } from "formik";
 import useTheme from "@/utils/hooks/useTheme";
 import useGoogleAuth from "@/utils/hooks/useGoogleAuth";
 import useAuth from "@/utils/hooks/useAuth";
+import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
 import { Button } from "@/components/Button";
 import {
   googleLogo,
@@ -9,11 +10,13 @@ import {
   siginLogo,
   siginUpperImg,
 } from "@/utils/logoUtils";
+import { showSuccessToast, showErrorToast } from "@/utils/toast";
 
 const SignIn = () => {
   const { theme, isDark } = useTheme();
   const { triggerGoogleLogin } = useGoogleAuth();
   const { googleSignIn } = useAuth();
+  const { invalidateAllQueries } = useRefetchQueries();
 
   return (
     <Formik
@@ -22,22 +25,20 @@ const SignIn = () => {
         try {
           setSubmitting(true);
           const googleUser = await triggerGoogleLogin();
-          console.log("Google User:", googleUser);
-          
-          // Call backend API with Google user data
           const result = await googleSignIn(googleUser);
-          
-          if (result?.status === "failed") {
-            alert(result.message || "Google sign-in failed");
+          if (result?.status === "success") {
+            // Invalidate all query caches to trigger refetch when components load
+            invalidateAllQueries();
+            showSuccessToast(result.message || "Sign in successful!");
+          } else if (result?.status === "failed") {
+            showErrorToast(result.message || "Google sign-in failed");
           }
         } catch (error: any) {
           console.error("Google sign-in error:", error);
-          // Popup closed / cancelled / failed
-          if (error?.message) {
-            alert(error.message);
-          }
+          showErrorToast(
+            error?.message || "An unexpected error occurred. Please try again."
+          );
         } finally {
-          // ✅ ALWAYS reset submitting state
           setSubmitting(false);
         }
       }}
@@ -59,7 +60,6 @@ const SignIn = () => {
                 />
               </>
             )}
-
             <div
               className={`relative rounded-[40px] p-7 md:p-12 text-center overflow-hidden z-10 ${
                 isDark ? "bg-[#0F1724] text-white" : "bg-white text-gray-900"

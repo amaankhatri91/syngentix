@@ -16,12 +16,28 @@ import { authProtectedRoutes, publicRoutes } from "./routes";
 import AuthMiddleware from "./routes/routes";
 import Layout from "./components/Layout/Layout";
 import useThemeBackground from "./utils/hooks/useThemeBackground";
+import useTheme from "./utils/hooks/useTheme";
 
 const AppContent: React.FC = () => {
   useThemeBackground();
+  const { isDark } = useTheme();
+
   return (
     <>
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={isDark ? "dark" : "light"}
+        toastClassName={`${isDark ? "toast-dark" : "toast-light"}`}
+        bodyClassName={`${isDark ? "toast-body-dark" : "toast-body-light"}`}
+      />
       <Router>
         <Routes>
           {publicRoutes?.map((route, idx) => (

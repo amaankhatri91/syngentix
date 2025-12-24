@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleSignUpCredential, SignInCredential } from "@/@types/auth";
 import { apiGoogleSignIn, apiSignIn } from "@/services/AuthService";
 import { signInSuccess, signOutSuccess } from "@/store/auth/authSlice";
+import RtkQueryService from "@/services/RtkQueryService";
 
 function useAuth() {
   const dispatch = useAppDispatch();
@@ -25,6 +26,7 @@ function useAuth() {
         const data: any = resp.data;
         dispatch(signInSuccess(data));
         navigate("/");
+        
         return {
           status: "success",
           message: "Login successful",
@@ -86,6 +88,9 @@ function useAuth() {
   };
 
   const handleSignOut = () => {
+    // Reset RTK Query cache on logout to clear all cached data
+    dispatch(RtkQueryService.util.resetApiState());
+    
     dispatch(
       signOutSuccess({
         avatar: "",

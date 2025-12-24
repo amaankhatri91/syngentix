@@ -4,49 +4,71 @@ import { Input, Textarea } from "@material-tailwind/react";
 import { Dialog } from "@/components/Dialog";
 import { FooterButtons } from "@/components/FooterButtons";
 import useTheme from "@/utils/hooks/useTheme";
-import { FormValues } from "./types";
+import { AgentFormValues } from "./types";
 import { AgentSchema } from "./AgentSchema";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { setAgentDailog } from "@/store/agent/agentSlice";
+import {
+  setAgentDailog,
+  createAgent,
+  editAgent,
+} from "@/store/agent/agentSlice";
+import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
 
 const AgentDialog = () => {
   const { isDark } = useTheme();
-  const { agentDailog } = useAppSelector((state) => state.agent);
+  const { agentDailog, agentRow } = useAppSelector((state) => state.agent);
   const dispatch = useAppDispatch();
+  
+  // Get refetch functions from common hook
+  const { refetchAgents } = useRefetchQueries();
 
-  const handleCancel = (resetForm: () => void) => {
+  const handleCancel = (resetForm?: () => void) => {
     dispatch(
       setAgentDailog({
         agentDailog: false,
         agentRow: {},
       })
     );
-    resetForm();
+    if (resetForm) {
+      resetForm();
+    }
   };
 
   return (
     <Dialog
       open={agentDailog}
-      handler={() => {
-        dispatch(
-          setAgentDailog({
-            agentDailog: false,
-            agentRow: {},
-          })
-        );
-      }}
-      title="Create New Agent"
+      handler={handleCancel}
+      title={`${agentRow?.id ? "Edit" : "Create"} New Agent`}
       size="sm"
       bodyClassName="!px-8 !pb-5"
     >
-      <Formik<FormValues>
+      <Formik<AgentFormValues>
         initialValues={{
-          agentName: "",
-          description: "",
+          agentName: agentRow?.name || "",
+          description: agentRow?.description || "",
         }}
         validationSchema={AgentSchema}
-        onSubmit={(values: FormValues) => {
-          console.log(values, "Verify Values");
+        onSubmit={async (values: AgentFormValues) => {
+          try {
+            const response = agentRow?.id
+              ? await dispatch(
+                  editAgent({
+                    id: agentRow?.agent_id,
+                    agentName: values.agentName,
+                    description: values.description,
+                  })
+                ).unwrap()
+              : await dispatch(createAgent(values)).unwrap();
+            dispatch(
+              setAgentDailog({
+                agentDailog: false,
+                agentRow: {},
+              })
+            );
+            refetchAgents();
+          } catch (error: any) {
+            console.log(error, "Verify Error");
+          }
         }}
         enableReinitialize
       >
@@ -57,6 +79,7 @@ const AgentDialog = () => {
           touched,
           setFieldValue,
           setFieldTouched,
+          dirty,
         }) => (
           <Form>
             <div>
@@ -153,9 +176,9 @@ const AgentDialog = () => {
             <FooterButtons
               onCancel={() => handleCancel(resetForm)}
               cancelText="Cancel"
-              submitText="Create Agent"
+              submitText={`${agentRow?.id ? "Edit" : "Create"} Agent`}
               isLoading={isSubmitting}
-              isDisabled={isSubmitting}
+              isDisabled={isSubmitting || !dirty}
             />
           </Form>
         )}

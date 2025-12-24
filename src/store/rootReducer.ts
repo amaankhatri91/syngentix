@@ -16,6 +16,8 @@ export interface AsyncReducers {
 const staticReducers = {
     auth : authReducer,
     agent : agentReducer,
+    // Include RTK Query reducer
+    [RtkQueryService.reducerPath]: RtkQueryService.reducer,
 }
 
 const rootReducer =
