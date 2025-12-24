@@ -2,24 +2,39 @@ import React from "react";
 import { Formik, Form, Field, ErrorMessage, FormikProps } from "formik";
 import { Input, Textarea } from "@material-tailwind/react";
 import { Dialog } from "@/components/Dialog";
-import { Button } from "@/components/Button";
+import { FooterButtons } from "@/components/FooterButtons";
 import useTheme from "@/utils/hooks/useTheme";
 import { FormValues } from "./types";
 import { AgentSchema } from "./AgentSchema";
-import { useAppSelector } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { setAgentDailog } from "@/store/agent/agentSlice";
 
 const AgentDialog = () => {
   const { isDark } = useTheme();
   const { agentDailog } = useAppSelector((state) => state.agent);
+  const dispatch = useAppDispatch();
 
-  const handleCancel = (resetForm: () => void) => {};
-
-  const handler = () => {};
+  const handleCancel = (resetForm: () => void) => {
+    dispatch(
+      setAgentDailog({
+        agentDailog: false,
+        agentRow: {},
+      })
+    );
+    resetForm();
+  };
 
   return (
     <Dialog
       open={agentDailog}
-      handler={handler}
+      handler={() => {
+        dispatch(
+          setAgentDailog({
+            agentDailog: false,
+            agentRow: {},
+          })
+        );
+      }}
       title="Create New Agent"
       size="sm"
       bodyClassName="!px-8 !pb-5"
@@ -136,32 +151,13 @@ const AgentDialog = () => {
                 />
               </div>
             </div>
-            {/* Footer Buttons */}
-            <div className="flex justify-end gap-3 w-full pt-4">
-              <Button
-                type="button"
-                onClick={() => handleCancel(resetForm)}
-                backgroundColor={
-                  isDark
-                    ? "bg-gray-600 hover:bg-gray-700 text-white"
-                    : "bg-[#E6E6E6] hover:bg-gray-300 text-gray-900"
-                }
-                width="w-full"
-                className="px-6 !rounded-xl py-2.5"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                backgroundColor="!bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-white"
-                width="w-full"
-                className="px-6 !rounded-xl py-2.5"
-                loading={isSubmitting}
-              >
-                Create Agent
-              </Button>
-            </div>
+            <FooterButtons
+              onCancel={() => handleCancel(resetForm)}
+              cancelText="Cancel"
+              submitText="Create Agent"
+              isLoading={isSubmitting}
+              isDisabled={isSubmitting}
+            />
           </Form>
         )}
       </Formik>

@@ -4,10 +4,12 @@ const SLICE_NAME = "agent";
 
 export type AgentState = {
   agentDailog: boolean;
+  agentRow: any;
 };
 
 const initialState: AgentState = {
   agentDailog: false,
+  agentRow: {},
 };
 
 const agentSlice = createSlice({
@@ -15,7 +17,9 @@ const agentSlice = createSlice({
   initialState,
   reducers: {
     setAgentDailog: (state, action) => {
-      state.agentDailog = action.payload;
+      const { agentDailog, agentRow } = action.payload;
+      state.agentDailog = agentDailog;
+      state.agentRow = agentRow;
     },
   },
 });

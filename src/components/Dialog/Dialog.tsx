@@ -8,9 +8,7 @@ import {
 import useTheme from "@/utils/hooks/useTheme";
 
 export interface DialogProps {
-  /**
-   * Whether the dialog is open
-   */
+  
   open: boolean;
   /**
    * Handler function to control dialog open/close state
@@ -67,7 +65,6 @@ const Dialog: React.FC<DialogProps> = ({
 }) => {
   const { isDark } = useTheme();
 
-  // Get background and border colors based on theme
   const bgColor = isDark ? "bg-[#0D131A]" : "bg-white";
   const borderColor = "border-[#2B3643]";
 
@@ -87,8 +84,8 @@ const Dialog: React.FC<DialogProps> = ({
     >
       {title && (
         <DialogHeader
-          className={`flex justify-center ${
-            isDark ? "text-white" : "text-gray-900"
+          className={`flex justify-center !pt-6 !pb-0 ${
+            isDark ? "text-white" : "text-[#162230]"
           }`}
         >
           {title}
