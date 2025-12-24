@@ -1,11 +1,7 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   DataTable,
-  StatusBadge,
-  ActionButtons,
-  DataTableColumn,
 } from "@/components/DataTable";
-import { HiSignal, HiPaperClip, HiTrash, HiWifi } from "react-icons/hi2";
 import { FinancialAgent } from "./type";
 import { sampleAgents } from "./AgentsData";
 import { columns } from "./AgentsColumn";
@@ -17,7 +13,6 @@ const Agents: React.FC = () => {
   };
 
   return (
-    <div>
       <div className="rounded-lg overflow-hidden">
         <DataTable
           data={sampleAgents}
@@ -29,7 +24,6 @@ const Agents: React.FC = () => {
           getRowId={(row) => row.id}
           emptyMessage="No agents found"
         />
-      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
-import Agents from "./Agents";
+import AgentList from "./AgentList";
 
-export default Agents
+export default AgentList
 
 
 

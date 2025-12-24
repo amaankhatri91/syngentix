@@ -27,6 +27,11 @@ h5 {
   color: var(--heading-color, #162230);
 }
 
+p,
+span {
+  color: var(--text-color, #5a5a5a);
+}
+
 .text-font {
   font-family: "Mona Sans", sans-serif;
   font-optical-sizing: auto;
@@ -120,4 +125,8 @@ nav button {
 .custom-checkbox {
   border: Mixed solid;
   border-image-source: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
+}
+
+.button-color {
+  background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
 }

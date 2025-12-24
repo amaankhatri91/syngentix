@@ -9,3 +9,15 @@ export interface FinancialAgent {
   files: number;
   status: "active" | "offline";
 }
+
+
+export interface AgentDialogProps {
+  open: boolean;
+  handler: () => void;
+  onCreate?: (data: { agentName: string; description: string }) => void;
+}
+
+export interface FormValues {
+  agentName: string;
+  description: string;
+}

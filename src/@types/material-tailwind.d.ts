@@ -8,12 +8,17 @@ declare module "@material-tailwind/react" {
     export const Button: any;
     export const Avatar: any;
     export const Input: any;
+    export const Textarea: any;
     export const Card: any;
     export const CardHeader: any;
     export const CardBody: any;
     export const CardFooter: any;
     export const Typography: any;
     export const Skeleton: any;
-    export const Badge:any;
+    export const Badge: any;
+    export const Dialog: any;
+    export const DialogHeader: any;
+    export const DialogBody: any;
+    export const DialogFooter: any;
 }
 

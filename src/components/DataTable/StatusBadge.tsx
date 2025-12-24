@@ -31,11 +31,22 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
     }
   };
 
+  const getIndicatorColor = () => {
+    if (status.variant === "active") {
+      return !isDark ? "#FFFFFF" : "#00F07F";
+    } else {
+      return !isDark ? "#555B6E" : "#AEB9E1";
+    }
+  };
+
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium  ${getStatusStyles()} ${className}`}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      <span
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: getIndicatorColor() }}
+      />
       {status.label}
     </span>
   );

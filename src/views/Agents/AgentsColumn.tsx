@@ -13,37 +13,33 @@ import React from "react";
 // Wrapper component for Actions cell to access theme from auth
 const ActionsCell: React.FC<{ row: FinancialAgent }> = ({ row }) => {
   const { theme } = useAppSelector((state) => state.auth);
-  
 
   return (
     <ActionButtons
       actions={[
         {
-          icon: <Connectivity theme={theme}  />,
+          icon: <Connectivity theme={theme} />,
           label: "Connect",
           onClick: (row) => {
             console.log("Connect clicked for:", row);
             // Handle connect action
           },
-          variant: "primary",
         },
         {
-          icon: <EditIcon theme={theme}  />,
+          icon: <EditIcon theme={theme} />,
           label: "Link",
           onClick: (row) => {
             console.log("Link clicked for:", row);
             // Handle link action
           },
-          variant: "secondary",
         },
         {
-          icon: <DeleteIcon theme={theme}  />,
+          icon: <DeleteIcon theme={theme} />,
           label: "Delete",
           onClick: (row) => {
             console.log("Delete clicked for:", row);
             // Handle delete action
           },
-          variant: "danger",
         },
       ]}
       row={row}
@@ -67,7 +63,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     enableSorting: true,
     size: 200,
     align: "left",
-    cell: (value, row) => <span className="font-medium">{row.name}</span>,
+    cell: (value, row) => <h5 className="font-medium">{row.name}</h5>,
   },
   {
     id: "workflows",
@@ -77,7 +73,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     size: 120,
     align: "center",
     cell: (value) => (
-      <span className="font-mono">{String(value).padStart(2, "0")}</span>
+      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
     ),
   },
   {
@@ -88,7 +84,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     size: 140,
     align: "center",
     cell: (value) => (
-      <span className="font-mono">{String(value).padStart(2, "0")}</span>
+      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
     ),
   },
   {
@@ -99,7 +95,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     size: 100,
     align: "center",
     cell: (value) => (
-      <span className="font-mono">{String(value).padStart(2, "0")}</span>
+      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
     ),
   },
   {
@@ -110,7 +106,7 @@ export const columns: DataTableColumn<FinancialAgent>[] = [
     size: 100,
     align: "center",
     cell: (value) => (
-      <span className="font-mono">{String(value).padStart(2, "0")}</span>
+      <h5 className="font-mono">{String(value).padStart(2, "0")}</h5>
     ),
   },
   {

@@ -122,9 +122,11 @@ const DataTable = <T extends Record<string, any>>({
                   const isFirst = index === 0;
                   const isLast = index === headerGroup.headers.length - 1;
                   const align =
-                    (header.column.columnDef.meta as {
-                      align?: "left" | "center" | "right";
-                    })?.align ?? "left";
+                    (
+                      header.column.columnDef.meta as {
+                        align?: "left" | "center" | "right";
+                      }
+                    )?.align ?? "left";
                   const textAlignClass =
                     align === "center"
                       ? "text-center"
@@ -271,9 +273,11 @@ const DataTable = <T extends Record<string, any>>({
                       const isFirst = index === 0;
                       const isLast = index === cells.length - 1;
                       const align =
-                        (cell.column.columnDef.meta as {
-                          align?: "left" | "center" | "right";
-                        })?.align ?? "left";
+                        (
+                          cell.column.columnDef.meta as {
+                            align?: "left" | "center" | "right";
+                          }
+                        )?.align ?? "left";
                       const textAlignClass =
                         align === "center"
                           ? "text-center"
@@ -314,12 +318,10 @@ const DataTable = <T extends Record<string, any>>({
                               }
                             />
                           ) : (
-                            <span>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </span>
+                            flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )
                           )}
                         </td>
                       );
