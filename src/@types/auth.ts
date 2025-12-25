@@ -36,30 +36,34 @@ export type GoogleSignUpCredential = {
 };
 
 export type GoogleSignInResponse = {
-  token: {
-    access_token: string;
-    refresh_token: string;
-    token_type: string;
-  };
-  user: {
-    email: string;
-    display_name: string;
-    google_id: string;
-    photo_url: string;
-    id: string;
-    type: string;
-    user_id: string;
-    agents?: string[];
-  };
-  workspace: {
-    id: string;
-    name: string;
-    owner_id: string;
-    settings: {
-      input_guardrails: boolean;
-      output_guardrails: boolean;
+  status: "success" | "failed";
+  message: string;
+  data: {
+    token: {
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
     };
-    created_at: string;
-    type: string;
+    user: {
+      email: string;
+      display_name: string;
+      google_id: string;
+      photo_url: string;
+      id: string;
+      type: string;
+      user_id: string;
+      agents?: string[];
+    };
+    workspace: {
+      id: string;
+      name: string;
+      owner_id: string;
+      settings: {
+        input_guardrails: boolean;
+        output_guardrails: boolean;
+      };
+      created_at: string;
+      type: string;
+    };
   };
 };

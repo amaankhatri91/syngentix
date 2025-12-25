@@ -13,7 +13,7 @@ import {
   editWorkflow,
 } from "@/store/workflow/workflowSlice";
 import { useParams } from "react-router-dom";
-import { useGetWorkflowsQuery } from "@/services/RtkQueryService";
+import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
 
 const WorkflowDialog = () => {
   const { isDark } = useTheme();
@@ -22,12 +22,7 @@ const WorkflowDialog = () => {
     (state) => state.workflow
   );
   const dispatch = useAppDispatch();
-
-  // Get refetch function for workflows
-  const { refetch: refetchWorkflows } = useGetWorkflowsQuery(agentId || "", {
-    skip: !agentId,
-  });
-
+  const { invalidateAllQueries } = useRefetchQueries();
   const handleCancel = (resetForm?: () => void) => {
     dispatch(
       setWorkflowDialog({
@@ -39,7 +34,6 @@ const WorkflowDialog = () => {
       resetForm();
     }
   };
-
   return (
     <Dialog
       open={workflowDialog}
@@ -61,10 +55,10 @@ const WorkflowDialog = () => {
         validationSchema={WorkflowSchema}
         onSubmit={async (values: WorkflowFormValues) => {
           try {
-            const response = workflowRow?.id
+            const response = workflowRow?.workflow_id
               ? await dispatch(
                   editWorkflow({
-                    id: workflowRow?.id,
+                    id: workflowRow?.workflow_id,
                     title: values.title,
                     description: values.description,
                   })
@@ -81,7 +75,7 @@ const WorkflowDialog = () => {
                 workflowRow: {},
               })
             );
-            refetchWorkflows();
+            invalidateAllQueries();
           } catch (error: any) {
             console.log(error, "Verify Error");
           }
@@ -192,7 +186,7 @@ const WorkflowDialog = () => {
             <FooterButtons
               onCancel={() => handleCancel(resetForm)}
               cancelText="Cancel"
-              submitText={`${workflowRow?.id ? "Edit" : "Create"} Agent`}
+              submitText={`${workflowRow?.id ? "Edit" : "Create"} Workflow`}
               isLoading={isSubmitting}
               isDisabled={isSubmitting || !dirty}
             />

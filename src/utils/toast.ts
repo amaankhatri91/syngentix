@@ -27,8 +27,20 @@ export const showSuccessToast = (message: string, options?: ToastOptions) => {
 
 /**
  * Show an error toast notification
+ * Filters out RTK Query internal errors that shouldn't be shown to users
  */
 export const showErrorToast = (message: string, options?: ToastOptions) => {
+  // Filter out RTK Query internal errors
+  const filteredMessages = [
+    "cannot fetch query that has not been started yet",
+    "Cannot fetch query that has not been started yet",
+  ];
+  
+  if (filteredMessages.some((filtered) => message?.toLowerCase().includes(filtered.toLowerCase()))) {
+    // Don't show RTK Query internal errors
+    return;
+  }
+  
   return toast.error(message, {
     ...defaultOptions,
     ...options,

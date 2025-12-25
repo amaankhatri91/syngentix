@@ -1,4 +1,3 @@
-import { useGetAgentsQuery } from '@/services/RtkQueryService'
 import { useAppDispatch } from '@/store'
 import RtkQueryService from '@/services/RtkQueryService'
 
@@ -23,30 +22,30 @@ import RtkQueryService from '@/services/RtkQueryService'
 export const useRefetchQueries = () => {
   const dispatch = useAppDispatch()
   
-  // Get refetch function from agents query
-  // Using skip: true to avoid fetching data, we only need the refetch function
-  const { refetch: refetchAgents } = useGetAgentsQuery(undefined, {
-    skip: true, // Don't fetch on mount, we only need the refetch function
-  })
-
   return {
     /**
-     * Refetch agents list
+     * Refetch agents list by invalidating cache
+     * This is safer than using refetch() as it doesn't require the query to be started
      */
     refetchAgents: () => {
-      return refetchAgents()
+      try {
+        dispatch(RtkQueryService.util.invalidateTags(['Agents']))
+      } catch (error) {
+        // Silently handle errors - don't show in toast
+        console.warn('Failed to invalidate agents cache:', error)
+      }
     },
     
     /**
      * Refetch all queries (useful for refresh actions)
      */
     refetchAll: async () => {
-      const results = await Promise.allSettled([
-        refetchAgents(),
-        // Add more refetch calls here as you add more queries
-      ])
-      
-      return results
+      try {
+        dispatch(RtkQueryService.util.invalidateTags(['Agents', 'Workflows']))
+      } catch (error) {
+        // Silently handle errors - don't show in toast
+        console.warn('Failed to invalidate query caches:', error)
+      }
     },
     
     /**
@@ -62,10 +61,13 @@ export const useRefetchQueries = () => {
      * ```
      */
     invalidateAllQueries: () => {
-      // Invalidate all cache tags - add more tags here as you add queries
-      dispatch(RtkQueryService.util.invalidateTags(['Agents']))
-      // When you add more queries, add their tags here:
-      // dispatch(RtkQueryService.util.invalidateTags(['Agents', 'Users', 'Products']))
+      try {
+        // Invalidate all cache tags - add more tags here as you add queries
+        dispatch(RtkQueryService.util.invalidateTags(['Agents', 'Workflows']))
+      } catch (error) {
+        // Silently handle errors - don't show in toast
+        console.warn('Failed to invalidate all query caches:', error)
+      }
     },
   }
 }

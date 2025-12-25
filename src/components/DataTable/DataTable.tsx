@@ -282,7 +282,7 @@ const DataTable = <T extends Record<string, any>>({
                       return (
                         <td
                           key={cell.id}
-                          className={`px-4 py-1 text-sm ${textAlignClass} ${
+                          className={`px-4 py-2 text-sm ${textAlignClass} ${
                             isFirst ? "rounded-tl-lg rounded-bl-lg" : ""
                           } ${isLast ? "rounded-tr-lg rounded-br-lg" : ""} ${
                             isDark ? "!text-white" : "!text-gray-700"

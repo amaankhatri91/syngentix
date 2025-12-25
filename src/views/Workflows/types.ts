@@ -1,12 +1,12 @@
 export interface Workflow {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  triggers: number;
-  actions: number;
-  schedule: string;
-  status: string;
-  isActive: boolean;
+  triggers?: number;
+  actions?: number;
+  schedule?: string;
+  status?: boolean;
+  isActive?: boolean;
 }
 
 export type WorkflowsResponse = Workflow[];

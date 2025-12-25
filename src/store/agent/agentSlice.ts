@@ -6,11 +6,13 @@ const SLICE_NAME = "agent";
 export type AgentState = {
   agentDailog: boolean;
   agentRow: any;
+  activeTab: string | number;
 };
 
 const initialState: AgentState = {
   agentDailog: false,
   agentRow: {},
+  activeTab: "workflows", // Default to workflows tab
 };
 
 export const createAgent = createAsyncThunk(
@@ -18,7 +20,7 @@ export const createAgent = createAsyncThunk(
   async (data: any, { rejectWithValue }) => {
     try {
       const response = await apiCreateAgent(data);
-      return response;
+      return response?.data;
     } catch (error: any) {
       return rejectWithValue(
         error?.response?.data || { message: "Unknown error" }
@@ -32,7 +34,7 @@ export const editAgent = createAsyncThunk(
   async (data: any, { rejectWithValue }) => {
     try {
       const response = await apiEditAgent(data);
-      return response;
+      return response?.data;
     } catch (error: any) {
       return rejectWithValue(
         error?.response?.data || { message: "Unknown error" }
@@ -50,8 +52,11 @@ const agentSlice = createSlice({
       state.agentDailog = agentDailog;
       state.agentRow = agentRow;
     },
+    setActiveTab: (state, action) => {
+      state.activeTab = action.payload;
+    },
   },
 });
 
-export const { setAgentDailog } = agentSlice.actions;
+export const { setAgentDailog, setActiveTab } = agentSlice.actions;
 export default agentSlice.reducer;

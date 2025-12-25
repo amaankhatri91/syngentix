@@ -26,7 +26,7 @@ function useAuth() {
         const data: any = resp.data;
         dispatch(signInSuccess(data));
         navigate("/");
-        
+
         return {
           status: "success",
           message: "Login successful",
@@ -54,9 +54,10 @@ function useAuth() {
   > => {
     try {
       const resp = await apiGoogleSignIn(values);
-      console.log(resp , "Login Api Integration")
+      console.log(resp, "Login Api Integration");
       if (resp?.data?.data) {
-        const { token, user, workspace } = resp.data?.data;
+        const { token, user, workspace } = resp.data.data;
+        const responseMessage = resp.data.message || "Login successful";
         dispatch(
           signInSuccess({
             accessToken: token.access_token,
@@ -73,14 +74,15 @@ function useAuth() {
         );
         navigate("/");
         return {
-          status: "success",
-          message: "Login successful",
+          status: resp.data.status || "success",
+          message: responseMessage,
         };
       }
     } catch (error: any) {
       return {
         status: "failed",
         message:
+          error?.response?.data?.data?.message ||
           error?.response?.data?.message ||
           error?.message ||
           "Something went wrong",
@@ -91,7 +93,7 @@ function useAuth() {
   const handleSignOut = () => {
     // Reset RTK Query cache on logout to clear all cached data
     dispatch(RtkQueryService.util.resetApiState());
-    
+
     dispatch(
       signOutSuccess({
         avatar: "",

@@ -2,14 +2,12 @@ import { Button } from "@/components/Button";
 import Add from "@/assets/app-icons/Add";
 import { useAppDispatch } from "@/store";
 import { setWorkflowDialog } from "@/store/workflow/workflowSlice";
-import useTheme from "@/utils/hooks/useTheme";
 
 const WorkflowsAction = () => {
-  const { isDark } = useTheme();
   const dispatch = useAppDispatch();
 
   return (
-    <div className="mb-2 mt-2">
+    <div className="mb-2">
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-[18px]">Workflow</h2>
         <Button
@@ -32,4 +30,3 @@ const WorkflowsAction = () => {
 };
 
 export default WorkflowsAction;
-

@@ -13,13 +13,13 @@ import {
   editAgent,
 } from "@/store/agent/agentSlice";
 import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
+import { showSuccessToast, showErrorToast } from "@/utils/toast";
 
 const AgentDialog = () => {
   const { isDark } = useTheme();
   const { agentDailog, agentRow } = useAppSelector((state) => state.agent);
   const dispatch = useAppDispatch();
-  
-  // Get refetch functions from common hook
+
   const { refetchAgents } = useRefetchQueries();
 
   const handleCancel = (resetForm?: () => void) => {
@@ -50,7 +50,7 @@ const AgentDialog = () => {
         validationSchema={AgentSchema}
         onSubmit={async (values: AgentFormValues) => {
           try {
-            const response = agentRow?.id
+            const response: any = agentRow?.id
               ? await dispatch(
                   editAgent({
                     id: agentRow?.agent_id,
@@ -59,15 +59,26 @@ const AgentDialog = () => {
                   })
                 ).unwrap()
               : await dispatch(createAgent(values)).unwrap();
-            dispatch(
-              setAgentDailog({
-                agentDailog: false,
-                agentRow: {},
-              })
-            );
-            refetchAgents();
+
+            if (response?.status === "success") {
+              dispatch(
+                setAgentDailog({
+                  agentDailog: false,
+                  agentRow: {},
+                })
+              );
+              showSuccessToast(response.message || "Agent saved successfully");
+              refetchAgents();
+            } else {
+              showErrorToast(response?.message || "Failed to save agent");
+            }
           } catch (error: any) {
             console.log(error, "Verify Error");
+            showErrorToast(
+              error?.response?.data?.message ||
+                error?.message ||
+                "An error occurred while saving the agent"
+            );
           }
         }}
         enableReinitialize
