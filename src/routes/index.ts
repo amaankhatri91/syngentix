@@ -5,19 +5,21 @@ import Users from "@/views/Users";
 import Templates from "@/views/Templates";
 import Settings from "@/views/Settings";
 import Profile from "@/views/Profile";
+import AgentDetails from "@/views/AgentDetails";
+import Workflows from "@/views/Workflows";
 
 // Define routes
 const authProtectedRoutes = [
   { path: "/dashboard", component: Dashboard },
   { path: "/agents", component: Agents },
+  { path: "/agents/:agentId", component: AgentDetails },
   { path: "/users", component: Users },
   { path: "/templates", component: Templates },
   { path: "/settings", component: Settings },
   { path: "/profile", component: Profile },
+  { path: "/workflows", component: Workflows },
 ];
 
-const publicRoutes = [
-  { path: "/sigin-in", component: SignIn },
-];
+const publicRoutes = [{ path: "/sigin-in", component: SignIn }];
 
 export { authProtectedRoutes, publicRoutes };

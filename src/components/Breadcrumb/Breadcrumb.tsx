@@ -1,0 +1,60 @@
+// components/Breadcrumb.tsx
+import React from "react";
+import { HiChevronRight } from "react-icons/hi2";
+import useTheme from "@/utils/hooks/useTheme";
+
+type BreadcrumbItem = {
+  label: string;
+  href?: string;
+};
+
+interface BreadcrumbProps {
+  items: BreadcrumbItem[];
+}
+
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
+  const { isDark } = useTheme();
+
+  // Theme-based colors
+  const activeColor = isDark ? "#FFFFFF" : "#162230";
+  const inactiveColor = isDark ? "#AEB9E1" : "#646567";
+
+  return (
+    <nav className="flex items-center text-[18px]">
+      {items?.map((item, index) => {
+        const isLast = index === items.length - 1;
+
+        return (
+          <div key={index} className="flex items-center">
+            {item.href && !isLast ? (
+              <a
+                href={item.href}
+                style={{ color: inactiveColor }}
+                className="hover:opacity-80 transition"
+              >
+                {item.label}
+              </a>
+            ) : (
+              <span
+                style={{ color: isLast ? activeColor : inactiveColor }}
+                className={isLast ? "font-medium" : ""}
+              >
+                {item.label}
+              </span>
+            )}
+
+            {!isLast && (
+              <HiChevronRight
+                className="mx-2"
+                size={16}
+                color={inactiveColor}
+              />
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+};
+
+export default Breadcrumb;

@@ -5,12 +5,12 @@ interface DeleteIconProps {
   height?: number | string;
 }
 
-const DeleteIcon: React.FC<DeleteIconProps> = ({ 
-  theme = "light", 
-  height = 18 
+const DeleteIcon: React.FC<DeleteIconProps> = ({
+  theme = "light",
+  height = 18,
 }) => {
   const color = "#F54960"; // Same color for both themes
-  
+
   return (
     <svg
       width={height}

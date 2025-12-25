@@ -1,29 +1,35 @@
 import { Button } from "@/components/Button";
 import Add from "@/assets/app-icons/Add";
+import { useAppDispatch } from "@/store";
+import { setWorkflowDialog } from "@/store/workflow/workflowSlice";
 import useTheme from "@/utils/hooks/useTheme";
 
-const UsersAction = () => {
+const WorkflowsAction = () => {
   const { isDark } = useTheme();
+  const dispatch = useAppDispatch();
+
   return (
-    <div className="mb-2">
+    <div className="mb-2 mt-2">
       <div className="flex justify-between items-center mb-3">
-        <h2>Total Users</h2>
+        <h2 className="text-[18px]">Workflow</h2>
         <Button
           onClick={() => {
-            // Handle invite user action
-            console.log("Invite User clicked");
+            dispatch(
+              setWorkflowDialog({
+                workflowDialog: true,
+                workflowRow: {},
+              })
+            );
           }}
           icon={<Add />}
           className="px-4 !py-1.5 !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb]"
         >
-          Invite User
+          Create Workflow
         </Button>
       </div>
-      {isDark && <hr className="border-t border-[#2B3643]" />}
     </div>
   );
 };
 
-export default UsersAction;
-
+export default WorkflowsAction;
 

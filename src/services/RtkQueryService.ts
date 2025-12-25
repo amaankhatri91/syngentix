@@ -3,6 +3,7 @@ import BaseService from './BaseService'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { AxiosRequestConfig, AxiosError } from 'axios'
 import type { AgentsResponse } from '@/views/Agents/types'
+import type { WorkflowsResponse } from '@/views/Workflows/types'
 
 const axiosBaseQuery =
     (): BaseQueryFn<
@@ -33,7 +34,7 @@ const axiosBaseQuery =
 const RtkQueryService = createApi({
     reducerPath: 'rtkApi',
     baseQuery: axiosBaseQuery(),
-    tagTypes: ['Agents'],
+    tagTypes: ['Agents', 'Workflows'],
     refetchOnMountOrArgChange: false,
     refetchOnFocus: false,
     refetchOnReconnect: false,
@@ -49,6 +50,16 @@ const RtkQueryService = createApi({
             // Provide tags for cache invalidation if needed
             providesTags: ['Agents'],
         }),
+        getWorkflows: builder.query<WorkflowsResponse, string>({
+            query: (agentId) => ({
+                url: `/v1/workflows/${agentId}`,
+                method: 'get',
+            }),
+            // Cache the data for 1 hour (3600 seconds)
+            keepUnusedDataFor: 3600,
+            // Provide tags for cache invalidation if needed
+            providesTags: ['Workflows'],
+        }),
     }),
 })
 
@@ -58,4 +69,6 @@ export default RtkQueryService
 export const { 
     useGetAgentsQuery, 
     useLazyGetAgentsQuery,
+    useGetWorkflowsQuery,
+    useLazyGetWorkflowsQuery,
 } = RtkQueryService

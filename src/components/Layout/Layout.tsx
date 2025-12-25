@@ -1,14 +1,18 @@
 import React from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { LayoutRouteProps } from "react-router-dom";
+import { LayoutRouteProps, useLocation } from "react-router-dom";
 import { useAppSelector } from "@/store";
 
 const Layout: React.FC<LayoutRouteProps> = ({ children }) => {
   const { sidebarOpen } = useAppSelector((state) => state.auth);
+  const location = useLocation();
+
+  // ✅ show header only on dashboard
+  const isDashboard = location.pathname === "/dashboard";
 
   return (
-    <div className={`flex min-h-screen`}>
+    <div className="flex min-h-screen">
       {/* Sidebar */}
       <Sidebar />
 
@@ -18,11 +22,17 @@ const Layout: React.FC<LayoutRouteProps> = ({ children }) => {
           sidebarOpen ? "lg:ml-56" : "lg:ml-16"
         }`}
       >
-        {/* Header */}
-        <Header />
+        {/* Header (Dashboard only) */}
+        {isDashboard && <Header />}
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto mt-12 p-6">{children}</main>
+        <main
+          className={`flex-1 overflow-y-auto p-6 ${
+            isDashboard ? "mt-12" : "mt-0"
+          }`}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

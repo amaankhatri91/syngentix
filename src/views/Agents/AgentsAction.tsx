@@ -1,5 +1,5 @@
 import { Button } from "@/components/Button";
-import Add from "@/components/Icons/Add";
+import Add from "@/assets/app-icons/Add";
 import { useAppDispatch } from "@/store";
 import { setAgentDailog } from "@/store/agent/agentSlice";
 import useTheme from "@/utils/hooks/useTheme";
@@ -7,11 +7,10 @@ import useTheme from "@/utils/hooks/useTheme";
 const AgentsAction = () => {
   const { isDark } = useTheme();
   const dispatch = useAppDispatch();
-
   return (
     <div className="mb-2">
       <div className="flex justify-between items-center mb-3">
-        <h2 className="!text-sm !lg:text-[16px]">Agents</h2>
+        <h2 className="text-[18px]">Agents</h2>
         <Button
           onClick={() => {
             dispatch(

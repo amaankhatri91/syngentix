@@ -8,6 +8,10 @@ export { default as ProfileIcon } from "./ProfileIcon";
 export { default as WorkFlowIcon } from "./WorkFlowIcon";
 export { default as EnvelopeIcon } from "./EnvelopeIcon";
 export { default as CalendarIcon } from "./CalendarIcon";
+export { default as Add } from "./Add";
+export { default as Connectivity } from "./Connectivity";
+export { default as EditIcon } from "./EditIcon";
+export { default as DeleteIcon } from "./DeleteIcon";
 
 
 

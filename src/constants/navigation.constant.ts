@@ -8,7 +8,7 @@ import {
   SettingIcon,
   ProfileIcon,
   WorkFlowIcon,
-} from "@/components/Icons";
+} from "@/assets/app-icons";
 
 export interface SidebarItem {
   label: string;

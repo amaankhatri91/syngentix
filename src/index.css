@@ -202,3 +202,7 @@ nav button {
   color: #162230 !important;
   font-weight: 600 !important;
 }
+
+.icon-color {
+    background: linear-gradient(90deg, #9133EA 0%, #2962EB 100%);
+}

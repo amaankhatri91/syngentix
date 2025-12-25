@@ -4,14 +4,14 @@ import {
   StatusBadge,
 } from "@/components/DataTable";
 import { Agent } from "./types";
-import Connectivity from "@/components/Icons/Connectivity";
-import EditIcon from "@/components/Icons/EditIcon";
-import DeleteIcon from "@/components/Icons/DeleteIcon";
+import Connectivity from "@/assets/app-icons/Connectivity";
+import EditIcon from "@/assets/app-icons/EditIcon";
+import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
-import { Button } from "@/components/Button";
 import { useAppDispatch } from "@/store";
 import { setAgentDailog } from "@/store/agent/agentSlice";
+import { useNavigate } from "react-router-dom";
 
 // Wrapper component for Actions cell to access theme from auth
 const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
@@ -74,7 +74,17 @@ export const columns: DataTableColumn<Agent>[] = [
     enableSorting: true,
     size: 200,
     align: "left",
-    cell: (value, row) => <h5 className="font-medium">{row.name || "-"}</h5>,
+    cell: (value, row) => {
+      const navigate = useNavigate();
+      return (
+        <button
+          onClick={() => navigate(`/agents/${row?.agent_id}`)}
+          className="font-medium text-left"
+        >
+          {row.name || "-"}
+        </button>
+      );
+    },
   },
   {
     id: "description",
