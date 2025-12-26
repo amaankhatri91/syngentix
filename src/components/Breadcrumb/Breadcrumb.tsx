@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { HiChevronRight } from "react-icons/hi2";
 import useTheme from "@/utils/hooks/useTheme";
+import { getIconColor } from "@/utils/common";
 
 type BreadcrumbItem = {
   label: string;
@@ -17,7 +18,6 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
   const { isDark } = useTheme();
 
   // Theme-based colors
-  const activeColor = isDark ? "#FFFFFF" : "#162230";
   const inactiveColor = isDark ? "#AEB9E1" : "#646567";
 
   return (
@@ -37,7 +37,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
               </Link>
             ) : (
               <span
-                style={{ color: isLast ? activeColor : inactiveColor }}
+                style={{ color: isLast ? getIconColor(isDark) : inactiveColor }}
                 className={isLast ? "font-medium" : ""}
               >
                 {item.label}

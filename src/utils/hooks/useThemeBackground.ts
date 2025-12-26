@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import useTheme from "./useTheme";
+import { getIconColor } from "@/utils/common";
 
 const useThemeBackground = () => {
   const { theme, isDark } = useTheme();
@@ -16,8 +17,7 @@ const useThemeBackground = () => {
     document.body.style.backgroundColor = backgroundColor;
     
     // Heading text colors (h1, h2, h3, h4, h5)
-    const headingColor = isDark ? "#ffffff" : "#162230";
-    root.style.setProperty("--heading-color", headingColor);
+    root.style.setProperty("--heading-color", getIconColor(isDark));
     
     // Paragraph and span text colors
     const textColor = isDark ? "#BDC9F5" : "#5A5A5A";

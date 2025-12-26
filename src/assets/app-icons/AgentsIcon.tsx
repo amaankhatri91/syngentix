@@ -5,7 +5,10 @@ interface AgentsIconProps {
   size?: number;
 }
 
-const AgentsIcon: React.FC<AgentsIconProps> = ({ color = "#AEB9E1", size = 12 }) => {
+const AgentsIcon: React.FC<AgentsIconProps> = ({
+  color = "#AEB9E1",
+  size = 12,
+}) => {
   return (
     <svg
       width={size}
@@ -30,6 +33,3 @@ const AgentsIcon: React.FC<AgentsIconProps> = ({ color = "#AEB9E1", size = 12 })
 };
 
 export default AgentsIcon;
-
-
-

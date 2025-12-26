@@ -25,6 +25,9 @@ export { default as CloudIcon } from "./CloudIcon";
 export { default as ChatIcon } from "./ChatIcon";
 export { default as Play } from "./Play";
 export { default as TestRun } from "./TestRun";
+export { default as ChevronDownIcon } from "./ChevronDownIcon";
+export { default as DocumentIcon } from "./DocumentIcon";
+export { default as MenuIcon } from "./MenuIcon";
 
 
 

@@ -1,4 +1,5 @@
 import WorkflowEditorAction from "./WorkflowEditorAction";
+import WorkflowEditorChat from "./WorkflowEditorChat";
 import WorkflowEditorHeader from "./WorkflowEditorHeader";
 
 const WorkflowEditor = () => {
@@ -6,7 +7,13 @@ const WorkflowEditor = () => {
     <>
       <WorkflowEditorAction />
       <WorkflowEditorHeader />
-      {/* <h1>WorkflowEditor</h1> */}
+      <div className="flex flex-col lg:flex-row mt-4">
+        <div className="lg:w-[70%] w-full"></div>
+        <div className="lg:w-[30%] w-full mt-4 lg:mt-0">
+          {/* <WorkFlowNodes /> */}
+          <WorkflowEditorChat />
+        </div>
+      </div>
     </>
   );
 };
