@@ -23,6 +23,7 @@ const Layout: React.FC<LayoutRouteProps> = ({ children }) => {
         }`}
       >
         {/* Header (Dashboard only) */}
+        {/* {isDashboard && <Header />} */}
         {isDashboard && <Header />}
 
         {/* Main Content */}
