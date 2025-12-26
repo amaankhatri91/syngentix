@@ -9,16 +9,19 @@ import useTheme from "@/utils/hooks/useTheme";
 
 const WorkflowList: React.FC = () => {
   const { agentId } = useParams<{ agentId: string }>();
-  const { token } = useAppSelector((state) => state.auth);
+  const { token, workspace } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const { isDark } = useTheme();
 
   // RTK Query hook - automatically caches data and won't refetch on navigation
   // Only refetches on page refresh or when cache expires (1 hour)
-  const { data, isLoading, error }: any = useGetWorkflowsQuery(agentId || "", {
-    // Skip query if no token or no agentId
-    skip: !token || !agentId,
-  });
+  const { data, isLoading, error }: any = useGetWorkflowsQuery(
+    { agentId: agentId || "", workspaceId: workspace?.id },
+    {
+      // Skip query if no token, no agentId, or no workspace ID
+      skip: !token || !agentId || !workspace?.id,
+    }
+  );
 
   const handleInfo = (id: string) => {
     console.log("Info clicked for workflow:", id);

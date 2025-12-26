@@ -1,5 +1,6 @@
 import { apiCreateWorkflow, apiEditWorkflow } from "@/services/WorkflowService";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { RootState } from "@/store";
 
 const SLICE_NAME = "workflow";
 
@@ -15,9 +16,16 @@ const initialState: WorkflowState = {
 
 export const createWorkflow = createAsyncThunk(
   `${SLICE_NAME}/createWorkflow`,
-  async (data: any, { rejectWithValue }) => {
+  async (data: any, { rejectWithValue, getState }) => {
     try {
-      const response = await apiCreateWorkflow(data);
+      const state = getState() as RootState;
+      const workspaceId = state.auth.workspace?.id;
+      
+      if (!workspaceId) {
+        return rejectWithValue({ message: "Workspace ID is required" });
+      }
+      
+      const response = await apiCreateWorkflow(data, workspaceId);
       return response;
     } catch (error: any) {
       return rejectWithValue(
@@ -29,9 +37,16 @@ export const createWorkflow = createAsyncThunk(
 
 export const editWorkflow = createAsyncThunk(
   `${SLICE_NAME}/editWorkflow`,
-  async (data: { id: string; title: string; description: string }, { rejectWithValue }) => {
+  async (data: { id: string; title: string; description: string }, { rejectWithValue, getState }) => {
     try {
-      const response = await apiEditWorkflow(data);
+      const state = getState() as RootState;
+      const workspaceId = state.auth.workspace?.id;
+      
+      if (!workspaceId) {
+        return rejectWithValue({ message: "Workspace ID is required" });
+      }
+      
+      const response = await apiEditWorkflow(data, workspaceId);
       return response;
     } catch (error: any) {
       return rejectWithValue(

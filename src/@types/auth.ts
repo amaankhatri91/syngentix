@@ -47,6 +47,8 @@ export type GoogleSignInResponse = {
     user: {
       email: string;
       display_name: string;
+      password: string | null;
+      default_workspace_id: string | null;
       google_id: string;
       photo_url: string;
       id: string;
@@ -62,8 +64,23 @@ export type GoogleSignInResponse = {
         input_guardrails: boolean;
         output_guardrails: boolean;
       };
+      is_private: boolean;
       created_at: string;
       type: string;
+      role: string;
     };
+    workspaces: Array<{
+      id: string;
+      name: string;
+      owner_id: string;
+      settings: {
+        input_guardrails: boolean;
+        output_guardrails: boolean;
+      };
+      is_private: boolean;
+      created_at: string;
+      type: string;
+      role: string;
+    }>;
   };
 };

@@ -6,15 +6,15 @@ import { useGetAgentsQuery } from "@/services/RtkQueryService";
 import { useAppSelector } from "@/store";
 
 const AgentList: React.FC = () => {
-  const { token } = useAppSelector((state) => state.auth);
+  const { token, workspace } = useAppSelector((state) => state.auth);
 
   // RTK Query hook - automatically caches data and won't refetch on navigation
   // Only refetches on page refresh or when cache expires (1 hour)
   const { data, isLoading, error, refetch }: any = useGetAgentsQuery(
-    undefined,
+    workspace?.id,
     {
-      // Skip query if no token (user not logged in)
-      skip: !token,
+      // Skip query if no token (user not logged in) or no workspace ID
+      skip: !token || !workspace?.id,
     }
   );
 

@@ -56,7 +56,7 @@ function useAuth() {
       const resp = await apiGoogleSignIn(values);
       console.log(resp, "Login Api Integration");
       if (resp?.data?.data) {
-        const { token, user, workspace } = resp.data.data;
+        const { token, user, workspace, workspaces } = resp.data.data;
         const responseMessage = resp.data.message || "Login successful";
         dispatch(
           signInSuccess({
@@ -69,7 +69,9 @@ function useAuth() {
             userType: user.type,
             googleId: user.google_id,
             agents: user.agents,
+            defaultWorkspaceId: user.default_workspace_id,
             workspace: workspace,
+            workspaces: workspaces || [],
           })
         );
         navigate("/");

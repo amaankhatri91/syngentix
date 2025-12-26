@@ -39,10 +39,11 @@ const RtkQueryService = createApi({
     refetchOnFocus: false,
     refetchOnReconnect: false,
     endpoints: (builder) => ({
-        getAgents: builder.query<AgentsResponse, void>({
-            query: () => ({
+        getAgents: builder.query<AgentsResponse, string | undefined>({
+            query: (workspaceId) => ({
                 url: '/v1/agents/',
                 method: 'get',
+                params: workspaceId ? { workspace_id: workspaceId } : undefined,
             }),
             // Cache the data for 1 hour (3600 seconds)
             // Data will be cached and reused when navigating back
@@ -50,10 +51,11 @@ const RtkQueryService = createApi({
             // Provide tags for cache invalidation if needed
             providesTags: ['Agents'],
         }),
-        getWorkflows: builder.query<WorkflowsResponse, string>({
-            query: (agentId) => ({
+        getWorkflows: builder.query<WorkflowsResponse, { agentId: string; workspaceId?: string }>({
+            query: ({ agentId, workspaceId }) => ({
                 url: `/v1/workflows/${agentId}`,
                 method: 'get',
+                params: workspaceId ? { workspace_id: workspaceId } : undefined,
             }),
             // Cache the data for 1 hour (3600 seconds)
             keepUnusedDataFor: 3600,

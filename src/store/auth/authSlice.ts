@@ -12,8 +12,10 @@ export type Workspace = {
   name: string;
   owner_id: string;
   settings: WorkspaceSettings;
+  is_private: boolean;
   created_at: string;
   type: string;
+  role: string;
 };
 
 export type UserState = {
@@ -24,7 +26,9 @@ export type UserState = {
   userType?: string;
   googleId?: string;
   agents?: string[];
+  defaultWorkspaceId?: string | null;
   workspace?: Workspace;
+  workspaces?: Workspace[];
   token: string | null;
   refreshToken?: string | null;
   persist: boolean;
@@ -40,7 +44,9 @@ const initialState: UserState = {
   userType: "",
   googleId: "",
   agents: [],
+  defaultWorkspaceId: null,
   workspace: undefined,
+  workspaces: [],
   token: null,
   refreshToken: null,
   persist: false,
@@ -64,7 +70,9 @@ const userSlice = createSlice({
         userType?: string;
         googleId?: string;
         agents?: string[];
+        defaultWorkspaceId?: string | null;
         workspace?: Workspace;
+        workspaces?: Workspace[];
       }>
     ) {
       state.token = action.payload.accessToken;
@@ -76,7 +84,9 @@ const userSlice = createSlice({
       state.userType = action.payload.userType;
       state.googleId = action.payload.googleId;
       state.agents = action.payload.agents ?? [];
+      state.defaultWorkspaceId = action.payload.defaultWorkspaceId ?? null;
       state.workspace = action.payload.workspace;
+      state.workspaces = action.payload.workspaces ?? [];
     },
     signOutSuccess(state, action) {
       const { avatar, userName, email, token } = action.payload;
@@ -89,7 +99,9 @@ const userSlice = createSlice({
       state.userType = "";
       state.googleId = "";
       state.agents = [];
+      state.defaultWorkspaceId = null;
       state.workspace = undefined;
+      state.workspaces = [];
     },
     setPersist: (state, action) => {
       state.persist = action.payload;
