@@ -10,6 +10,7 @@ import {
   WorkflowMetrics,
   WorkflowActions,
 } from "@/constants/workflow.constant";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface WorkflowCardProps {
   workflow: Workflow;
@@ -27,10 +28,18 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
   onDelete,
 }) => {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
+  const { agentId } = useParams<{ agentId: string }>();
 
   const handleClick = (action: WorkflowActionConfig) => {
+    console.log(workflow, "Check It");
     switch (action.id) {
       case "info":
+        navigate(`/agent/${agentId}/workflow/${workflow?.workflow_id}`, {
+          state: {
+            workflowTitle: workflow?.title,
+          },
+        });
         onInfo?.(workflow.id);
         break;
       case "edit":

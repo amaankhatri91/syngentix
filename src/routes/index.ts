@@ -7,12 +7,17 @@ import Settings from "@/views/Settings";
 import Profile from "@/views/Profile";
 import AgentDetails from "@/views/AgentDetails";
 import Workflows from "@/views/Workflows";
+import WorkflowEditor from "@/views/WorkflowEditor.tsx";
 
 // Define routes
 const authProtectedRoutes = [
   { path: "/dashboard", component: Dashboard },
   { path: "/agents", component: Agents },
   { path: "/agents/:agentId", component: AgentDetails },
+  {
+    path: "/agent/:agentId/workflow/:workflowId",
+    component: WorkflowEditor,
+  },
   { path: "/users", component: Users },
   { path: "/templates", component: Templates },
   { path: "/settings", component: Settings },

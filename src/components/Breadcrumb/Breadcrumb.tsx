@@ -1,5 +1,6 @@
 // components/Breadcrumb.tsx
 import React from "react";
+import { Link } from "react-router-dom";
 import { HiChevronRight } from "react-icons/hi2";
 import useTheme from "@/utils/hooks/useTheme";
 
@@ -27,13 +28,13 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
         return (
           <div key={index} className="flex items-center">
             {item.href && !isLast ? (
-              <a
-                href={item.href}
+              <Link
+                to={item.href}
                 style={{ color: inactiveColor }}
                 className="hover:opacity-80 transition"
               >
                 {item.label}
-              </a>
+              </Link>
             ) : (
               <span
                 style={{ color: isLast ? activeColor : inactiveColor }}

@@ -1,5 +1,6 @@
 export interface Workflow {
   id: string;
+  workflow_id?: string;
   title: string;
   description: string;
   triggers?: number;
