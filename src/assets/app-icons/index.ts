@@ -28,6 +28,11 @@ export { default as TestRun } from "./TestRun";
 export { default as ChevronDownIcon } from "./ChevronDownIcon";
 export { default as DocumentIcon } from "./DocumentIcon";
 export { default as MenuIcon } from "./MenuIcon";
+export { default as Lock } from "./Lock";
+export { default as Unlock } from "./Unlock";
+export { default as ZoomIn } from "./ZoomIn";
+export { default as ZoomOut } from "./ZoomOut";
+export { default as FitView } from "./FitView";
 
 
 

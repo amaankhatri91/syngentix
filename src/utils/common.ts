@@ -91,3 +91,103 @@ export const getActionButtonColor = (
       }`;
   }
 };
+
+/**
+ * Get workflow canvas background color based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Background color
+ */
+export const getWorkflowCanvasBg = (isDark: boolean): string => {
+  return isDark ? "#0F1724" : "#FFFFFF";
+};
+
+/**
+ * Get workflow canvas border color based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Border color
+ */
+export const getWorkflowCanvasBorderColor = (isDark: boolean): string => {
+  return isDark ? "#2B3643" : "#EEF4FF";
+};
+
+/**
+ * Get workflow canvas shadow style based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Shadow style string
+ */
+export const getWorkflowCanvasShadow = (isDark: boolean): string => {
+  if (isDark) {
+    // Inner shadow: X: 7, Y: -6, Blur: 30, Spread: 0, Color: #000000 with 32% opacity
+    return "inset 7px -6px 30px 0px rgba(0, 0, 0, 0.32)";
+  } else {
+    // Table shadow: X: 1, Y: 4, Blur: 6, Spread: 0, Color: #2154EE with 10% opacity
+    return "1px 4px 6px 0px rgba(33, 84, 238, 0.1)";
+  }
+};
+
+/**
+ * Get workflow canvas grid pattern color based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Grid color
+ */
+export const getWorkflowGridColor = (isDark: boolean): string => {
+  return isDark ? "#2B3946" : "#E3E6EB"; // Gray for light mode
+};
+
+/**
+ * Get node border gradient colors (default/inactive)
+ * @returns Object with gradient start and end colors
+ */
+export const getNodeBorderGradient = () => {
+  return {
+    start: "#9133EA", // Purple
+    end: "#2962EB", // Blue
+  };
+};
+
+/**
+ * Get active/selected node border gradient colors
+ * @returns Object with gradient start and end colors
+ */
+export const getActiveNodeBorderGradient = () => {
+  return {
+    start: "#48D8D1", // Cyan
+    end: "#096DBF", // Darker blue
+  };
+};
+
+/**
+ * Get node drop shadow style
+ * @returns Shadow style string
+ */
+export const getNodeDropShadow = (): string => {
+  // Drop shadow: X: 0, Y: 2, Blur: 20, Spread: 0, Color: #6946EB with 18% opacity
+  return "0px 2px 20px 0px rgba(105, 70, 235, 0.18)";
+};
+
+/**
+ * Get node background color based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Background color class
+ */
+export const getNodeBgColor = (isDark: boolean): string => {
+  return isDark ? "bg-[#0C1116]" : "bg-white";
+};
+
+/**
+ * Get node text color based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Text color class
+ */
+export const getNodeTextColor = (isDark: boolean): string => {
+  return isDark ? "text-white" : "text-[#162230]";
+};
+
+/**
+ * Get port (handle) color based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Port color class
+ */
+export const getPortColor = (isDark: boolean): string => {
+  return isDark ? "bg-[#34C759]" : "bg-[#34C759]";
+};

@@ -7,7 +7,7 @@ import Settings from "@/views/Settings";
 import Profile from "@/views/Profile";
 import AgentDetails from "@/views/AgentDetails";
 import Workflows from "@/views/Workflows";
-import WorkflowEditor from "@/views/WorkflowEditor.tsx";
+import WorkflowEditor from "@/views/WorkflowEditor";
 
 // Define routes
 const authProtectedRoutes = [

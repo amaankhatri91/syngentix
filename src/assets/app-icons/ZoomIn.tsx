@@ -1,0 +1,28 @@
+import React from "react";
+
+interface ZoomInProps {
+  color?: string;
+  size?: number;
+}
+
+const ZoomIn: React.FC<ZoomInProps> = ({
+  color = "#162230",
+  size = 14,
+}) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M13.4167 6.41668H7.58332V0.583324C7.58332 0.26116 7.32216 0 7 0C6.67784 0 6.41668 0.26116 6.41668 0.583324V6.41665H0.583324C0.26116 6.41668 0 6.67784 0 7C0 7.32216 0.26116 7.58332 0.583324 7.58332H6.41665V13.4166C6.41665 13.7388 6.67781 14 6.99997 14C7.32214 14 7.5833 13.7388 7.5833 13.4166V7.58332H13.4166C13.7388 7.58332 13.9999 7.32216 13.9999 7C14 6.67784 13.7388 6.41668 13.4167 6.41668Z"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export default ZoomIn;

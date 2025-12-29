@@ -26,3 +26,28 @@ export interface Conversation {
   messages: Message[];
   lastMessageTime?: string;
 }
+
+// Custom Controls types
+export interface CustomControlsProps {
+  isLocked: boolean;
+  onToggleLock: () => void;
+}
+
+// Workflow Node types
+export interface WorkflowNodeProps {
+  data: any; // CustomNodeData from dummy.ts
+  selected?: boolean;
+}
+
+// Workflow Edge types
+export interface WorkflowEdgeProps {
+  id: string;
+  sourceX: number;
+  sourceY: number;
+  targetX: number;
+  targetY: number;
+  sourcePosition: any;
+  targetPosition: any;
+  style?: React.CSSProperties;
+  markerEnd?: any;
+}

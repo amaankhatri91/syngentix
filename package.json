@@ -26,6 +26,7 @@
     "react-router-dom": "^6.27.0",
     "react-select": "^5.8.1",
     "react-toastify": "^10.0.6",
+    "reactflow": "^11.11.4",
     "redux-persist": "^6.0.0",
     "use-debounce": "^10.0.6",
     "vite-plugin-dynamic-import": "^1.6.0",
