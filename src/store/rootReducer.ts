@@ -3,10 +3,12 @@ import RtkQueryService from '@/services/RtkQueryService'
 import authReducer from './auth/authSlice'
 import agentReducer from './agent/agentSlice'
 import workflowReducer from './workflow/workflowSlice'
+import workflowEditorReducer from './workflowEditor/workflowEditorSlice'
 export type RootState = CombinedState<{
     auth: ReturnType<typeof authReducer>
     agent: ReturnType<typeof agentReducer>
     workflow: ReturnType<typeof workflowReducer>
+    workflowEditor: ReturnType<typeof workflowEditorReducer>
     /* eslint-disable @typescript-eslint/no-explicit-any */
     [RtkQueryService.reducerPath]: any
 }>
@@ -19,6 +21,7 @@ const staticReducers = {
     auth : authReducer,
     agent : agentReducer,
     workflow : workflowReducer,
+    workflowEditor : workflowEditorReducer,
     // Include RTK Query reducer
     [RtkQueryService.reducerPath]: RtkQueryService.reducer,
 }

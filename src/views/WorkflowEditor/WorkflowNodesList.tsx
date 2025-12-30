@@ -7,7 +7,7 @@ import DocumentIcon from "@/assets/app-icons/DocumentIcon";
 import { MenuIcon } from "@/assets/app-icons";
 import { dummyNodes } from "./dymmyData";
 
-const AvailableNodesList = () => {
+const WorkflowNodesList = () => {
   const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -23,7 +23,7 @@ const AvailableNodesList = () => {
 
   return (
     <div
-      className={`h-full flex flex-col border rounded-3xl p-4 ${
+      className={`h-full flex flex-col border rounded-2xl p-4 ${
         isDark
           ? "bg-[#0F1724]  border-[#2B3643]"
           : "bg-[#FFFFFF]  border-[#EEF4FF] shadow-[1px_4px_6px_0px_#2154EE1A]"
@@ -128,5 +128,4 @@ const AvailableNodesList = () => {
   );
 };
 
-export default AvailableNodesList;
-
+export default WorkflowNodesList;

@@ -172,7 +172,7 @@ const WorkflowCanvas: React.FC = () => {
 
   return (
     <div
-      className="w-full h-[85vh] rounded-lg overflow-hidden"
+      className="w-full rounded-2xl h-full overflow-hidden"
       style={{
         backgroundColor: canvasBgColor,
         border: `0.6px solid ${canvasBorderColor}`,
