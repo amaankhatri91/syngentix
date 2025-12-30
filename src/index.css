@@ -211,3 +211,82 @@ nav button {
   border: 1px solid;
   border-image-source: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
 }
+
+/* Note scrollbar styles - Dark mode (default) */
+.note-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.note-scrollbar::-webkit-scrollbar-track {
+  background: #b3efbd;
+}
+
+.note-scrollbar::-webkit-scrollbar-thumb {
+  background: #162230;
+  border-radius: 4px;
+}
+
+.note-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0f1a24;
+}
+
+.note-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #162230 #b3efbd;
+}
+
+.note-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.note-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Note list scrollbar  */
+
+/* Note scrollbar styles - Dark mode (default) */
+.nodes-list-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.nodes-list-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nodes-list-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+
+.nodes-list-scrollbar::-webkit-scrollbar-thumb {
+  background: #162230;
+  border-radius: 4px;
+}
+
+.nodes-list-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0f1a24;
+}
+
+.nodes-list-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #162230 transparent;
+}
+
+/* Light mode styles */
+[data-theme="light"] .nodes-list-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-theme="light"] .nodes-list-scrollbar {
+  scrollbar-color: #162230 transparent;
+}
+
+.note-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.note-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

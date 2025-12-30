@@ -7,7 +7,7 @@ interface ContextMenuProps {
   onClose: () => void;
 }
 
-const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
+const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
   const { isDark } = useTheme();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +78,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
       ref={menuRef}
       onClick={handleMenuClick}
       className={`
-        fixed z-50 rounded-lg shadow-lg min-w-[200px]
+        fixed z-50 rounded-2xl shadow-lg min-w-[200px]
         ${
           isDark
             ? "bg-[#0C1116] border border-[#394757]"
@@ -97,7 +97,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
           onClose();
         }}
       >
-        <span>Add Node</span>
+        <h5>Add Node</h5>
         <ChevronRightIcon />
       </div>
       <div className={separatorClass} />
@@ -108,7 +108,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
           onClose();
         }}
       >
-        <span>Add Sticky Note</span>
+        <h5>Add Sticky Note</h5>
         <ChevronRightIcon />
       </div>
       <div className={separatorClass} />
@@ -119,11 +119,11 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
           onClose();
         }}
       >
-        <span>Select All</span>
+        <h5>Select All</h5>
         <ChevronRightIcon />
       </div>
     </div>
   );
 };
 
-export default ContextMenu;
+export default WorkflowContextMenu;

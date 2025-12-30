@@ -23,14 +23,14 @@ const WorkflowNodesList = () => {
 
   return (
     <div
-      className={`h-full flex flex-col border rounded-2xl p-4 ${
+      className={`h-full flex flex-col border rounded-2xl ${
         isDark
           ? "bg-[#0F1724]  border-[#2B3643]"
           : "bg-[#FFFFFF]  border-[#EEF4FF] shadow-[1px_4px_6px_0px_#2154EE1A]"
       }`}
     >
-      {/* Header */}
-      <div className="">
+      <div className="p-4 pb-0 flex-shrink-0">
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h3
             className={`text-base text-[18px] font-medium ${
@@ -57,8 +57,7 @@ const WorkflowNodesList = () => {
           debounceDelay={300}
         />
       </div>
-      {/* Nodes List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto nodes-list-scrollbar px-4 pb-4 min-h-0">
         {filteredNodes?.map((node) => (
           <div
             key={node.id}

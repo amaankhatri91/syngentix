@@ -22,7 +22,7 @@ import {
 import { initialNodes, initialEdges, CustomNodeData } from "./dymmyData";
 import WorkflowEditorControls from "./WorkflowEditorControls";
 import { edgeTypes, nodeTypes } from "./type";
-import ContextMenu from "./ContextMenu";
+import ContextMenu from "./WorkflowContextMenu";
 
 const WorkflowCanvas: React.FC = () => {
   const { isDark } = useTheme();

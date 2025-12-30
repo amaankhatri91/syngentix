@@ -78,32 +78,7 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   };
 
   return (
-    <>
-      <style>
-        {`
-          .note-scrollbar::-webkit-scrollbar {
-            width: 8px;
-          }
-          .note-scrollbar::-webkit-scrollbar-track {
-            background: #B3EFBD;
-          }
-          .note-scrollbar::-webkit-scrollbar-thumb {
-            background: #162230;
-            border-radius: 4px;
-          }
-          .note-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #0f1a24;
-          }
-          .note-no-scrollbar::-webkit-scrollbar {
-            display: none;
-          }
-          .note-no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-        `}
-      </style>
-      <div
+    <div
         className={`
           px-2 pt-2 pb-4 w-[200px]  min-h-[160px] relative
           transition-all duration-200
@@ -143,7 +118,6 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
           </div>
         )}
       </div>
-    </>
   );
 };
 
