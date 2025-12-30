@@ -17,10 +17,9 @@ import {
   getWorkflowCanvasBorderColor,
   getWorkflowCanvasShadow,
 } from "@/utils/common";
-import { initialNodes, initialEdges, CustomNodeData } from "./dummy";
+import { initialNodes, initialEdges, CustomNodeData } from "./dymmyData";
 import WorkflowEditorControls from "./WorkflowEditorControls";
-import { nodeTypes } from "./nodeTypes";
-import { edgeTypes } from "./edgeTypes";
+import { edgeTypes, nodeTypes } from "./type";
 
 const WorkflowCanvas: React.FC = () => {
   const { isDark } = useTheme();
@@ -43,16 +42,21 @@ const WorkflowCanvas: React.FC = () => {
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
-  // Memoize edge styles based on theme
+  // Memoize edge styles - use #8E8E93 for all regular edges
   const edgesWithTheme = useMemo(() => {
-    return edges.map((edge) => ({
-      ...edge,
-      style: {
-        ...edge.style,
-        stroke: isDark ? "#94A3B8" : "#64748B",
-      },
-    }));
-  }, [edges, isDark]);
+    return edges.map((edge) => {
+      // If edge has strokeDasharray (dotted), keep its existing style for gradient handling
+      const isDotted = edge.style?.strokeDasharray;
+      return {
+        ...edge,
+        style: {
+          ...edge.style,
+          // Only override stroke for non-dotted edges
+          ...(isDotted ? {} : { stroke: "#8E8E93" }),
+        },
+      };
+    });
+  }, [edges]);
 
   // Background pattern color
   const gridColor = useMemo(() => getWorkflowGridColor(isDark), [isDark]);
@@ -91,7 +95,7 @@ const WorkflowCanvas: React.FC = () => {
         zoomOnPinch={true}
         defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
         connectionLineStyle={{
-          stroke: isDark ? "#94A3B8" : "#64748B",
+          stroke: "#8E8E93",
           strokeWidth: 2,
         }}
       >

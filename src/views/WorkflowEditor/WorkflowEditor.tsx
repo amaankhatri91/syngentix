@@ -13,8 +13,8 @@ const WorkflowEditor = () => {
           <WorkflowCanvas />
         </div>
         {/* <div className="lg:w-[30%] w-full mt-4 lg:mt-0"> */}
-          {/* <WorkFlowNodes /> */}
-          {/* <WorkflowEditorChat /> */}
+        {/* <AvailableNodesList /> */}
+        {/* <WorkflowEditorChat /> */}
         {/* </div> */}
       </div>
     </>

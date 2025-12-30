@@ -7,7 +7,7 @@ import DocumentIcon from "@/assets/app-icons/DocumentIcon";
 import { MenuIcon } from "@/assets/app-icons";
 import { dummyNodes } from "./dymmyData";
 
-const WorkFlowNodes = () => {
+const AvailableNodesList = () => {
   const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -128,4 +128,5 @@ const WorkFlowNodes = () => {
   );
 };
 
-export default WorkFlowNodes;
+export default AvailableNodesList;
+

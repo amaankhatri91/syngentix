@@ -10,7 +10,7 @@ import {
 } from "@/utils/common";
 import { CustomNodeData } from "./dummy";
 
-const WorkflowNode: React.FC<NodeProps<CustomNodeData>> = ({
+const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
   data,
   selected,
 }) => {
@@ -130,4 +130,5 @@ const WorkflowNode: React.FC<NodeProps<CustomNodeData>> = ({
   );
 };
 
-export default WorkflowNode;
+export default WorkflowCanvasNode;
+

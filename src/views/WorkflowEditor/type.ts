@@ -1,3 +1,8 @@
+import { EdgeTypes, NodeTypes } from "reactflow";
+import WorkflowEdge from "./WorkflowEdge";
+import CanvasNode from "./WorkflowCanvasNode";
+import WorkflowNoteNode from "./WorkflowNoteNode";
+
 export interface NodeAction {
   label: string;
   type: "input" | "output" | "trigger" | "data" | "Visualization";
@@ -51,3 +56,20 @@ export interface WorkflowEdgeProps {
   style?: React.CSSProperties;
   markerEnd?: any;
 }
+
+
+
+// Define edge types
+export const edgeTypes: EdgeTypes = {
+  smoothstep: WorkflowEdge,
+  bezier: WorkflowEdge,
+  default: WorkflowEdge,
+};
+
+
+// Define node types
+export const nodeTypes: NodeTypes = {
+  custom: CanvasNode,
+  note: WorkflowNoteNode,
+};
+
