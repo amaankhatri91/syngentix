@@ -1,13 +1,15 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import ReactFlow, {
   Node,
   Edge,
   Background,
+  BackgroundVariant,
   MiniMap,
   applyNodeChanges,
   applyEdgeChanges,
   NodeChange,
   EdgeChange,
+  ReactFlowInstance,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import useTheme from "@/utils/hooks/useTheme";
@@ -20,13 +22,19 @@ import {
 import { initialNodes, initialEdges, CustomNodeData } from "./dymmyData";
 import WorkflowEditorControls from "./WorkflowEditorControls";
 import { edgeTypes, nodeTypes } from "./type";
+import ContextMenu from "./ContextMenu";
 
 const WorkflowCanvas: React.FC = () => {
   const { isDark } = useTheme();
-  const [nodes, setNodes] =
-    React.useState<Node<CustomNodeData>[]>(initialNodes);
-  const [edges, setEdges] = React.useState<Edge[]>(initialEdges);
-  const [isLocked, setIsLocked] = React.useState<boolean>(false);
+  const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
 
   const handleToggleLock = useCallback(() => {
     setIsLocked((prev) => !prev);
@@ -40,6 +48,99 @@ const WorkflowCanvas: React.FC = () => {
   // Handle edge changes
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
     setEdges((eds) => applyEdgeChanges(changes, eds));
+  }, []);
+
+  // Handle context menu on pane (canvas background)
+  const onPaneContextMenu = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      if (!reactFlowInstance) return;
+
+      // Get the position in the viewport
+      const x = event.clientX;
+      const y = event.clientY;
+
+      setContextMenu({ x, y });
+    },
+    [reactFlowInstance]
+  );
+
+  // Close context menu when clicking on a node
+  const onNodeClick = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  // Close context menu when clicking on the pane
+  const onPaneClick = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  // Handle adding a new node
+  const handleAddNode = useCallback(() => {
+    if (!reactFlowInstance || !contextMenu) return;
+
+    // Convert screen coordinates to flow coordinates
+    const position = reactFlowInstance.screenToFlowPosition({
+      x: contextMenu.x,
+      y: contextMenu.y,
+    });
+
+    const newNode: Node<CustomNodeData> = {
+      id: `node-${Date.now()}`,
+      type: "custom",
+      position,
+      data: {
+        label: "New Node",
+        nodeType: "text",
+        dotColor: "#22D3EE",
+        borderColor: "from-blue-500 to-purple-500",
+        inputs: ["Start"],
+        outputs: ["Next"],
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+  }, [reactFlowInstance, contextMenu]);
+
+  // Handle adding a sticky note
+  const handleAddStickyNote = useCallback(() => {
+    if (!reactFlowInstance || !contextMenu) return;
+
+    // Convert screen coordinates to flow coordinates
+    const position = reactFlowInstance.screenToFlowPosition({
+      x: contextMenu.x,
+      y: contextMenu.y,
+    });
+
+    const newNote: Node<CustomNodeData> = {
+      id: `note-${Date.now()}`,
+      type: "note",
+      position,
+      data: {
+        label: "Sticky Note",
+        nodeType: "note",
+        dotColor: "#B3EFBD",
+        borderColor: "from-purple-500 to-blue-500",
+      },
+    };
+
+    setNodes((nds) => [...nds, newNote]);
+  }, [reactFlowInstance, contextMenu]);
+
+  // Handle select all
+  const handleSelectAll = useCallback(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        selected: true,
+      }))
+    );
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        selected: true,
+      }))
+    );
   }, []);
 
   // Memoize edge styles - use #8E8E93 for all regular edges
@@ -85,6 +186,10 @@ const WorkflowCanvas: React.FC = () => {
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onInit={setReactFlowInstance}
+        onPaneContextMenu={onPaneContextMenu}
+        onNodeClick={onNodeClick}
+        onPaneClick={onPaneClick}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         nodesDraggable={!isLocked}
@@ -99,7 +204,12 @@ const WorkflowCanvas: React.FC = () => {
           strokeWidth: 2,
         }}
       >
-        <Background color={gridColor} gap={180} size={1} variant="lines" />
+        <Background
+          color={gridColor}
+          gap={180}
+          size={1}
+          variant={BackgroundVariant.Lines}
+        />
         <WorkflowEditorControls
           isLocked={isLocked}
           onToggleLock={handleToggleLock}
@@ -120,6 +230,13 @@ const WorkflowCanvas: React.FC = () => {
           maskColor={isDark ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.1)"}
         />
       </ReactFlow>
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 };

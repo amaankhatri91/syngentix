@@ -3,13 +3,14 @@ import React from "react";
 interface DeleteIconProps {
   theme?: string;
   height?: number | string;
+  color?: string;
 }
 
 const DeleteIcon: React.FC<DeleteIconProps> = ({
   theme = "light",
   height = 18,
+  color = "#F54960",
 }) => {
-  const color = "#F54960"; // Same color for both themes
 
   return (
     <svg
