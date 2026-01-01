@@ -14,4 +14,3 @@ const Workflows: React.FC = () => {
 };
 
 export default Workflows;
-

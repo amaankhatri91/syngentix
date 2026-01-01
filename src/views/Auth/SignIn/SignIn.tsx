@@ -121,7 +121,11 @@ const SignIn = () => {
                     alt="logo"
                   />
                 </div>
-                <div className="space-y-2 mb-4 md:mb-8">
+                <div
+                  className={`space-y-4 ${
+                    isDark ? "mb-4 md:mb-8" : "mb-4 md:mb-6"
+                  }`}
+                >
                   <h2 className="text-lg md:text-[24px] font-semibold">
                     Welcome to Syngentix
                   </h2>
@@ -134,15 +138,17 @@ const SignIn = () => {
                 {can_register && (
                   <div className="w-full">
                     <div className="text-left w-full">
-                      <label className="block text-sm md:text-base mb-1">
-                        Name
-                      </label>
+                      <h5 className="block text-sm md:text-base mb-1">Name</h5>
                       <Field name="name">
                         {({ field }: any) => (
                           <FormikInput
                             field={field}
                             type="text"
-                            className="py-1"
+                            className={`!py-5 ${
+                              !isDark
+                                ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
+                                : ""
+                            }`}
                             placeholder="Please enter your name"
                             errors={errors}
                             touched={touched}
@@ -164,16 +170,20 @@ const SignIn = () => {
                       </div>
                     </div>
                     <div className="text-left w-full">
-                      <label className="block text-sm md:text-base mb-1">
-                        Email
-                      </label>
+                      <h5 className="block text-sm md:text-base mb-1">
+                        Email ID
+                      </h5>
                       <Field name="email">
                         {({ field }: any) => (
                           <FormikInput
                             readOnly
                             disable={true}
                             field={field}
-                            className="py-1"
+                            className={`${
+                              !isDark
+                                ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
+                                : ""
+                            } !py-5`}
                             type="email"
                             placeholder="Please enter your email"
                             errors={errors}
@@ -198,9 +208,9 @@ const SignIn = () => {
                       </div>
                     </div>
                     <div className="text-left w-full">
-                      <label className="block text-sm md:text-base mb-1">
+                      <h5 className="block text-sm md:text-base mb-1">
                         Workspace
-                      </label>
+                      </h5>
                       <Field name="workspace_id">
                         {({ field }: any) => (
                           <FormikSelect
@@ -245,7 +255,7 @@ const SignIn = () => {
                   disabled={isSubmitting}
                   loading={isSubmitting}
                   width="w-full "
-                  className={`gap-3 normal-case text-sm md:text-base hover:bg-transparent hover:shadow-none ${
+                  className={`gap-3 normal-case text-sm  md:text-base hover:bg-transparent hover:shadow-none ${
                     can_register
                       ? "signup-btn mt-1 text-white"
                       : "google-btn mt-4 md:mt-14"
@@ -263,7 +273,7 @@ const SignIn = () => {
                 >
                   {`${can_register ? "Sign Up" : "Continue With Google"}`}
                 </Button>
-                <p className="text-sm md:text-base mt-8 font-normal">
+                <p className="text-sm md:text-base mt-6 font-normal">
                   By continuing, you agree to our Terms of Service and Privacy
                   Policy.
                 </p>

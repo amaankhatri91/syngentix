@@ -228,36 +228,55 @@ export const getReactSelectStyles = (
   hasError: boolean = false
 ) => {
   return {
-    control: (base: any, state: any) => ({
-      ...base,
-      backgroundColor: "#FFFFFF",
-      borderColor: hasError ? "#EF4444" : "#D1D5DB",
-      borderWidth: "1px",
-      borderRadius: "12px",
-      minHeight: "42px",
-      maxHeight: "42px",
-      boxShadow: "none",
-      "&:hover": {
-        borderColor: hasError ? "#EF4444" : "#9CA3AF",
-      },
-      ...(state.isFocused && {
-        borderColor: hasError ? "#EF4444" : "#9CA3AF",
-        boxShadow: "none",
-      }),
-    }),
+    control: (base: any, state: any) => {
+      const isLightModeNoError = !isDark && !hasError;
+      
+      return {
+        ...base,
+        backgroundColor: "#FFFFFF",
+        borderColor: hasError ? "#EF4444" : "#D1D5DB",
+        borderTopColor: isLightModeNoError ? "#EAEAEA" : hasError ? "#EF4444" : "#D1D5DB",
+        borderBottomColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#D1D5DB",
+        borderLeftColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#D1D5DB",
+        borderRightColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#D1D5DB",
+        borderTopWidth: "1px",
+        borderBottomWidth: isLightModeNoError ? "0px" : "1px",
+        borderLeftWidth: isLightModeNoError ? "0px" : "1px",
+        borderRightWidth: isLightModeNoError ? "0px" : "1px",
+        borderRadius: "12px",
+        minHeight: "42px",
+        maxHeight: "42px",
+        boxShadow: isLightModeNoError ? "0 4px 8px 0 rgba(1,5,17,0.1)" : "none",
+        "&:hover": {
+          borderColor: hasError ? "#EF4444" : "#9CA3AF",
+          borderTopColor: isLightModeNoError ? "#EAEAEA" : hasError ? "#EF4444" : "#9CA3AF",
+          borderBottomColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
+          borderLeftColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
+          borderRightColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
+        },
+        ...(state.isFocused && {
+          borderColor: hasError ? "#EF4444" : "#9CA3AF",
+          borderTopColor: isLightModeNoError ? "#EAEAEA" : hasError ? "#EF4444" : "#9CA3AF",
+          borderBottomColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
+          borderLeftColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
+          borderRightColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
+          boxShadow: isLightModeNoError ? "0 4px 8px 0 rgba(1,5,17,0.1)" : "none",
+        }),
+      };
+    },
     placeholder: (base: any) => ({
       ...base,
-      color: "#9CA3AF",
+      color: "#737373",
       fontSize: "14px",
     }),
     singleValue: (base: any) => ({
       ...base,
-      color: "#111827",
+      color: "#162230",
       fontSize: "14px",
     }),
     input: (base: any) => ({
       ...base,
-      color: "#111827",
+      color: "#162230",
       fontSize: "14px",
     }),
     indicatorSeparator: () => ({
@@ -265,10 +284,10 @@ export const getReactSelectStyles = (
     }),
     dropdownIndicator: (base: any) => ({
       ...base,
-      color: "#6B7280",
+      color: "#0C1116",
       padding: "8px",
       "&:hover": {
-        color: "#4B5563",
+        color: "#0C1116",
       },
     }),
     menu: (base: any) => ({

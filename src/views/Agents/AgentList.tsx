@@ -7,18 +7,9 @@ import { useAppSelector } from "@/store";
 
 const AgentList: React.FC = () => {
   const { token, workspace } = useAppSelector((state) => state.auth);
-
-  // RTK Query hook - automatically caches data and won't refetch on navigation
-  // Only refetches on page refresh or when cache expires (1 hour)
-  const { data, isLoading, error, refetch }: any = useGetAgentsQuery(
-    workspace?.id,
-    {
-      // Skip query if no token (user not logged in) or no workspace ID
-      skip: !token || !workspace?.id,
-    }
-  );
-
-  console.log(data, "Data Visiblitliyt");
+  const { data, isLoading }: any = useGetAgentsQuery(workspace?.id, {
+    skip: !token || !workspace?.id,
+  });
 
   const handleRowSelectionChange = (selectedRows: Agent[]) => {
     console.log("Selected rows:", selectedRows);
@@ -30,7 +21,7 @@ const AgentList: React.FC = () => {
       <DataTable
         data={data?.data || []}
         columns={columns}
-        enableRowSelection={true}
+        enableRowSelection={false}
         enableSorting={true}
         enablePagination={false}
         onRowSelectionChange={handleRowSelectionChange}

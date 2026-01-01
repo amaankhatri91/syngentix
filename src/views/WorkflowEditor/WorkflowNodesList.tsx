@@ -1,29 +1,62 @@
 import { Button } from "@/components/Button";
 import { SearchInput } from "@/components/SearchInput";
 import useTheme from "@/utils/hooks/useTheme";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import DocumentIcon from "@/assets/app-icons/DocumentIcon";
-import { MenuIcon } from "@/assets/app-icons";
+import { MenuIcon, ChevronDownIcon } from "@/assets/app-icons";
 import { useGetNodesQuery } from "@/services/RtkQueryService";
 import { getCategoryColor } from "@/utils/common";
+import { NodeCategory } from "./type";
 
 const WorkflowNodesList = () => {
   const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set()
+  );
   const { data, isLoading, error } = useGetNodesQuery();
+
+  // Expand all categories by default when data loads
+  useEffect(() => {
+    if (data?.data && data.data.length > 0) {
+      const allCategoryNames = new Set(data.data.map((cat) => cat.name));
+      setExpandedCategories(allCategoryNames);
+    }
+  }, [data]);
 
   console.log(data, "Please Verify Data Listing");
 
-  const filteredNodes = useMemo(() => {
-    const nodes = data?.data || [];
-    if (!searchQuery.trim()) return nodes;
+  const toggleCategory = (categoryName: string) => {
+    setExpandedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryName)) {
+        newSet.delete(categoryName);
+      } else {
+        newSet.add(categoryName);
+      }
+      return newSet;
+    });
+  };
+
+  const filteredCategories = useMemo(() => {
+    const categories = data?.data || [];
+    if (!searchQuery.trim()) return categories;
     const query = searchQuery.toLowerCase();
-    return nodes.filter(
-      (node) =>
-        node.name?.toLowerCase().includes(query) ||
-        node.description?.toLowerCase().includes(query) ||
-        node.category?.toLowerCase().includes(query)
-    );
+    return categories
+      .map((category) => {
+        const filteredNodes = category.nodes.filter(
+          (node) =>
+            node.name?.toLowerCase().includes(query) ||
+            node.description?.toLowerCase().includes(query) ||
+            category.name?.toLowerCase().includes(query) ||
+            category.category?.toLowerCase().includes(query)
+        );
+        return {
+          ...category,
+          nodes: filteredNodes,
+        };
+      })
+      .filter((category) => category.nodes.length > 0);
   }, [searchQuery, data]);
 
   return (
@@ -69,64 +102,116 @@ const WorkflowNodesList = () => {
           <div className="text-center py-8 text-red-500">
             Error loading nodes
           </div>
-        ) : filteredNodes.length === 0 ? (
+        ) : filteredCategories.length === 0 ? (
           <div className="text-center py-8 text-gray-500">No nodes found</div>
         ) : (
-          filteredNodes.map((node) => (
-            <div
-              key={node.id}
-              className={`
-              p-3 mb-3 rounded-2xl transition-all
-              ${
-                isDark
-                  ? "bg-[#0C1116]  border border-[#2B3643]"
-                  : "bg-[#FFFFFF] border border-[#EEF4FF]  shadow-[inset_1px_-6px_6px_0px_#2154EE1A]"
-              }
-            `}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+          filteredCategories.map((category) => {
+            const isExpanded = expandedCategories.has(category.name);
+            return (
+              <div
+                key={category.category}
+                className={`
+                  mb-3 transition-all
+                  ${isExpanded ? "rounded-2xl" : "rounded-2xl"}
+                  ${
                     isDark
-                      ? "bg-[#232634]"
-                      : "bg-gradient-to-r from-[#9133EA] to-[#2962EB]"
-                  }`}
+                      ? "bg-[#0C1116] border border-[#2B3643]"
+                      : "bg-[#FFFFFF] border border-[#EEF4FF] shadow-[inset_1px_-6px_6px_0px_#2154EE1A]"
+                  }
+                `}
+              >
+                {/* Category Header */}
+                <button
+                  onClick={() => toggleCategory(category.name)}
+                  className={`
+                    w-full p-3 flex items-center justify-between
+                    ${isExpanded ? "rounded-t-2xl" : "rounded-2xl"}
+                    ${isDark ? "hover:bg-[#1A1F2E]" : ""}
+                    transition-colors
+                  `}
                 >
-                  <img src={node?.icon} alt="" />
-                  {/* <DocumentIcon color={"white"} size={16} /> */}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4
-                    className={`font-medium mb-1 ${
+                  <span
+                    className={`font-medium ${
                       isDark ? "text-white" : "text-[#162230]"
                     }`}
                   >
-                    {node?.name}
-                  </h4>
-                  <p
-                    className={`text-sm mb-2 ${
-                      isDark ? "text-[#BDC9F5]" : "text-[#848A94]"
+                    {category.name}
+                  </span>
+                  <div
+                    className={`transition-transform ${
+                      isExpanded ? "rotate-180" : ""
                     }`}
                   >
-                    {node?.description}
-                  </p>
-                  {/* Category Badge */}
-                  {node?.category && (
-                    <div className="flex flex-wrap gap-2">
-                      <span
-                        className={`text-sm px-2.5 py-1 rounded-full font-medium ${getCategoryColor(
-                          node.category,
-                          isDark
-                        )}`}
-                      >
-                        {node?.category}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                    <ChevronDownIcon
+                      color={isDark ? "white" : "#162230"}
+                      size={12}
+                    />
+                  </div>
+                </button>
+                {/* Category Nodes */}
+                {isExpanded && (
+                  <div className="rounded-b-2xl">
+                    <hr
+                      className={`mx-3 ${
+                        isDark ? "border-[#2B3643]" : "border-[#EEF4FF]"
+                      }`}
+                    />
+                    {category.nodes.map((node, index) => (
+                      <div key={node.id}>
+                        <div
+                          className={`
+                          p-3
+                          ${
+                            isDark
+                              ? "hover:bg-[#1A1F2E]"
+                              : "hover:bg-[#F9FAFB]"
+                          }
+                          transition-colors cursor-pointer
+                        `}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+                                isDark
+                                  ? "bg-[#232634]"
+                                  : "bg-gradient-to-r from-[#9133EA] to-[#2962EB]"
+                              }`}
+                            >
+                              {node.icon ? (
+                                <img
+                                  src={node.icon}
+                                  alt={node.name}
+                                  className="w-full h-full object-contain"
+                                />
+                              ) : (
+                                <DocumentIcon color="white" size={16} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4
+                                className={`font-medium mb-1 ${
+                                  isDark ? "text-white" : "text-[#162230]"
+                                }`}
+                              >
+                                {node.name}
+                              </h4>
+                            </div>
+                          </div>
+                        </div>
+                        {index < category.nodes.length - 1 && (
+                          <hr
+                            className={`mx-3 ${
+                              isDark ? "border-[#2B3643]" : "border-[#EEF4FF]"
+                            }`}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

@@ -1,5 +1,10 @@
 import React from "react";
-import Select, { StylesConfig, GroupBase, OptionsOrGroups } from "react-select";
+import Select, {
+  StylesConfig,
+  GroupBase,
+  OptionsOrGroups,
+  components,
+} from "react-select";
 import useTheme from "@/utils/hooks/useTheme";
 import { getReactSelectStyles } from "@/utils/common";
 
@@ -60,10 +65,43 @@ export interface FormikSelectProps {
    */
   placement?: "top" | "bottom" | "auto";
   /**
+   * Dropdown icon size
+   */
+  iconSize?: number;
+  /**
+   * Dropdown icon color
+   */
+  iconColor?: string;
+  /**
    * Additional react-select props
    */
   [key: string]: any;
 }
+
+// Custom Dropdown Indicator Component
+const DropdownIndicator = (props: any) => {
+  const { iconSize = 16, iconColor = "#0C1116" } = props.selectProps || {};
+  return (
+    <components.DropdownIndicator {...props}>
+      <svg
+        width={iconSize}
+        height={iconSize}
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g opacity="0.8">
+          <path
+            d="M2 4L6 8L10 4"
+            stroke={iconColor}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      </svg>
+    </components.DropdownIndicator>
+  );
+};
 
 const FormikSelect: React.FC<FormikSelectProps> = ({
   field,
@@ -77,6 +115,8 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
   onFieldTouched,
   onFieldChange,
   placement,
+  iconSize = 12,
+  iconColor = "#0C1116",
   ...props
 }) => {
   const { isDark } = useTheme();
@@ -87,9 +127,8 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
       : errors?.[fieldName] && touched?.[fieldName];
 
   // Convert field value to react-select format
-  const selectedOption = options.find(
-    (option) => option.value === field.value
-  ) || null;
+  const selectedOption =
+    options.find((option) => option.value === field.value) || null;
 
   const handleChange = (selectedOption: SelectOption | null) => {
     field.onChange(selectedOption ? selectedOption.value : "");
@@ -119,12 +158,26 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
         placeholder={placeholder}
         isDisabled={isDisabled}
         menuPlacement={placement || props.menuPlacement || "auto"}
-        styles={customStyles as StylesConfig<SelectOption, false, GroupBase<SelectOption>>}
+        styles={
+          customStyles as StylesConfig<
+            SelectOption,
+            false,
+            GroupBase<SelectOption>
+          >
+        }
         classNamePrefix="react-select"
+        components={{
+          DropdownIndicator,
+          ...props.components,
+        }}
+        selectProps={{
+          iconSize,
+          iconColor,
+          ...props.selectProps,
+        }}
       />
     </div>
   );
 };
 
 export default FormikSelect;
-

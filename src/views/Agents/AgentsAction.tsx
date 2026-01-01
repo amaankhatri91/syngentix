@@ -26,8 +26,8 @@ const AgentsAction = () => {
               })
             );
           }}
-          icon={<Add />}
-          className="px-4 !py-1.5 !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb]"
+          icon={<Add size={18} />}
+          className="px-3 !py-2 !rounded-xl !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb]"
         >
           Create Agent
         </Button>

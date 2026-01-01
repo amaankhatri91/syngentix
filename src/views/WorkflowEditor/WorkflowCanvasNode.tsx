@@ -8,7 +8,7 @@ import {
   getNodeBorderGradient,
   getNodeDropShadow,
 } from "@/utils/common";
-import { CustomNodeData } from "./dummy";
+import { CustomNodeData } from "./dymmyData";
 
 const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
   data,
@@ -131,4 +131,3 @@ const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
 };
 
 export default WorkflowCanvasNode;
-

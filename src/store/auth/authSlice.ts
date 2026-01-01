@@ -52,7 +52,7 @@ const initialState: UserState = {
   token: null,
   refreshToken: null,
   persist: false,
-  theme: "dark",
+  theme: "light",
   sidebarOpen: true,
   can_register: false,
   register_email: "",
@@ -116,7 +116,10 @@ const userSlice = createSlice({
     setSidebarOpen: (state, action) => {
       state.sidebarOpen = action.payload;
     },
-    setCanRegister: (state, action: PayloadAction<{ can_register: boolean; register_email?: string }>) => {
+    setCanRegister: (
+      state,
+      action: PayloadAction<{ can_register: boolean; register_email?: string }>
+    ) => {
       state.can_register = action.payload.can_register;
       state.register_email = action.payload.register_email || "";
     },

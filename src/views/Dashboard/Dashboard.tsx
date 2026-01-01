@@ -10,16 +10,13 @@ import { useGetAgentsQuery } from "@/services/RtkQueryService";
 import Agents from "../Agents/Agents";
 
 const Dashboard = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const dispatch = useAppDispatch();
   const { workspace, token } = useAppSelector((state) => state.auth);
 
-  const { data, isLoading, error, refetch }: any = useGetAgentsQuery(
-    workspace?.id,
-    {
-      skip: !token || !workspace?.id,
-    }
-  );
+  const { data }: any = useGetAgentsQuery(workspace?.id, {
+    skip: !token || !workspace?.id,
+  });
 
   return (
     <div className="w-full">
@@ -35,7 +32,7 @@ const Dashboard = () => {
                   : "border-[#EEF4FF] shadow-[0_6px_18px_rgba(33,84,238,0.12)]"
               }`}
             >
-              <CardBody className="p-3">
+              <CardBody className="px-4 py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div
@@ -45,7 +42,7 @@ const Dashboard = () => {
                     >
                       <IconComponent
                         color={isDark ? "white" : "#9133EA"}
-                        size={24}
+                        size={22}
                       />
                     </div>
                     <span className="text-base font-normal">{stat.title}</span>

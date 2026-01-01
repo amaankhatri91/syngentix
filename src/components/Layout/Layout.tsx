@@ -28,8 +28,8 @@ const Layout: React.FC<LayoutRouteProps> = ({ children }) => {
 
         {/* Main Content */}
         <main
-          className={`flex-1 overflow-y-auto p-6 ${
-            isDashboard ? "mt-12" : "mt-0"
+          className={`flex-1 overflow-y-auto px-6 py-4 ${
+            isDashboard ? "mt-16" : "mt-0"
           }`}
         >
           {children}

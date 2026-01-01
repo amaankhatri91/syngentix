@@ -1,8 +1,9 @@
 import React from "react";
 import { Formik, Form, Field, ErrorMessage, FormikProps } from "formik";
-import { Input, Textarea } from "@material-tailwind/react";
 import { Dialog } from "@/components/Dialog";
 import { FooterButtons } from "@/components/FooterButtons";
+import { FormikInput } from "@/components/FormikInput";
+import { FormikTextarea } from "@/components/FormikTextarea";
 import useTheme from "@/utils/hooks/useTheme";
 import { AgentFormValues } from "./types";
 import { AgentSchema } from "./AgentSchema";
@@ -94,94 +95,67 @@ const AgentDialog = () => {
         }) => (
           <Form>
             <div>
-              <div className="space-y-1">
-                <h5 className="text-sm 2xl:text-[16px] font-medium">
-                  Agent Name
-                </h5>
+              <div className="text-left w-full">
+                <h5 className="block text-sm md:text-base mb-1">Agent Name</h5>
                 <Field name="agentName">
                   {({ field }: any) => (
-                    <Input
-                      {...field}
+                    <FormikInput
+                      field={field}
                       type="text"
-                      id="agentName"
+                      className={`!py-5 ${
+                        !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                      }`}
                       placeholder="Please enter the agent name"
-                      className={`
-                        !border ${
-                          errors.agentName && touched.agentName
-                            ? "!border-red-500"
-                            : "!border-gray-300"
-                        }
-                        !bg-white
-                        !rounded-xl
-                        ${
-                          isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
-                        }
-                      `}
-                      labelProps={{
-                        className: "hidden",
-                      }}
-                      containerProps={{
-                        className: "!min-w-0",
-                      }}
-                      error={!!(errors.agentName && touched.agentName)}
-                      onBlur={() => setFieldTouched("agentName", true)}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      errors={errors}
+                      touched={touched}
+                      onFieldTouched={() => setFieldTouched("agentName", true)}
+                      onFieldChange={(
+                        e: React.ChangeEvent<HTMLInputElement>
+                      ) => {
                         setFieldValue("agentName", e.target.value);
                       }}
                     />
                   )}
                 </Field>
-                <div className="min-h-[17px]">
+                <div className="min-h-[20px] ">
                   <ErrorMessage
                     name="agentName"
                     component="div"
-                    className="text-red-500 text-xs 2xl:text-sm mt-1"
+                    className="text-red-500 text-sm"
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <h5 className="text-sm 2xl:text-[16px] font-medium">
-                  Description
-                </h5>
+              <div className="text-left w-full">
+                <h5 className="block text-sm md:text-base mb-1">Description</h5>
                 <Field name="description">
                   {({ field }: any) => (
-                    <Textarea
-                      {...field}
-                      id="description"
-                      placeholder="Write something about your agent"
+                    <FormikTextarea
+                      field={field}
                       rows={4}
-                      className={`
-                        !border ${
-                          errors.description && touched.description
-                            ? "!border-red-500"
-                            : "!border-gray-300"
-                        }
-                        !bg-white
-                        !rounded-xl
-                        ${
-                          isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
-                        }
-                        !resize-none
-                      `}
-                      labelProps={{
-                        className: "hidden",
-                      }}
-                      containerProps={{
-                        className: "!min-w-0",
-                      }}
-                      error={!!(errors.description && touched.description)}
-                      onBlur={() => setFieldTouched("description", true)}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                      className={`${
+                        !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                      }`}
+                      placeholder="Write something about your agent"
+                      errors={errors}
+                      touched={touched}
+                      onFieldTouched={() =>
+                        setFieldTouched("description", true)
+                      }
+                      onFieldChange={(
+                        e: React.ChangeEvent<HTMLTextAreaElement>
+                      ) => {
                         setFieldValue("description", e.target.value);
                       }}
                     />
                   )}
                 </Field>
-                <ErrorMessage
-                  name="description"
-                  component="div"
-                  className="text-red-500 text-xs mt-1"
-                />
+                <div className="min-h-[20px] ">
+                  <ErrorMessage
+                    name="description"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </div>
               </div>
             </div>
             <FooterButtons

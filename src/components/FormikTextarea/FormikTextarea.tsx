@@ -1,17 +1,17 @@
 import React from "react";
-import { Input } from "@material-tailwind/react";
+import { Textarea } from "@material-tailwind/react";
 import useTheme from "@/utils/hooks/useTheme";
 
-export interface FormikInputProps
-  extends Omit<React.ComponentProps<typeof Input>, "error"> {
+export interface FormikTextareaProps
+  extends Omit<React.ComponentProps<typeof Textarea>, "error"> {
   /**
    * Field name from Formik
    */
   field: {
     name: string;
     value: any;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    onBlur: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
   };
   /**
    * Formik errors object
@@ -36,10 +36,10 @@ export interface FormikInputProps
   /**
    * Callback when field value changes
    */
-  onFieldChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFieldChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
-const FormikInput: React.FC<FormikInputProps> = ({
+const FormikTextarea: React.FC<FormikTextareaProps> = ({
   field,
   errors,
   touched,
@@ -56,14 +56,14 @@ const FormikInput: React.FC<FormikInputProps> = ({
       ? showError
       : errors?.[fieldName] && touched?.[fieldName];
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     field.onBlur(e);
     if (onFieldTouched) {
       onFieldTouched();
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     field.onChange(e);
     if (onFieldChange) {
       onFieldChange(e);
@@ -71,7 +71,7 @@ const FormikInput: React.FC<FormikInputProps> = ({
   };
 
   return (
-    <Input
+    <Textarea
       {...field}
       {...props}
       className={`
@@ -81,21 +81,22 @@ const FormikInput: React.FC<FormikInputProps> = ({
         !bg-white
         !rounded-xl
         ${isDark ? "!text-[#162230]" : "!text-[#162230]"}
+        !resize-none
         [&::placeholder]:opacity-100
         [&::placeholder]:text-[#737373]
         [&:focus::placeholder]:opacity-100
         [&:not(:placeholder-shown)::placeholder]:opacity-100
-        [&_input::placeholder]:opacity-100
-        [&_input::placeholder]:text-[#737373]
-        [&_input:focus::placeholder]:opacity-100
-        [&_input:not(:placeholder-shown)::placeholder]:opacity-100
+        [&_textarea::placeholder]:opacity-100
+        [&_textarea::placeholder]:text-[#737373]
+        [&_textarea:focus::placeholder]:opacity-100
+        [&_textarea:not(:placeholder-shown)::placeholder]:opacity-100
         ${className}
       `}
       labelProps={{
         className: "hidden",
       }}
       containerProps={{
-        className: "[&_label]:hidden",
+        className: "[&_label]:hidden !min-w-0",
       }}
       error={!!hasError}
       onBlur={handleBlur}
@@ -104,4 +105,5 @@ const FormikInput: React.FC<FormikInputProps> = ({
   );
 };
 
-export default FormikInput;
+export default FormikTextarea;
+

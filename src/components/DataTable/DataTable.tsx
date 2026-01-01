@@ -19,6 +19,7 @@ const DataTable = <T extends Record<string, any>>({
   data,
   columns,
   enableRowSelection = false,
+  rowSelection,
   enableSorting = true,
   enablePagination = false,
   pageSize = 10,
@@ -31,11 +32,19 @@ const DataTable = <T extends Record<string, any>>({
 }: DataTableProps<T>) => {
   const { theme, isDark } = useTheme();
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [rowSelectionState, setRowSelectionState] = useState<RowSelectionState>({});
+  
+  // Use rowSelection prop if provided, otherwise fall back to enableRowSelection
+  const shouldShowRowSelection = rowSelection !== undefined ? rowSelection : enableRowSelection;
 
   // Convert custom columns to TanStack Table columns
   const tableColumns = useMemo<ColumnDef<T>[]>(() => {
-    return columns.map((col) => ({
+    // Filter out select column if rowSelection is disabled
+    const filteredColumns = shouldShowRowSelection 
+      ? columns 
+      : columns.filter((col) => col.id !== "select");
+    
+    return filteredColumns.map((col) => ({
       id: col.id,
       header: col.header,
       accessorKey: col.accessorKey as string,
@@ -54,17 +63,17 @@ const DataTable = <T extends Record<string, any>>({
         return value ?? "-";
       },
     }));
-  }, [columns, enableSorting]);
+  }, [columns, enableSorting, shouldShowRowSelection]);
 
   const table = useReactTable({
     data,
     columns: tableColumns,
     state: {
       sorting,
-      rowSelection: enableRowSelection ? rowSelection : undefined,
+      rowSelection: shouldShowRowSelection ? rowSelectionState : undefined,
     },
-    enableRowSelection: enableRowSelection,
-    onRowSelectionChange: enableRowSelection ? setRowSelection : undefined,
+    enableRowSelection: shouldShowRowSelection,
+    onRowSelectionChange: shouldShowRowSelection ? setRowSelectionState : undefined,
     onSortingChange: (updater) => {
       const newSorting =
         typeof updater === "function" ? updater(sorting) : updater;
@@ -86,13 +95,13 @@ const DataTable = <T extends Record<string, any>>({
 
   // Handle row selection change
   React.useEffect(() => {
-    if (enableRowSelection && onRowSelectionChange) {
+    if (shouldShowRowSelection && onRowSelectionChange) {
       const selectedRows = table
         .getSelectedRowModel()
         .rows.map((row) => row.original);
       onRowSelectionChange(selectedRows);
     }
-  }, [rowSelection, enableRowSelection, onRowSelectionChange, table]);
+  }, [rowSelectionState, shouldShowRowSelection, onRowSelectionChange, table]);
 
   return (
     <div className={`data-table-container ${className}`} data-theme={theme}>
@@ -176,7 +185,7 @@ const DataTable = <T extends Record<string, any>>({
                       }}
                     >
                       {header.isPlaceholder ? null : isSelectColumn &&
-                        enableRowSelection ? (
+                        shouldShowRowSelection ? (
                         <CheckboxCell
                           checked={table.getIsAllRowsSelected()}
                           onChange={(checked) => {
@@ -237,13 +246,13 @@ const DataTable = <T extends Record<string, any>>({
               <TableSkeleton
                 columns={columns}
                 rows={pageSize}
-                enableRowSelection={enableRowSelection}
+                enableRowSelection={shouldShowRowSelection}
                 isDark={isDark}
               />
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length}
+                  colSpan={tableColumns.length}
                   className={`px-4 py-8 text-center ${
                     isDark ? "text-gray-400" : "text-gray-500"
                   }`}
@@ -305,7 +314,7 @@ const DataTable = <T extends Record<string, any>>({
                               : {}),
                           }}
                         >
-                          {isSelectCell && enableRowSelection ? (
+                          {isSelectCell && shouldShowRowSelection ? (
                             <CheckboxCell
                               checked={row.getIsSelected()}
                               onChange={(checked) =>

@@ -31,6 +31,7 @@ export interface DataTableProps<T> {
   data: T[];
   columns: DataTableColumn<T>[];
   enableRowSelection?: boolean;
+  rowSelection?: boolean;
   enableSorting?: boolean;
   enablePagination?: boolean;
   pageSize?: number;

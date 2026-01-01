@@ -16,6 +16,7 @@ import {
   setCanRegister,
 } from "@/store/auth/authSlice";
 import RtkQueryService from "@/services/RtkQueryService";
+import { showErrorToast } from "@/utils/toast";
 
 function useAuth() {
   const dispatch = useAppDispatch();
@@ -108,15 +109,19 @@ function useAuth() {
               register_email: email,
             })
           );
+          const errorMessage = responseData?.message || "Registration required";
+          showErrorToast(errorMessage);
           return {
             status: "failed",
-            message: responseData?.message || "Registration required",
+            message: errorMessage,
             requiresRegistration: true,
           };
         }
+        const errorMessage = responseData?.message || "Sign in failed";
+        showErrorToast(errorMessage);
         return {
           status: "failed",
-          message: responseData?.message || "Sign in failed",
+          message: errorMessage,
         };
       }
     } catch (error: any) {
@@ -142,7 +147,6 @@ function useAuth() {
   > => {
     try {
       const resp = await apiRegister(values);
-      console.log(resp, "Register Api Integration");
       if (resp?.data?.status === "success" && resp?.data?.data) {
         const { token, user, workspace, workspaces } = resp.data.data;
         const responseMessage = resp.data.message || "Registration successful";
@@ -160,6 +164,12 @@ function useAuth() {
             defaultWorkspaceId: user.default_workspace_id,
             workspace: workspace,
             workspaces: workspaces || [],
+          })
+        );
+        dispatch(
+          setCanRegister({
+            can_register: false,
+            register_email: "",
           })
         );
         navigate("/");

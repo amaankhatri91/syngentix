@@ -126,10 +126,17 @@ export interface Node {
   config_schema: ConfigSchema;
 }
 
+export interface NodeCategory {
+  category: string;
+  name: string;
+  icon_path: string;
+  nodes: Node[];
+}
+
 export interface NodesApiResponse {
   status: "success" | "failed";
   message: string;
-  data: Node[];
+  data: NodeCategory[];
 }
 
 export type NodesResponse = NodesApiResponse;

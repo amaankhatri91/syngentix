@@ -8,7 +8,7 @@ import darkSwitchIcon from "@/assets/switchIcon/dark-switch.svg";
 import lightSwitchIcon from "@/assets/switchIcon/light-switch.svg";
 
 const Header: React.FC = () => {
-  const { sidebarOpen } = useAppSelector((state) => state.auth);
+  const { sidebarOpen, userName } = useAppSelector((state) => state.auth);
   const { theme, isDark } = useTheme();
   const dispatch = useAppDispatch();
 
@@ -19,7 +19,7 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 h-16 z-10 transition-all  duration-300 ${
+      className={`fixed top-0 left-0 right-0 h-20 z-10 transition-all  duration-300 ${
         sidebarOpen ? "lg:left-56" : "lg:left-16"
       }`}
     >
@@ -34,7 +34,7 @@ const Header: React.FC = () => {
             <img src={sidebarIcon(sidebarOpen)} alt="icon" />
           </button>
           <div>
-            <h3 className="text-lg">Welcome, John!!!</h3>
+            <h3 className="text-lg font-medium">Welcome, {userName}</h3>
             <span className="text-sm">Create your workspace</span>
           </div>
         </div>
