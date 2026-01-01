@@ -55,6 +55,11 @@ export interface FormikSelectProps {
    */
   onFieldChange?: (value: SelectOption | null) => void;
   /**
+   * Menu placement - 'top' or 'bottom' or 'auto'
+   * Maps to react-select's menuPlacement prop
+   */
+  placement?: "top" | "bottom" | "auto";
+  /**
    * Additional react-select props
    */
   [key: string]: any;
@@ -71,6 +76,7 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
   isDisabled = false,
   onFieldTouched,
   onFieldChange,
+  placement,
   ...props
 }) => {
   const { isDark } = useTheme();
@@ -112,6 +118,7 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
         options={options}
         placeholder={placeholder}
         isDisabled={isDisabled}
+        menuPlacement={placement || props.menuPlacement || "auto"}
         styles={customStyles as StylesConfig<SelectOption, false, GroupBase<SelectOption>>}
         classNamePrefix="react-select"
       />

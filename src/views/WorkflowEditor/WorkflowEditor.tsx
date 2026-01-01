@@ -6,7 +6,7 @@ import WorkflowNodesList from "./WorkflowNodesList";
 
 const WorkflowEditor = () => {
   const { openNodeList } = useAppSelector((state) => state.workflowEditor);
-  
+
   return (
     <>
       <WorkflowEditorAction />
@@ -15,9 +15,11 @@ const WorkflowEditor = () => {
         <div className="lg:w-[100%] w-full">
           <WorkflowCanvas />
         </div>
-        <div className="lg:w-[30%] w-full mt-4 lg:mt-0">
-          <WorkflowNodesList />
-        </div>
+        {openNodeList && (
+          <div className="lg:w-[30%] w-full mt-4 lg:mt-0">
+            <WorkflowNodesList />
+          </div>
+        )}
         {/* <div className="lg:w-[30%] w-full mt-4 lg:mt-0"> */}
         {/* <AvailableNodesList /> */}
         {/* <WorkflowEditorChat /> */}

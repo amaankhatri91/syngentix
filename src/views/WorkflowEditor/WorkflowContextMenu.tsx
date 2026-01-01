@@ -1,5 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import useTheme from "@/utils/hooks/useTheme";
+import ChevronRightIcon from "@/assets/app-icons/ChevronRightIcon";
+import {
+  getIconColor,
+  getContextMenuItemClass,
+  getContextMenuSeparatorClass,
+} from "@/utils/common";
+import { useAppDispatch } from "@/store";
+import { setOpenNodeList } from "@/store/workflowEditor/workflowEditorSlice";
 
 interface ContextMenuProps {
   x: number;
@@ -10,6 +18,7 @@ interface ContextMenuProps {
 const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
   const { isDark } = useTheme();
   const menuRef = useRef<HTMLDivElement>(null);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -17,57 +26,22 @@ const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
         onClose();
       }
     };
-
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
       }
     };
-
     // Add event listeners
     document.addEventListener("click", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
-
     return () => {
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
   }, [onClose]);
 
-  const menuItemClass = `
-    flex items-center justify-between w-full px-4 py-3 text-sm font-medium
-    transition-colors duration-150 cursor-pointer
-    ${
-      isDark
-        ? "text-white hover:bg-[#1E293B]"
-        : "text-[#162230] hover:bg-[#F5F7FA]"
-    }
-    first:rounded-t-lg last:rounded-b-lg
-  `;
-
-  const separatorClass = `
-    ${isDark ? "border-[#2B3643]" : "border-[#E3E6EB]"}
-    border-t
-  `;
-
-  const ChevronRightIcon = () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={isDark ? "text-white" : "text-[#162230]"}
-    >
-      <path
-        d="M6 12L10 8L6 4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  const menuItemClass = getContextMenuItemClass(isDark);
+  const separatorClass = getContextMenuSeparatorClass(isDark);
 
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -90,18 +64,19 @@ const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
         top: `${y}px`,
       }}
     >
-      <div
+      <button
         className={menuItemClass}
         onClick={(e) => {
           e.stopPropagation();
           onClose();
+          dispatch(setOpenNodeList(true));
         }}
       >
         <h5>Add Node</h5>
-        <ChevronRightIcon />
-      </div>
+        <ChevronRightIcon color={getIconColor(isDark)} size={18} />
+      </button>
       <div className={separatorClass} />
-      <div
+      <button
         className={menuItemClass}
         onClick={(e) => {
           e.stopPropagation();
@@ -109,10 +84,10 @@ const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
         }}
       >
         <h5>Add Sticky Note</h5>
-        <ChevronRightIcon />
-      </div>
+        <ChevronRightIcon color={getIconColor(isDark)} size={18} />
+      </button>
       <div className={separatorClass} />
-      <div
+      <button
         className={menuItemClass}
         onClick={(e) => {
           e.stopPropagation();
@@ -120,8 +95,8 @@ const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
         }}
       >
         <h5>Select All</h5>
-        <ChevronRightIcon />
-      </div>
+        <ChevronRightIcon color={getIconColor(isDark)} size={18} />
+      </button>
     </div>
   );
 };

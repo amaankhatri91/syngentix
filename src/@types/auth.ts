@@ -88,6 +88,24 @@ export type GoogleSignInResponse = {
   };
 };
 
+export interface Workspace {
+  id: string;
+  name: string;
+  owner_id: string;
+  settings: {
+    input_guardrails: boolean;
+    output_guardrails: boolean;
+  };
+  is_private: boolean;
+  created_at: string;
+  type: string;
+  role: string;
+}
+
+export type WorkspacesResponse = {
+  data: Workspace[];
+};
+
 export type UserRegisterCredential = {
   name: string;
   email: string;

@@ -73,3 +73,64 @@ export const nodeTypes: NodeTypes = {
   note: WorkflowNoteNode,
 };
 
+// API Node Types
+export interface NodePin {
+  id: string;
+  name: string;
+  type: string;
+  required: boolean;
+  custom: boolean;
+}
+
+export interface ConfigSchemaMetadata {
+  allow_custom_input_pins: boolean;
+  allow_custom_output_pins: boolean;
+  allow_custom_next_pins: boolean;
+  allow_trigger_pins: boolean;
+}
+
+export interface ConfigSchemaProperty {
+  type?: string;
+  description?: string;
+  default?: any;
+  enum?: string[];
+  title?: string;
+  minimum?: number;
+  maximum?: number;
+  items?: {
+    type: string;
+    properties?: Record<string, ConfigSchemaProperty>;
+    required?: string[];
+  };
+  properties?: Record<string, ConfigSchemaProperty>;
+  required?: string[];
+}
+
+export interface ConfigSchema {
+  type: string;
+  properties?: Record<string, ConfigSchemaProperty>;
+  required?: string[];
+  metadata?: ConfigSchemaMetadata;
+}
+
+export interface Node {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  icon: string;
+  inputs: NodePin[];
+  outputs: NodePin[];
+  trigger_pins: NodePin[];
+  next_pins: NodePin[];
+  config_schema: ConfigSchema;
+}
+
+export interface NodesApiResponse {
+  status: "success" | "failed";
+  message: string;
+  data: Node[];
+}
+
+export type NodesResponse = NodesApiResponse;
+

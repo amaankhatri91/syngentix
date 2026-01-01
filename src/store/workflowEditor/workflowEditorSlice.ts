@@ -22,7 +22,6 @@ const workflowEditorSlice = createSlice({
   },
 });
 
-export const {} = workflowEditorSlice.actions;
+export const { setOpenNodeList } = workflowEditorSlice.actions;
 
 export default workflowEditorSlice.reducer;
-

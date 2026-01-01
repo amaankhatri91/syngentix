@@ -2,7 +2,8 @@ import React from "react";
 import { Input } from "@material-tailwind/react";
 import useTheme from "@/utils/hooks/useTheme";
 
-export interface FormikInputProps extends Omit<React.ComponentProps<typeof Input>, "error"> {
+export interface FormikInputProps
+  extends Omit<React.ComponentProps<typeof Input>, "error"> {
   /**
    * Field name from Formik
    */
@@ -50,9 +51,10 @@ const FormikInput: React.FC<FormikInputProps> = ({
 }) => {
   const { isDark } = useTheme();
   const fieldName = field.name;
-  const hasError = showError !== undefined 
-    ? showError 
-    : errors?.[fieldName] && touched?.[fieldName];
+  const hasError =
+    showError !== undefined
+      ? showError
+      : errors?.[fieldName] && touched?.[fieldName];
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     field.onBlur(e);
@@ -101,4 +103,3 @@ const FormikInput: React.FC<FormikInputProps> = ({
 };
 
 export default FormikInput;
-

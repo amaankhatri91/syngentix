@@ -1,4 +1,3 @@
-import { NodeAction } from "@/@types/workflow-types";
 import { TabItem } from "@/components/Tabs";
 
 export const getActiveTabLabel = (
@@ -60,30 +59,26 @@ export const getGroupedButtonStyles = (isDark: boolean): string => {
   }`;
 };
 
-export const getActionButtonColor = (
-  type: NodeAction["type"],
+export const getCategoryColor = (
+  category: string,
   isDark: boolean
 ) => {
-  switch (type) {
-    case "input":
-      return `${
-        isDark ? "bg-[#4ADE8033] text-[#4ADE80]" : "bg-[#009D39] text-white"
-      }`;
-    case "output":
-      return `${
-        isDark ? "bg-[#A78BFA33] text-[#A78BFA]" : "bg-[#714AE3] text-white"
-      }`;
+  switch (category.toLowerCase()) {
     case "trigger":
       return `${
         isDark ? "bg-[#CE93D833] text-[#CE93D8]" : "bg-[#714AE3] text-white"
       }`;
-    case "data":
+    case "core":
+      return `${
+        isDark ? "bg-[#4ADE8033] text-[#4ADE80]" : "bg-[#009D39] text-white"
+      }`;
+    case "logic":
+      return `${
+        isDark ? "bg-[#A78BFA33] text-[#A78BFA]" : "bg-[#714AE3] text-white"
+      }`;
+    case "integration":
       return `${
         isDark ? "bg-[#FFA50033] text-[#FFA500]" : "bg-[#D78D06] text-white"
-      }`;
-    case "Visualization":
-      return `${
-        isDark ? "bg-[#FFA50033] text-[#18FFFF]" : "bg-[#05C9C9] text-white"
       }`;
     default:
       return `${
@@ -193,12 +188,45 @@ export const getPortColor = (isDark: boolean): string => {
 };
 
 /**
+ * Get context menu item class based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Context menu item class string
+ */
+export const getContextMenuItemClass = (isDark: boolean): string => {
+  return `
+    flex items-center justify-between w-full px-4 py-3 text-sm font-medium
+    transition-colors duration-150 cursor-pointer
+    ${
+      isDark
+        ? "text-white hover:bg-[#1E293B]"
+        : "text-[#162230] hover:bg-[#F5F7FA]"
+    }
+    first:rounded-t-2xl last:rounded-b-2xl
+  `;
+};
+
+/**
+ * Get context menu separator class based on theme
+ * @param isDark - Whether the theme is dark
+ * @returns Context menu separator class string
+ */
+export const getContextMenuSeparatorClass = (isDark: boolean): string => {
+  return `
+    ${isDark ? "border-[#2B3643]" : "border-[#E3E6EB]"}
+    border-t
+  `;
+};
+
+/**
  * Get react-select custom styles
  * @param isDark - Whether the theme is dark
  * @param hasError - Whether the select has an error
  * @returns React-select styles object
  */
-export const getReactSelectStyles = (isDark: boolean, hasError: boolean = false) => {
+export const getReactSelectStyles = (
+  isDark: boolean,
+  hasError: boolean = false
+) => {
   return {
     control: (base: any, state: any) => ({
       ...base,
@@ -206,7 +234,8 @@ export const getReactSelectStyles = (isDark: boolean, hasError: boolean = false)
       borderColor: hasError ? "#EF4444" : "#D1D5DB",
       borderWidth: "1px",
       borderRadius: "12px",
-      minHeight: "44px",
+      minHeight: "42px",
+      maxHeight: "42px",
       boxShadow: "none",
       "&:hover": {
         borderColor: hasError ? "#EF4444" : "#9CA3AF",
@@ -245,7 +274,8 @@ export const getReactSelectStyles = (isDark: boolean, hasError: boolean = false)
     menu: (base: any) => ({
       ...base,
       borderRadius: "12px",
-      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      boxShadow:
+        "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
       marginTop: "4px",
       zIndex: 9999,
     }),

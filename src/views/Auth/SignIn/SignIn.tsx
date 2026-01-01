@@ -15,6 +15,7 @@ import {
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import { useAppSelector } from "@/store";
 import { UserRegisterCredential } from "@/@types/auth";
+import { useGetWorkspacesQuery } from "@/services/RtkQueryService";
 import * as Yup from "yup";
 
 const SignIn = () => {
@@ -26,6 +27,10 @@ const SignIn = () => {
     (state) => state.auth
   );
 
+  const { data: workspaces, isLoading } = useGetWorkspacesQuery(undefined, {
+    skip: !can_register,
+  });
+
   const registrationSchema = Yup.object().shape({
     name: Yup.string().required("Required"),
     email: Yup.string().email("Invalid email").required("Required"),
@@ -34,6 +39,7 @@ const SignIn = () => {
 
   return (
     <Formik
+      key={register_email}
       initialValues={
         can_register
           ? {
@@ -64,8 +70,6 @@ const SignIn = () => {
               invalidateAllQueries();
               showSuccessToast(result.message || "Sign in successful!");
             } else if (result?.status === "failed") {
-              // Only show error if registration is not required
-              // If requiresRegistration is true, the state is already set in googleSignIn
               if (!result?.requiresRegistration) {
                 showErrorToast(result.message || "Google sign-in failed");
               }
@@ -138,17 +142,20 @@ const SignIn = () => {
                           <FormikInput
                             field={field}
                             type="text"
+                            className="py-1"
                             placeholder="Please enter your name"
                             errors={errors}
                             touched={touched}
                             onFieldTouched={() => setFieldTouched("name", true)}
-                            onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            onFieldChange={(
+                              e: React.ChangeEvent<HTMLInputElement>
+                            ) => {
                               setFieldValue("name", e.target.value);
                             }}
                           />
                         )}
                       </Field>
-                      <div className="min-h-[20px] mt-1">
+                      <div className="min-h-[20px] ">
                         <ErrorMessage
                           name="name"
                           component="div"
@@ -163,19 +170,26 @@ const SignIn = () => {
                       <Field name="email">
                         {({ field }: any) => (
                           <FormikInput
+                            readOnly
+                            disable={true}
                             field={field}
+                            className="py-1"
                             type="email"
                             placeholder="Please enter your email"
                             errors={errors}
                             touched={touched}
-                            onFieldTouched={() => setFieldTouched("email", true)}
-                            onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            onFieldTouched={() =>
+                              setFieldTouched("email", true)
+                            }
+                            onFieldChange={(
+                              e: React.ChangeEvent<HTMLInputElement>
+                            ) => {
                               setFieldValue("email", e.target.value);
                             }}
                           />
                         )}
                       </Field>
-                      <div className="min-h-[20px] mt-1">
+                      <div className="min-h-[20px] ">
                         <ErrorMessage
                           name="email"
                           component="div"
@@ -190,23 +204,33 @@ const SignIn = () => {
                       <Field name="workspace_id">
                         {({ field }: any) => (
                           <FormikSelect
+                            menuPlacement={"top"}
                             field={field}
-                            options={[
-                              { value: "workspace1", label: "Workspace 1" },
-                              { value: "workspace2", label: "Workspace 2" },
-                              { value: "workspace3", label: "Workspace 3" },
-                            ]}
-                            placeholder="Please Select"
+                            options={
+                              workspaces?.data?.map((item) => ({
+                                label: item?.name,
+                                value: item?.id,
+                              })) ?? []
+                            }
+                            placeholder={
+                              isLoading
+                                ? "Loading workspaces..."
+                                : "Please Select"
+                            }
                             errors={errors}
                             touched={touched}
-                            onFieldTouched={() => setFieldTouched("workspace_id", true)}
+                            isDisabled={isLoading}
+                            onFieldTouched={() =>
+                              setFieldTouched("workspace_id", true)
+                            }
                             onFieldChange={(value) => {
                               setFieldValue("workspace_id", value?.value || "");
                             }}
+                            menu
                           />
                         )}
                       </Field>
-                      <div className="min-h-[20px] mt-1">
+                      <div className="min-h-[20px] ">
                         <ErrorMessage
                           name="workspace_id"
                           component="div"
@@ -221,8 +245,10 @@ const SignIn = () => {
                   disabled={isSubmitting}
                   loading={isSubmitting}
                   width="w-full "
-                  className={`mt-4 md:mt-14  gap-3 normal-case text-sm md:text-base hover:bg-transparent hover:shadow-none ${
-                    can_register ? "signup-btn" : "google-btn"
+                  className={`gap-3 normal-case text-sm md:text-base hover:bg-transparent hover:shadow-none ${
+                    can_register
+                      ? "signup-btn mt-1 text-white"
+                      : "google-btn mt-4 md:mt-14"
                   }`}
                   icon={
                     !can_register && (

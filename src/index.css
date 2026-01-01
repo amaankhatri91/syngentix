@@ -41,7 +41,7 @@ span {
 .google-btn {
   width: 100%;
   max-width: 480px;
-  height: 44px;
+  height: 42px;
   border-radius: 10px;
   /* Gradient border - dark mode */
   background: linear-gradient(#0f1724, #0f1724) padding-box,
@@ -294,7 +294,7 @@ nav button {
 /* SigUo Button */
 
 .signup-btn {
-  height: 44px;
+  height: 42px;
   border-radius: 10px;
   background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
 }
