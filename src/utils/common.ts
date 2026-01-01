@@ -191,3 +191,83 @@ export const getNodeTextColor = (isDark: boolean): string => {
 export const getPortColor = (isDark: boolean): string => {
   return isDark ? "bg-[#34C759]" : "bg-[#34C759]";
 };
+
+/**
+ * Get react-select custom styles
+ * @param isDark - Whether the theme is dark
+ * @param hasError - Whether the select has an error
+ * @returns React-select styles object
+ */
+export const getReactSelectStyles = (isDark: boolean, hasError: boolean = false) => {
+  return {
+    control: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: "#FFFFFF",
+      borderColor: hasError ? "#EF4444" : "#D1D5DB",
+      borderWidth: "1px",
+      borderRadius: "12px",
+      minHeight: "44px",
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: hasError ? "#EF4444" : "#9CA3AF",
+      },
+      ...(state.isFocused && {
+        borderColor: hasError ? "#EF4444" : "#9CA3AF",
+        boxShadow: "none",
+      }),
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: "#9CA3AF",
+      fontSize: "14px",
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: "#111827",
+      fontSize: "14px",
+    }),
+    input: (base: any) => ({
+      ...base,
+      color: "#111827",
+      fontSize: "14px",
+    }),
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+    dropdownIndicator: (base: any) => ({
+      ...base,
+      color: "#6B7280",
+      padding: "8px",
+      "&:hover": {
+        color: "#4B5563",
+      },
+    }),
+    menu: (base: any) => ({
+      ...base,
+      borderRadius: "12px",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      marginTop: "4px",
+      zIndex: 9999,
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      padding: "4px",
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? "#F3F4F6"
+        : state.isFocused
+        ? "#F9FAFB"
+        : "#FFFFFF",
+      color: "#111827",
+      fontSize: "14px",
+      padding: "10px 12px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      "&:active": {
+        backgroundColor: "#F3F4F6",
+      },
+    }),
+  };
+};

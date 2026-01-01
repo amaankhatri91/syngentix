@@ -1,8 +1,20 @@
 import { useAppSelector, useAppDispatch } from "@/store";
 import { useNavigate } from "react-router-dom";
-import { GoogleSignUpCredential, SignInCredential } from "@/@types/auth";
-import { apiGoogleSignIn, apiSignIn } from "@/services/AuthService";
-import { signInSuccess, signOutSuccess } from "@/store/auth/authSlice";
+import {
+  GoogleSignUpCredential,
+  SignInCredential,
+  UserRegisterCredential,
+} from "@/@types/auth";
+import {
+  apiGoogleSignIn,
+  apiSignIn,
+  apiRegister,
+} from "@/services/AuthService";
+import {
+  signInSuccess,
+  signOutSuccess,
+  setCanRegister,
+} from "@/store/auth/authSlice";
 import RtkQueryService from "@/services/RtkQueryService";
 
 function useAuth() {
@@ -45,19 +57,23 @@ function useAuth() {
 
   const googleSignIn = async (
     values: GoogleSignUpCredential
-  ): Promise<
-    | {
-        status: "success" | "failed";
-        message: string;
-      }
-    | undefined
-  > => {
+  ): Promise<{
+    status: "success" | "failed";
+    message: string;
+    requiresRegistration?: boolean;
+  }> => {
     try {
       const resp = await apiGoogleSignIn(values);
       console.log(resp, "Login Api Integration");
-      if (resp?.data?.data) {
+      if (resp?.status === 200) {
         const { token, user, workspace, workspaces } = resp.data.data;
         const responseMessage = resp.data.message || "Login successful";
+        if (!token || !user || !workspace) {
+          return {
+            status: "failed",
+            message: "Invalid response data",
+          };
+        }
         dispatch(
           signInSuccess({
             accessToken: token.access_token,
@@ -78,6 +94,83 @@ function useAuth() {
         return {
           status: resp.data.status || "success",
           message: responseMessage,
+        };
+      } else {
+        const responseData = resp?.data;
+        const canRegister =
+          responseData?.data?.can_register ||
+          responseData?.data?.registration_required;
+        if (resp?.status === 404 && canRegister) {
+          const email = responseData?.data?.email || values.email;
+          dispatch(
+            setCanRegister({
+              can_register: true,
+              register_email: email,
+            })
+          );
+          return {
+            status: "failed",
+            message: responseData?.message || "Registration required",
+            requiresRegistration: true,
+          };
+        }
+        return {
+          status: "failed",
+          message: responseData?.message || "Sign in failed",
+        };
+      }
+    } catch (error: any) {
+      return {
+        status: "failed",
+        message:
+          error?.response?.data?.data?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong",
+      };
+    }
+  };
+
+  const registerUser = async (
+    values: UserRegisterCredential
+  ): Promise<
+    | {
+        status: "success" | "failed";
+        message: string;
+      }
+    | undefined
+  > => {
+    try {
+      const resp = await apiRegister(values);
+      console.log(resp, "Register Api Integration");
+      if (resp?.data?.status === "success" && resp?.data?.data) {
+        const { token, user, workspace, workspaces } = resp.data.data;
+        const responseMessage = resp.data.message || "Registration successful";
+        dispatch(
+          signInSuccess({
+            accessToken: token.access_token,
+            refreshToken: token.refresh_token,
+            userName: user.display_name,
+            email: user.email,
+            avatar: user.photo_url,
+            userId: user.id,
+            userType: user.type,
+            googleId: user.google_id,
+            agents: user.agents,
+            defaultWorkspaceId: user.default_workspace_id,
+            workspace: workspace,
+            workspaces: workspaces || [],
+          })
+        );
+        navigate("/");
+        return {
+          status: "success",
+          message: responseMessage,
+        };
+      } else {
+        return {
+          status: resp?.data?.status || "failed",
+          message: resp?.data?.message || "Registration failed",
         };
       }
     } catch (error: any) {
@@ -121,6 +214,7 @@ function useAuth() {
     signIn,
     signOut,
     googleSignIn,
+    registerUser,
   };
 }
 

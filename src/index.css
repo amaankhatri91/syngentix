@@ -290,3 +290,11 @@ nav button {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* SigUo Button */
+
+.signup-btn {
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
+}
