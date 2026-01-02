@@ -1,9 +1,26 @@
 import { useEffect, useCallback, useRef } from "react";
-import { getSocket } from "../common";
+import { io, Socket } from "socket.io-client";
+import appConfig from "@/configs/app.config";
+import { useAppSelector } from "@/store";
 
 type SocketEventHandler<T = any> = (data: T) => void;
 
 export const useSocketConnection = () => {
+  const { token } = useAppSelector((state) => state.auth);
+
+  let socket: Socket | null = null;
+
+  const getSocket = () => {
+    if (!socket) {
+      socket = io(appConfig.socketBaseUrl, {
+        auth: {
+          token: token,
+        },
+      });
+    }
+    return socket;
+  };
+
   const socketRef = useRef(getSocket());
 
   /** Emit any event */

@@ -3,9 +3,11 @@ import WorkflowEditorHeader from "./WorkflowEditorHeader";
 import WorkflowCanvas from "./WorkflowCanvas";
 import { useAppSelector } from "@/store";
 import WorkflowNodesList from "./WorkflowNodesList";
+import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
 
 const WorkflowEditor = () => {
   const { openNodeList } = useAppSelector((state) => state.workflowEditor);
+  useSocketConnection();
 
   return (
     <>

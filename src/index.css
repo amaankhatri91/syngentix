@@ -298,3 +298,21 @@ nav button {
   border-radius: 10px;
   background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
 }
+
+.rf-handle-ring {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #34c759; /* green center */
+  border: 2px solid #ffffff; /* white ring */
+}
+
+.rf-handle-ring::before {
+  content: "";
+  position: absolute;
+  inset: -4px; /* controls blue ring thickness */
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #4f46e5, #2563eb); /* blue ring */
+  z-index: -1;
+}
