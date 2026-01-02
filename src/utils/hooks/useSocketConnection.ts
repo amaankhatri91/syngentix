@@ -5,57 +5,54 @@ import { useAppSelector } from "@/store";
 
 type SocketEventHandler<T = any> = (data: T) => void;
 
+// 🔒 module-level singleton
+let socketInstance: Socket | null = null;
+
 export const useSocketConnection = () => {
   const { token } = useAppSelector((state) => state.auth);
+  const socketRef = useRef<Socket | null>(null);
 
-  let socket: Socket | null = null;
-
-  const getSocket = () => {
-    if (!socket) {
-      socket = io(appConfig.socketBaseUrl, {
-        auth: {
-          token: token,
-        },
+  if (!socketRef.current) {
+    if (!socketInstance) {
+      socketInstance = io(appConfig.socketBaseUrl, {
+        auth: { token },
+        transports: ["websocket"],
+        autoConnect: true,
       });
     }
-    return socket;
-  };
+    socketRef.current = socketInstance;
+  }
 
-  const socketRef = useRef(getSocket());
-
-  /** Emit any event */
   const emit = useCallback(<T>(event: string, payload: T) => {
-    socketRef.current.emit(event, payload);
+    socketRef.current?.emit(event, payload);
   }, []);
 
-  /** Listen to any event */
   const on = useCallback(<T>(event: string, handler: SocketEventHandler<T>) => {
     const socket = socketRef.current;
-    socket.on(event, handler);
+    socket?.on(event, handler);
 
     return () => {
-      socket.off(event, handler);
+      socket?.off(event, handler);
     };
   }, []);
 
-  /** Initialize socket connection lifecycle */
   useEffect(() => {
     const socket = socketRef.current;
 
     const handleConnect = () => {
-      console.log("✅ Socket connected:", socket.id);
+      console.log("✅ Socket connected:", socket?.id);
     };
 
     const handleDisconnect = () => {
       console.log("❌ Socket disconnected");
     };
 
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
+    socket?.on("connect", handleConnect);
+    socket?.on("disconnect", handleDisconnect);
 
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
+      socket?.off("connect", handleConnect);
+      socket?.off("disconnect", handleDisconnect);
     };
   }, []);
 

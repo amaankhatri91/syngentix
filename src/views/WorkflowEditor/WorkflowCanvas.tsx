@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import ReactFlow, {
   Node,
   Edge,
@@ -19,15 +20,21 @@ import {
   getWorkflowCanvasBorderColor,
   getWorkflowCanvasShadow,
 } from "@/utils/common";
-import { initialNodes, initialEdges, CustomNodeData } from "./dymmyData";
+import { CustomNodeData } from "./dymmyData";
 import WorkflowEditorControls from "./WorkflowEditorControls";
 import { edgeTypes, nodeTypes } from "./type";
 import ContextMenu from "./WorkflowContextMenu";
+import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
+import { useAppSelector } from "@/store";
 
 const WorkflowCanvas: React.FC = () => {
   const { isDark } = useTheme();
-  const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const { on, emit } = useSocketConnection();
+  const { workflowId } = useParams<{ workflowId: string }>();
+  const { userId } = useAppSelector((state) => state.auth);
+
+  const [nodes, setNodes] = useState<Node<CustomNodeData>[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -35,6 +42,23 @@ const WorkflowCanvas: React.FC = () => {
   } | null>(null);
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
+
+  useEffect(() => {
+    const unsubscribeWorkflowData = on("workflow:data", (data) => {
+      console.log("📥 workflow:data received:", data);
+      // 👉 update state here
+      // setNodes(data.nodes);
+      // setEdges(data.edges);
+    });
+    const unsubscribeNodeCreated = on("node:created", (data) => {
+      console.log("✅ node:created response:", data);
+      // Verify Node Created Data
+    });
+    return () => {
+      unsubscribeWorkflowData();
+      unsubscribeNodeCreated();
+    };
+  }, [on]);
 
   const handleToggleLock = useCallback(() => {
     setIsLocked((prev) => !prev);
@@ -55,11 +79,9 @@ const WorkflowCanvas: React.FC = () => {
     (event: React.MouseEvent) => {
       event.preventDefault();
       if (!reactFlowInstance) return;
-
       // Get the position in the viewport
       const x = event.clientX;
       const y = event.clientY;
-
       setContextMenu({ x, y });
     },
     [reactFlowInstance]
@@ -73,74 +95,6 @@ const WorkflowCanvas: React.FC = () => {
   // Close context menu when clicking on the pane
   const onPaneClick = useCallback(() => {
     setContextMenu(null);
-  }, []);
-
-  // Handle adding a new node
-  const handleAddNode = useCallback(() => {
-    if (!reactFlowInstance || !contextMenu) return;
-
-    // Convert screen coordinates to flow coordinates
-    const position = reactFlowInstance.screenToFlowPosition({
-      x: contextMenu.x,
-      y: contextMenu.y,
-    });
-
-    const newNode: Node<CustomNodeData> = {
-      id: `node-${Date.now()}`,
-      type: "custom",
-      position,
-      data: {
-        label: "New Node",
-        nodeType: "text",
-        dotColor: "#22D3EE",
-        borderColor: "from-blue-500 to-purple-500",
-        inputs: ["Start"],
-        outputs: ["Next"],
-      },
-    };
-
-    setNodes((nds) => [...nds, newNode]);
-  }, [reactFlowInstance, contextMenu]);
-
-  // Handle adding a sticky note
-  const handleAddStickyNote = useCallback(() => {
-    if (!reactFlowInstance || !contextMenu) return;
-
-    // Convert screen coordinates to flow coordinates
-    const position = reactFlowInstance.screenToFlowPosition({
-      x: contextMenu.x,
-      y: contextMenu.y,
-    });
-
-    const newNote: Node<CustomNodeData> = {
-      id: `note-${Date.now()}`,
-      type: "note",
-      position,
-      data: {
-        label: "Sticky Note",
-        nodeType: "note",
-        dotColor: "#B3EFBD",
-        borderColor: "from-purple-500 to-blue-500",
-      },
-    };
-
-    setNodes((nds) => [...nds, newNote]);
-  }, [reactFlowInstance, contextMenu]);
-
-  // Handle select all
-  const handleSelectAll = useCallback(() => {
-    setNodes((nds) =>
-      nds.map((node) => ({
-        ...node,
-        selected: true,
-      }))
-    );
-    setEdges((eds) =>
-      eds.map((edge) => ({
-        ...edge,
-        selected: true,
-      }))
-    );
   }, []);
 
   // Memoize edge styles - use #8E8E93 for all regular edges
@@ -159,24 +113,15 @@ const WorkflowCanvas: React.FC = () => {
     });
   }, [edges]);
 
-  // Background pattern color
-  const gridColor = useMemo(() => getWorkflowGridColor(isDark), [isDark]);
-
-  // Canvas styling based on theme
-  const canvasBgColor = useMemo(() => getWorkflowCanvasBg(isDark), [isDark]);
-  const canvasBorderColor = useMemo(
-    () => getWorkflowCanvasBorderColor(isDark),
-    [isDark]
-  );
-  const canvasShadow = useMemo(() => getWorkflowCanvasShadow(isDark), [isDark]);
+  const handleAddnodes = () => {};
 
   return (
     <div
       className="w-full rounded-2xl h-full overflow-hidden"
       style={{
-        backgroundColor: canvasBgColor,
-        border: `0.6px solid ${canvasBorderColor}`,
-        boxShadow: canvasShadow,
+        backgroundColor: getWorkflowCanvasBg(isDark),
+        border: `0.6px solid ${getWorkflowCanvasBorderColor(isDark)}`,
+        boxShadow: getWorkflowCanvasShadow(isDark),
       }}
     >
       <ReactFlow
@@ -190,6 +135,37 @@ const WorkflowCanvas: React.FC = () => {
         onPaneContextMenu={onPaneContextMenu}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
+        onDrop={(event) => {
+          event.preventDefault();
+          const nodeData = event.dataTransfer.getData("application/reactflow");
+          if (nodeData && reactFlowInstance && workflowId) {
+            const node = JSON.parse(nodeData);
+
+            // Convert screen coordinates to flow coordinates
+            const position = reactFlowInstance.screenToFlowPosition({
+              x: event.clientX,
+              y: event.clientY,
+            });
+            
+            // Emit socket event with the required format
+            emit("node:create", {
+              workflow_id: workflowId,
+              type: node.id || node.category || "unknown",
+              position: {
+                x: position.x,
+                y: position.y,
+              },
+              data: node,
+              user_id: userId || undefined,
+            });
+
+            console.log("Node dropped on canvas:", node);
+          }
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+        }}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         nodesDraggable={!isLocked}
@@ -206,7 +182,7 @@ const WorkflowCanvas: React.FC = () => {
         proOptions={{ hideAttribution: true }}
       >
         <Background
-          color={gridColor}
+          color={getWorkflowGridColor(isDark)}
           gap={180}
           size={1}
           variant={BackgroundVariant.Lines}

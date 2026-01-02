@@ -159,9 +159,17 @@ const WorkflowNodesList = () => {
                     {category?.nodes?.map((node, index) => (
                       <div key={node.id}>
                         <div
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData(
+                              "application/reactflow",
+                              JSON.stringify(node)
+                            );
+                            e.dataTransfer.effectAllowed = "move";
+                          }}
                           className={`
                           p-3
-                          transition-colors cursor-pointer hover:bg-transparent
+                          transition-colors cursor-grab active:cursor-grabbing hover:bg-transparent
                         `}
                         >
                           <div className="flex items-start gap-3">
