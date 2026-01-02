@@ -1,63 +1,64 @@
 import { Button } from "@/components/Button";
 import { SearchInput } from "@/components/SearchInput";
 import useTheme from "@/utils/hooks/useTheme";
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import DocumentIcon from "@/assets/app-icons/DocumentIcon";
-import { MenuIcon, ChevronDownIcon } from "@/assets/app-icons";
+import { MenuIcon } from "@/assets/app-icons";
 import { useGetNodesQuery } from "@/services/RtkQueryService";
-import { getCategoryColor } from "@/utils/common";
-import { NodeCategory } from "./type";
+import { useAppSelector, useAppDispatch } from "@/store";
+import {
+  setSearchQuery,
+  setExpandedCategories,
+  toggleCategory,
+} from "@/store/workflowEditor/workflowEditorSlice";
+import {
+  filterCategoriesBySearch,
+  getAllCategoryNames,
+  isCategoryExpanded,
+} from "@/utils/common";
+import ChevronRightIcon from "@/assets/app-icons/ChevronRightIcon";
+import WorkflowNodesListSkeleton from "./WorkflowNodesListSkeleton";
 
 const WorkflowNodesList = () => {
   const { isDark } = useTheme();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set()
+  const dispatch = useAppDispatch();
+  const { searchQuery, expandedCategories } = useAppSelector(
+    (state) => state.workflowEditor
   );
   const { data, isLoading, error } = useGetNodesQuery();
 
   // Expand all categories by default when data loads
   useEffect(() => {
     if (data?.data && data.data.length > 0) {
-      const allCategoryNames = new Set(data.data.map((cat) => cat.name));
-      setExpandedCategories(allCategoryNames);
+      const allCategoryNames = getAllCategoryNames(data.data);
+      dispatch(setExpandedCategories(allCategoryNames));
     }
-  }, [data]);
+  }, [data, dispatch]);
 
-  console.log(data, "Please Verify Data Listing");
-
-  const toggleCategory = (categoryName: string) => {
-    setExpandedCategories((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(categoryName)) {
-        newSet.delete(categoryName);
-      } else {
-        newSet.add(categoryName);
-      }
-      return newSet;
-    });
+  const handleToggleCategory = (categoryName: string) => {
+    dispatch(toggleCategory(categoryName));
   };
 
   const filteredCategories = useMemo(() => {
     const categories = data?.data || [];
-    if (!searchQuery.trim()) return categories;
-    const query = searchQuery.toLowerCase();
-    return categories
-      .map((category) => {
-        const filteredNodes = category.nodes.filter(
-          (node) =>
-            node.name?.toLowerCase().includes(query) ||
-            node.description?.toLowerCase().includes(query) ||
-            category.name?.toLowerCase().includes(query) ||
-            category.category?.toLowerCase().includes(query)
-        );
-        return {
-          ...category,
-          nodes: filteredNodes,
-        };
-      })
-      .filter((category) => category.nodes.length > 0);
+    return filterCategoriesBySearch(categories, searchQuery);
   }, [searchQuery, data]);
+
+  const handleToggleAllCategories = () => {
+    const categories = filteredCategories || data?.data || [];
+    if (categories.length === 0) return;
+    const allCategoryNames = getAllCategoryNames(categories);
+    const allExpanded = allCategoryNames.every((name) =>
+      expandedCategories.includes(name)
+    );
+    if (allExpanded) {
+      // Collapse all
+      dispatch(setExpandedCategories([]));
+    } else {
+      // Expand all
+      dispatch(setExpandedCategories(allCategoryNames));
+    }
+  };
 
   return (
     <div
@@ -78,9 +79,7 @@ const WorkflowNodesList = () => {
             Available Nodes
           </h3>
           <Button
-            onClick={() => {
-              console.log("New node clicked");
-            }}
+            onClick={handleToggleAllCategories}
             icon={<MenuIcon color="white" size={16} />}
             className="px-2.5 rounded-2xl !py-2 !text-white !bg-gradient-to-r from-[#9133EA] to-[#2962EB]"
           />
@@ -88,7 +87,7 @@ const WorkflowNodesList = () => {
         <SearchInput
           placeholder="Search Node"
           onSearch={(value) => {
-            setSearchQuery(value);
+            dispatch(setSearchQuery(value));
           }}
           width="w-full"
           className="text-sm text-[#0C1116] w-full text-[14px] mb-4"
@@ -97,16 +96,19 @@ const WorkflowNodesList = () => {
       </div>
       <div className="flex-1 overflow-y-auto nodes-list-scrollbar px-4 pb-4 min-h-0">
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Loading nodes...</div>
+          <WorkflowNodesListSkeleton categoryCount={3} nodesPerCategory={4} />
         ) : error ? (
           <div className="text-center py-8 text-red-500">
             Error loading nodes
           </div>
-        ) : filteredCategories.length === 0 ? (
+        ) : filteredCategories?.length === 0 ? (
           <div className="text-center py-8 text-gray-500">No nodes found</div>
         ) : (
-          filteredCategories.map((category) => {
-            const isExpanded = expandedCategories.has(category.name);
+          filteredCategories?.map((category) => {
+            const isExpanded = isCategoryExpanded(
+              expandedCategories,
+              category.name
+            );
             return (
               <div
                 key={category.category}
@@ -120,14 +122,12 @@ const WorkflowNodesList = () => {
                   }
                 `}
               >
-                {/* Category Header */}
                 <button
-                  onClick={() => toggleCategory(category.name)}
+                  onClick={() => handleToggleCategory(category.name)}
                   className={`
                     w-full p-3 flex items-center justify-between
                     ${isExpanded ? "rounded-t-2xl" : "rounded-2xl"}
-                    ${isDark ? "hover:bg-[#1A1F2E]" : ""}
-                    transition-colors
+                    transition-colors hover:bg-transparent
                   `}
                 >
                   <span
@@ -139,12 +139,12 @@ const WorkflowNodesList = () => {
                   </span>
                   <div
                     className={`transition-transform ${
-                      isExpanded ? "rotate-180" : ""
+                      isExpanded ? "-rotate-90" : ""
                     }`}
                   >
-                    <ChevronDownIcon
+                    <ChevronRightIcon
                       color={isDark ? "white" : "#162230"}
-                      size={12}
+                      size={18}
                     />
                   </div>
                 </button>
@@ -156,17 +156,12 @@ const WorkflowNodesList = () => {
                         isDark ? "border-[#2B3643]" : "border-[#EEF4FF]"
                       }`}
                     />
-                    {category.nodes.map((node, index) => (
+                    {category?.nodes?.map((node, index) => (
                       <div key={node.id}>
                         <div
                           className={`
                           p-3
-                          ${
-                            isDark
-                              ? "hover:bg-[#1A1F2E]"
-                              : "hover:bg-[#F9FAFB]"
-                          }
-                          transition-colors cursor-pointer
+                          transition-colors cursor-pointer hover:bg-transparent
                         `}
                         >
                           <div className="flex items-start gap-3">
@@ -177,10 +172,10 @@ const WorkflowNodesList = () => {
                                   : "bg-gradient-to-r from-[#9133EA] to-[#2962EB]"
                               }`}
                             >
-                              {node.icon ? (
+                              {node?.icon ? (
                                 <img
-                                  src={node.icon}
-                                  alt={node.name}
+                                  src={node?.icon}
+                                  alt={node?.name}
                                   className="w-full h-full object-contain"
                                 />
                               ) : (

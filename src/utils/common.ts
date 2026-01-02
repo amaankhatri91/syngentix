@@ -1,4 +1,9 @@
 import { TabItem } from "@/components/Tabs";
+import appConfig from "@/configs/app.config";
+import { NodeCategory } from "@/views/WorkflowEditor/type";
+import { io, Socket } from "socket.io-client";
+
+let socket: Socket | null = null;
 
 export const getActiveTabLabel = (
   tabs: TabItem[],
@@ -9,6 +14,16 @@ export const getActiveTabLabel = (
     tabs.find((tab) => String(tab.value) === String(activeTab))?.label ??
     fallback
   );
+};
+
+export const getSocket = () => {
+  if (!socket) {
+    socket = io(appConfig.socketBaseUrl, {
+      transports: ["websocket"],
+      autoConnect: true,
+    });
+  }
+  return socket;
 };
 
 /**
@@ -59,10 +74,7 @@ export const getGroupedButtonStyles = (isDark: boolean): string => {
   }`;
 };
 
-export const getCategoryColor = (
-  category: string,
-  isDark: boolean
-) => {
+export const getCategoryColor = (category: string, isDark: boolean) => {
   switch (category.toLowerCase()) {
     case "trigger":
       return `${
@@ -230,15 +242,31 @@ export const getReactSelectStyles = (
   return {
     control: (base: any, state: any) => {
       const isLightModeNoError = !isDark && !hasError;
-      
+
       return {
         ...base,
         backgroundColor: "#FFFFFF",
         borderColor: hasError ? "#EF4444" : "#D1D5DB",
-        borderTopColor: isLightModeNoError ? "#EAEAEA" : hasError ? "#EF4444" : "#D1D5DB",
-        borderBottomColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#D1D5DB",
-        borderLeftColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#D1D5DB",
-        borderRightColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#D1D5DB",
+        borderTopColor: isLightModeNoError
+          ? "#EAEAEA"
+          : hasError
+          ? "#EF4444"
+          : "#D1D5DB",
+        borderBottomColor: isLightModeNoError
+          ? "transparent"
+          : hasError
+          ? "#EF4444"
+          : "#D1D5DB",
+        borderLeftColor: isLightModeNoError
+          ? "transparent"
+          : hasError
+          ? "#EF4444"
+          : "#D1D5DB",
+        borderRightColor: isLightModeNoError
+          ? "transparent"
+          : hasError
+          ? "#EF4444"
+          : "#D1D5DB",
         borderTopWidth: "1px",
         borderBottomWidth: isLightModeNoError ? "0px" : "1px",
         borderLeftWidth: isLightModeNoError ? "0px" : "1px",
@@ -249,18 +277,52 @@ export const getReactSelectStyles = (
         boxShadow: isLightModeNoError ? "0 4px 8px 0 rgba(1,5,17,0.1)" : "none",
         "&:hover": {
           borderColor: hasError ? "#EF4444" : "#9CA3AF",
-          borderTopColor: isLightModeNoError ? "#EAEAEA" : hasError ? "#EF4444" : "#9CA3AF",
-          borderBottomColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
-          borderLeftColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
-          borderRightColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
+          borderTopColor: isLightModeNoError
+            ? "#EAEAEA"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
+          borderBottomColor: isLightModeNoError
+            ? "transparent"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
+          borderLeftColor: isLightModeNoError
+            ? "transparent"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
+          borderRightColor: isLightModeNoError
+            ? "transparent"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
         },
         ...(state.isFocused && {
           borderColor: hasError ? "#EF4444" : "#9CA3AF",
-          borderTopColor: isLightModeNoError ? "#EAEAEA" : hasError ? "#EF4444" : "#9CA3AF",
-          borderBottomColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
-          borderLeftColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
-          borderRightColor: isLightModeNoError ? "transparent" : hasError ? "#EF4444" : "#9CA3AF",
-          boxShadow: isLightModeNoError ? "0 4px 8px 0 rgba(1,5,17,0.1)" : "none",
+          borderTopColor: isLightModeNoError
+            ? "#EAEAEA"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
+          borderBottomColor: isLightModeNoError
+            ? "transparent"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
+          borderLeftColor: isLightModeNoError
+            ? "transparent"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
+          borderRightColor: isLightModeNoError
+            ? "transparent"
+            : hasError
+            ? "#EF4444"
+            : "#9CA3AF",
+          boxShadow: isLightModeNoError
+            ? "0 4px 8px 0 rgba(1,5,17,0.1)"
+            : "none",
         }),
       };
     },
@@ -319,4 +381,75 @@ export const getReactSelectStyles = (
       },
     }),
   };
+};
+
+/**
+ * Filters categories based on search query
+ * @param categories - Array of node categories
+ * @param searchQuery - Search query string
+ * @returns Filtered array of categories with matching nodes
+ */
+export const filterCategoriesBySearch = (
+  categories: NodeCategory[],
+  searchQuery: string
+): NodeCategory[] => {
+  if (!searchQuery.trim()) return categories;
+
+  const query = searchQuery.toLowerCase();
+  return categories
+    .map((category) => {
+      const filteredNodes = category.nodes.filter(
+        (node) =>
+          node.name?.toLowerCase().includes(query) ||
+          node.description?.toLowerCase().includes(query) ||
+          category.name?.toLowerCase().includes(query) ||
+          category.category?.toLowerCase().includes(query)
+      );
+      return {
+        ...category,
+        nodes: filteredNodes,
+      };
+    })
+    .filter((category) => category.nodes.length > 0);
+};
+
+/**
+ * Gets all category names from categories data
+ * @param categories - Array of node categories
+ * @returns Array of category names
+ */
+export const getAllCategoryNames = (categories: NodeCategory[]): string[] => {
+  return categories.map((cat) => cat.name);
+};
+
+/**
+ * Toggles a category in the expanded categories array
+ * @param expandedCategories - Current array of expanded category names
+ * @param categoryName - Category name to toggle
+ * @returns New array with toggled category
+ */
+export const toggleCategoryInArray = (
+  expandedCategories: string[],
+  categoryName: string
+): string[] => {
+  const categorySet = new Set(expandedCategories);
+  if (categorySet.has(categoryName)) {
+    categorySet.delete(categoryName);
+  } else {
+    categorySet.add(categoryName);
+  }
+  return Array.from(categorySet);
+};
+
+/**
+ * Checks if a category is expanded
+ * @param expandedCategories - Array of expanded category names
+ * @param categoryName - Category name to check
+ * @returns True if category is expanded
+ */
+export const isCategoryExpanded = (
+  expandedCategories: string[],
+  categoryName: string
+): boolean => {
+  return expandedCategories.includes(categoryName);
 };
