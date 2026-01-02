@@ -527,8 +527,8 @@ export const transformServerNodeToReactFlowNode = (
   const nextPins = nodeData.next_pins?.map((pin: any) => pin.name) || [];
 
   // Combine all outputs (trigger_pins and next_pins are also outputs)
-  const allOutputs = [...outputs, ...triggerPins, ...nextPins];
-  const allInputs = [...inputs];
+  const allOutputs = [...outputs,  ...nextPins];
+  const allInputs = [...triggerPins, ...inputs];
 
   // Determine node type and colors based on category or type
   const category = nodeData.category || "default";

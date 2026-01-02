@@ -9,12 +9,18 @@ import {
   getNodeDropShadow,
 } from "@/utils/common";
 import { CustomNodeData } from "./dymmyData";
+import { useAppSelector } from "@/store";
 
 const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
   data,
   selected,
 }) => {
   const { isDark } = useTheme();
+  const { nodes, edges, isLocked } = useAppSelector(
+    (state) => state.workflowEditor
+  );
+
+  console.log(nodes, "Verify Nodes Data");
   const gradient = getNodeBorderGradient();
   const dropShadow = getNodeDropShadow();
   const bgColorValue = isDark ? "#0C1116" : "#FFFFFF";
@@ -43,17 +49,44 @@ const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
     boxShadow: shadow,
   };
 
+  console.log(data, "Verify Data Listing");
+
+  // Calculate minimum width based on longest label
+  const allLabels = [
+    data.label,
+    ...(data.inputs || []),
+    ...(data.outputs || []),
+  ];
+  const longestLabel = allLabels.reduce(
+    (longest, label) => (label.length > longest.length ? label : longest),
+    ""
+  );
+  // Estimate width: ~8px per character + padding
+  const estimatedWidth = Math.max(200, longestLabel.length * 8 + 80);
+
+  // Calculate minimum height based on number of inputs and outputs
+  const inputCount = data.inputs?.length || 0;
+  const outputCount = data.outputs?.length || 0;
+  const maxCount = Math.max(inputCount, outputCount);
+  // Base height: label (40px) + spacing + (maxCount * 32px per item) + padding
+  const estimatedHeight = Math.max(140, 40 + maxCount * 32 + 40);
+
   return (
     <div
       className={`
         ${getNodeBgColor(isDark)}
-        !rounded-2xl px-4 pt-2 pb-4 min-w-[200px] min-h-[140px] relative
+        !rounded-2xl px-4 pt-2 pb-4 relative
         transition-all duration-200
+        flex flex-col
       `}
-      style={gradientBorderStyle}
+      style={{
+        ...gradientBorderStyle,
+        minWidth: `${estimatedWidth}px`,
+        minHeight: `${estimatedHeight}px`,
+      }}
     >
       {/* Dot indicator - top right */}
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2 z-10">
         <div
           className="w-3 h-3 rounded-full"
           style={{ backgroundColor: data.dotColor }}
@@ -63,18 +96,17 @@ const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
       <div className={`font-normal mb-3 ${getNodeTextColor(isDark)} pr-6`}>
         {data.label}
       </div>
-      {/* Input Handles */}
-      {data.inputs && data.inputs.length > 0 && (
-        <div className="mb-2">
-          {data.inputs.map((input, index) => {
-            const baseTop = 50 + index * 30;
-            return (
+
+      {/* Content Container */}
+      <div className="flex-1 flex gap-4">
+        {/* Input Handles - Left Side */}
+        {data.inputs && data.inputs.length > 0 && (
+          <div className="flex flex-col gap-3 flex-1">
+            {data.inputs.map((input) => (
               <div
                 key={input}
-                className="absolute flex items-center"
-                style={{
-                  top: `${baseTop}px`,
-                }}
+                className="flex items-center gap-2 relative"
+                style={{ minHeight: "24px" }}
               >
                 <Handle
                   type="target"
@@ -82,50 +114,51 @@ const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
                   id={input}
                   className={`${getPortColor(
                     isDark
-                  )} w-3 h-3 border-2 border-[#FFFFFF]`}
+                  )} w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0`}
                   style={{ left: -23 }}
                 />
                 <span
-                  className={`text-xs ${
+                  className={`text-xs whitespace-nowrap ${
                     isDark ? "text-[#FFFFFF]" : "text-[#162230]"
-                  } `}
+                  }`}
                 >
                   {input}
                 </span>
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
 
-      {/* Output Handles */}
-      {data.outputs && data.outputs.length > 0 && (
-        <div className="mt-3 space-y-2">
-          {data.outputs.map((output, index) => (
-            <div
-              key={output}
-              className="relative flex items-center justify-end gap-2"
-            >
-              <span
-                className={`text-sm font-normal ${
-                  isDark ? "text-[#FFFFFF]" : "text-[#162230]"
-                }`}
+        {/* Output Handles - Right Side */}
+        {data.outputs && data.outputs.length > 0 && (
+          <div className="flex flex-col gap-3 flex-1">
+            {data.outputs.map((output) => (
+              <div
+                key={output}
+                className="flex items-center justify-end gap-2 relative"
+                style={{ minHeight: "24px" }}
               >
-                {output}
-              </span>
-              <Handle
-                type="source"
-                position={Position.Right}
-                id={output}
-                className={`${getPortColor(
-                  isDark
-                )} w-3 h-3 border-2 border-[#FFFFFF]`}
-                style={{ right: -23 }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+                <span
+                  className={`text-xs font-normal whitespace-nowrap ${
+                    isDark ? "text-[#FFFFFF]" : "text-[#162230]"
+                  }`}
+                >
+                  {output}
+                </span>
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={output}
+                  className={`${getPortColor(
+                    isDark
+                  )} w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0`}
+                  style={{ right: -23 }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
