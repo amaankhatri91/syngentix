@@ -2,6 +2,8 @@ import { TabItem } from "@/components/Tabs";
 import appConfig from "@/configs/app.config";
 import { NodeCategory } from "@/views/WorkflowEditor/type";
 import { io, Socket } from "socket.io-client";
+import { Node } from "reactflow";
+import { CustomNodeData } from "@/views/WorkflowEditor/dymmyData";
 
 let socket: Socket | null = null;
 
@@ -452,4 +454,109 @@ export const isCategoryExpanded = (
   categoryName: string
 ): boolean => {
   return expandedCategories.includes(categoryName);
+};
+
+/**
+ * Get dot color based on node category
+ * @param category - Node category string
+ * @returns Hex color code for the dot
+ */
+export const getDotColorByCategory = (category: string): string => {
+  const colorMap: Record<string, string> = {
+    visualization: "#22D3EE", // Light blue
+    logic: "#EC4899", // Pink
+    api: "#10B981", // Green
+    llm: "#8B5CF6", // Purple
+    text: "#F59E0B", // Amber
+    default: "#94A3B8", // Gray
+  };
+  return colorMap[category] || colorMap.default;
+};
+
+/**
+ * Get border gradient color based on node category
+ * @param category - Node category string
+ * @returns Tailwind gradient class string
+ */
+export const getBorderColorByCategory = (category: string): string => {
+  const borderMap: Record<string, string> = {
+    visualization: "from-blue-500 to-purple-500",
+    logic: "from-purple-500 to-blue-500",
+    api: "from-green-500 to-blue-500",
+    llm: "from-purple-500 to-pink-500",
+    text: "from-amber-500 to-orange-500",
+    default: "from-gray-500 to-gray-600",
+  };
+  return borderMap[category] || borderMap.default;
+};
+
+/**
+ * Map node category to CustomNodeData nodeType
+ * @param category - Node category string
+ * @returns CustomNodeData nodeType
+ */
+export const mapNodeType = (
+  category: string
+): CustomNodeData["nodeType"] => {
+  const typeMap: Record<string, CustomNodeData["nodeType"]> = {
+    visualization: "text",
+    logic: "switch",
+    api: "api",
+    llm: "text",
+    text: "text",
+    default: "text",
+  };
+  return typeMap[category] || "text";
+};
+
+/**
+ * Transform server node format to ReactFlow Node format
+ * @param serverNode - Node data from server
+ * @returns ReactFlow Node with CustomNodeData
+ */
+export const transformServerNodeToReactFlowNode = (
+  serverNode: any
+): Node<CustomNodeData> => {
+  const nodeData = serverNode.data || {};
+
+  // Extract pin names for inputs and outputs
+  const inputs = nodeData.inputs?.map((pin: any) => pin.name) || [];
+  const outputs = nodeData.outputs?.map((pin: any) => pin.name) || [];
+  const triggerPins =
+    nodeData.trigger_pins?.map((pin: any) => pin.name) || [];
+  const nextPins = nodeData.next_pins?.map((pin: any) => pin.name) || [];
+
+  // Combine all outputs (trigger_pins and next_pins are also outputs)
+  const allOutputs = [...outputs, ...triggerPins, ...nextPins];
+  const allInputs = [...inputs];
+
+  // Determine node type and colors based on category or type
+  const category = nodeData.category || "default";
+  const dotColor = getDotColorByCategory(category);
+  const borderColor = getBorderColorByCategory(category);
+
+  return {
+    id: serverNode.id,
+    type: "custom", // Use "custom" type for ReactFlow
+    position: serverNode.position || { x: 0, y: 0 },
+    data: {
+      label: nodeData.name || serverNode.type || "Node",
+      nodeType: mapNodeType(category),
+      dotColor,
+      borderColor,
+      inputs: allInputs,
+      outputs: allOutputs,
+    } as CustomNodeData,
+  };
+};
+
+/**
+ * Transform array of server nodes to ReactFlow nodes
+ * @param serverNodes - Array of node data from server
+ * @returns Array of ReactFlow Nodes with CustomNodeData
+ */
+export const transformServerNodesToReactFlowNodes = (
+  serverNodes: any[]
+): Node<CustomNodeData>[] => {
+  return serverNodes.map(transformServerNodeToReactFlowNode);
 };

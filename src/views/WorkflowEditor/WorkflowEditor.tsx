@@ -15,7 +15,7 @@ const WorkflowEditor = () => {
   // Room Joining And Socket Connection
   useEffect(() => {
     if (!workflowId) return;
-    console.log(workflowId , "Verify workflowId")
+    console.log(workflowId, "Verify workflowId");
     emit("workflow:join", {
       workflow_id: workflowId,
     });

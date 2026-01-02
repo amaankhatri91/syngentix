@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import ReactFlow, {
   Node,
@@ -25,17 +25,25 @@ import WorkflowEditorControls from "./WorkflowEditorControls";
 import { edgeTypes, nodeTypes } from "./type";
 import ContextMenu from "./WorkflowContextMenu";
 import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
-import { useAppSelector } from "@/store";
+import { useWorkflowSocketEvents } from "@/utils/hooks/useWorkflowSocketEvents";
+import { useAppSelector, useAppDispatch } from "@/store";
+import {
+  updateNodes,
+  setEdges,
+} from "@/store/workflowEditor/workflowEditorSlice";
 
 const WorkflowCanvas: React.FC = () => {
   const { isDark } = useTheme();
-  const { on, emit } = useSocketConnection();
+  const { emit } = useSocketConnection();
   const { workflowId } = useParams<{ workflowId: string }>();
   const { userId } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const { nodes, edges, isLocked } = useAppSelector(
+    (state) => state.workflowEditor
+  );
 
-  const [nodes, setNodes] = useState<Node<CustomNodeData>[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
-  const [isLocked, setIsLocked] = useState<boolean>(false);
+  // Use custom hook for socket events to get on listing
+  useWorkflowSocketEvents();
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -43,36 +51,23 @@ const WorkflowCanvas: React.FC = () => {
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
 
-  useEffect(() => {
-    const unsubscribeWorkflowData = on("workflow:data", (data) => {
-      console.log("📥 workflow:data received:", data);
-      // 👉 update state here
-      // setNodes(data.nodes);
-      // setEdges(data.edges);
-    });
-    const unsubscribeNodeCreated = on("node:created", (data) => {
-      console.log("✅ node:created response:", data);
-      // Verify Node Created Data
-    });
-    return () => {
-      unsubscribeWorkflowData();
-      unsubscribeNodeCreated();
-    };
-  }, [on]);
-
-  const handleToggleLock = useCallback(() => {
-    setIsLocked((prev) => !prev);
-  }, []);
-
   // Handle node changes (drag, select, etc.)
-  const onNodesChange = useCallback((changes: NodeChange[]) => {
-    setNodes((nds) => applyNodeChanges(changes, nds));
-  }, []);
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      const updatedNodes = applyNodeChanges(changes, nodes);
+      dispatch(updateNodes(updatedNodes));
+    },
+    [nodes, dispatch]
+  );
 
   // Handle edge changes
-  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-    setEdges((eds) => applyEdgeChanges(changes, eds));
-  }, []);
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      const updatedEdges = applyEdgeChanges(changes, edges);
+      dispatch(setEdges(updatedEdges));
+    },
+    [edges, dispatch]
+  );
 
   // Handle context menu on pane (canvas background)
   const onPaneContextMenu = useCallback(
@@ -97,6 +92,30 @@ const WorkflowCanvas: React.FC = () => {
     setContextMenu(null);
   }, []);
 
+  // Handle node drag stop event (when node is dropped after dragging)
+  const onNodeDragStop = useCallback(
+    (_event: React.MouseEvent, node: Node<CustomNodeData>) => {
+      console.log("🖱️ Node dropped after dragging:", node);
+
+      if (workflowId && reactFlowInstance) {
+        // Get the final position where the node was dropped
+        const dropPosition = {
+          x: node.position.x,
+          y: node.position.y,
+        };
+
+        emit("node:dragEnd", {
+          workflow_id: workflowId,
+          id: node.id,
+          position: dropPosition,
+        });
+
+        console.log("📍 Node dropped at position:", dropPosition);
+      }
+    },
+    [workflowId, emit, reactFlowInstance]
+  );
+
   // Memoize edge styles - use #8E8E93 for all regular edges
   const edgesWithTheme = useMemo(() => {
     return edges.map((edge) => {
@@ -112,8 +131,6 @@ const WorkflowCanvas: React.FC = () => {
       };
     });
   }, [edges]);
-
-  const handleAddnodes = () => {};
 
   return (
     <div
@@ -135,18 +152,17 @@ const WorkflowCanvas: React.FC = () => {
         onPaneContextMenu={onPaneContextMenu}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
+        onNodeDragStop={onNodeDragStop}
         onDrop={(event) => {
           event.preventDefault();
           const nodeData = event.dataTransfer.getData("application/reactflow");
           if (nodeData && reactFlowInstance && workflowId) {
             const node = JSON.parse(nodeData);
-
             // Convert screen coordinates to flow coordinates
             const position = reactFlowInstance.screenToFlowPosition({
               x: event.clientX,
               y: event.clientY,
             });
-            
             // Emit socket event with the required format
             emit("node:create", {
               workflow_id: workflowId,
@@ -158,7 +174,6 @@ const WorkflowCanvas: React.FC = () => {
               data: node,
               user_id: userId || undefined,
             });
-
             console.log("Node dropped on canvas:", node);
           }
         }}
@@ -187,10 +202,7 @@ const WorkflowCanvas: React.FC = () => {
           size={1}
           variant={BackgroundVariant.Lines}
         />
-        <WorkflowEditorControls
-          isLocked={isLocked}
-          onToggleLock={handleToggleLock}
-        />
+        <WorkflowEditorControls />
         <MiniMap
           className={`
             ${

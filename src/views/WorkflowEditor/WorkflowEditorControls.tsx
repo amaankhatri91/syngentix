@@ -6,12 +6,16 @@ import ZoomOut from "@/assets/app-icons/ZoomOut";
 import FitView from "@/assets/app-icons/FitView";
 import Unlock from "@/assets/app-icons/Unlock";
 import Lock from "@/assets/app-icons/Lock";
-import { CustomControlsProps } from "./type";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { toggleLock } from "@/store/workflowEditor/workflowEditorSlice";
 
-const WorkflowEditorControls: React.FC<CustomControlsProps> = ({
-  isLocked,
-  onToggleLock,
-}) => {
+const WorkflowEditorControls: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const isLocked = useAppSelector((state) => state.workflowEditor.isLocked);
+  
+  const handleToggleLock = () => {
+    dispatch(toggleLock());
+  };
   const { isDark } = useTheme();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
@@ -60,7 +64,7 @@ const WorkflowEditorControls: React.FC<CustomControlsProps> = ({
       </button>
       <button
         type="button"
-        onClick={onToggleLock}
+        onClick={handleToggleLock}
         className="flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-80 transition-opacity border cursor-pointer"
         style={{
           backgroundColor: "transparent",
