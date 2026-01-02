@@ -203,6 +203,7 @@ const WorkflowCanvas: React.FC = () => {
           stroke: "#8E8E93",
           strokeWidth: 2,
         }}
+        proOptions={{ hideAttribution: true }}
       >
         <Background
           color={gridColor}
