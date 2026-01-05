@@ -33,6 +33,8 @@ export { default as Unlock } from "./Unlock";
 export { default as ZoomIn } from "./ZoomIn";
 export { default as ZoomOut } from "./ZoomOut";
 export { default as FitView } from "./FitView";
+export { default as ViewIcon } from "./ViewIcon";
+export { default as FileIcon } from "./FileIcon";
 
 
 
