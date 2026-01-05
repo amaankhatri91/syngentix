@@ -14,9 +14,10 @@ const DashboardAgents = () => {
     skip: !token || !workspace?.id,
   });
 
+
   return (
     <>
-      {data?.data?.length < 0 ? (
+      {data?.data?.length <= 0 ? (
         <>
           <AgentDialog />
           <div className="flex flex-col items-center h-[60vh] justify-center mt-12">
