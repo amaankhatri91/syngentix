@@ -31,6 +31,7 @@ export const useWorkflowSocketEvents = () => {
         );
         dispatch(setNodes(transformedNodes));
       }
+      console.log(data, "Verify Data Connections");
       // Handle connections later (for now, just set empty array)
       if (data?.connections && Array.isArray(data.connections)) {
         // TODO: Transform connections to edges when needed

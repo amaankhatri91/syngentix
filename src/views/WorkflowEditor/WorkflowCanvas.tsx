@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import ReactFlow, {
   Node,
   Edge,
+  Connection,
   Background,
   BackgroundVariant,
   MiniMap,
@@ -11,6 +12,7 @@ import ReactFlow, {
   NodeChange,
   EdgeChange,
   ReactFlowInstance,
+  addEdge,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import useTheme from "@/utils/hooks/useTheme";
@@ -41,9 +43,9 @@ const WorkflowCanvas: React.FC = () => {
   const { nodes, edges, isLocked } = useAppSelector(
     (state) => state.workflowEditor
   );
-
   // Use custom hook for socket events to get on listing
   useWorkflowSocketEvents();
+
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -67,6 +69,48 @@ const WorkflowCanvas: React.FC = () => {
       dispatch(setEdges(updatedEdges));
     },
     [edges, dispatch]
+  );
+
+  // Handle connection creation
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      if (!connection.source || !connection.target || !workflowId) {
+        return;
+      }
+
+      console.log(connection, "Verify The Connections");
+
+      // Generate a unique ID for the connection
+      const connectionId = `edge-${connection.source}-${
+        connection.sourceHandle
+      }-${connection.target}-${connection.targetHandle}-${Date.now()}`;
+
+      // Create the new edge
+      const newEdge: Edge = {
+        id: connectionId,
+        source: connection.source,
+        target: connection.target,
+        sourceHandle: connection.sourceHandle,
+        targetHandle: connection.targetHandle,
+        type: "default",
+      };
+      // Add edge to Redux store
+      const updatedEdges = addEdge(newEdge, edges);
+      dispatch(setEdges(updatedEdges));
+      // Emit connection:created event with the format shown in the image
+      emit("connection:created", {
+        id: connectionId,
+        source: connection.sourceHandle
+          ? `${connection.source}.${connection.sourceHandle}`
+          : connection.source,
+        target: connection.targetHandle
+          ? `${connection.target}.${connection.targetHandle}`
+          : connection.target,
+        type: "connection",
+      });
+      console.log("🔗 Connection created:", connection);
+    },
+    [edges, dispatch, emit, workflowId]
   );
 
   // Handle context menu on pane (canvas background)
@@ -117,20 +161,38 @@ const WorkflowCanvas: React.FC = () => {
   );
 
   // Memoize edge styles - use #8E8E93 for all regular edges
+  // Make edges dotted if source or target node is selected/active
   const edgesWithTheme = useMemo(() => {
     return edges.map((edge) => {
-      // If edge has strokeDasharray (dotted), keep its existing style for gradient handling
-      const isDotted = edge.style?.strokeDasharray;
+      // Check if source or target node is selected
+      const sourceNode = nodes.find((node) => node.id === edge.source);
+      const targetNode = nodes.find((node) => node.id === edge.target);
+      const isSourceSelected = sourceNode?.selected || false;
+      const isTargetSelected = targetNode?.selected || false;
+      const isNodeActive = isSourceSelected || isTargetSelected;
+      // If edge already has strokeDasharray (dotted), keep its existing style
+      const hasExistingDotted = edge.style?.strokeDasharray;
+      // Make edge dotted if either source or target node is selected
+      const shouldBeDotted = isNodeActive || hasExistingDotted;
       return {
         ...edge,
         style: {
           ...edge.style,
-          // Only override stroke for non-dotted edges
-          ...(isDotted ? {} : { stroke: "#8E8E93" }),
+          // Add dotted line style if node is active
+          ...(shouldBeDotted
+            ? {
+                strokeDasharray: edge.style?.strokeDasharray || "5,5",
+                // Don't set stroke color for dotted edges - WorkflowEdge will apply gradient
+              }
+            : {
+                // Set solid stroke color for non-dotted edges
+                stroke: "#8E8E93",
+                strokeWidth: 2,
+              }),
         },
       };
     });
-  }, [edges]);
+  }, [edges, nodes]);
 
   return (
     <div
@@ -148,6 +210,7 @@ const WorkflowCanvas: React.FC = () => {
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
         onInit={setReactFlowInstance}
         onPaneContextMenu={onPaneContextMenu}
         onNodeClick={onNodeClick}
@@ -184,7 +247,7 @@ const WorkflowCanvas: React.FC = () => {
         fitView
         fitViewOptions={{ padding: 0.2 }}
         nodesDraggable={!isLocked}
-        nodesConnectable={false}
+        nodesConnectable={!isLocked}
         elementsSelectable={true}
         panOnDrag={true}
         zoomOnScroll={true}

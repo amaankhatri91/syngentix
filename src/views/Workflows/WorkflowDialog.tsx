@@ -1,7 +1,8 @@
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { Input, Textarea } from "@material-tailwind/react";
+import { Textarea } from "@material-tailwind/react";
 import { Dialog } from "@/components/Dialog";
+import { FormikInput } from "@/components/FormikInput";
 import { FooterButtons } from "@/components/FooterButtons";
 import useTheme from "@/utils/hooks/useTheme";
 import { WorkflowFormValues } from "./types";
@@ -99,32 +100,21 @@ const WorkflowDialog = () => {
                 </h5>
                 <Field name="title">
                   {({ field }: any) => (
-                    <Input
-                      {...field}
+                    <FormikInput
+                      field={field}
                       type="text"
                       id="title"
                       placeholder="Please enter workflow name"
                       className={`
-                        !border ${
-                          errors.title && touched.title
-                            ? "!border-red-500"
-                            : "!border-gray-300"
-                        }
-                        !bg-white
-                        !rounded-xl
+                        !min-w-0
                         ${
                           isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
                         }
                       `}
-                      labelProps={{
-                        className: "hidden",
-                      }}
-                      containerProps={{
-                        className: "!min-w-0",
-                      }}
-                      error={!!(errors.title && touched.title)}
-                      onBlur={() => setFieldTouched("title", true)}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      errors={errors}
+                      touched={touched}
+                      onFieldTouched={() => setFieldTouched("title", true)}
+                      onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setFieldValue("title", e.target.value);
                       }}
                     />

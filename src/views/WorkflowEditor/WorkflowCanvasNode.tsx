@@ -11,16 +11,14 @@ import {
 import { CustomNodeData } from "./dymmyData";
 import { useAppSelector } from "@/store";
 
-const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
-  data,
-  selected,
-}) => {
+const WorkflowCanvasNode: React.FC<NodeProps<any>> = ({ data, selected }) => {
   const { isDark } = useTheme();
   const { nodes, edges, isLocked } = useAppSelector(
     (state) => state.workflowEditor
   );
 
-  console.log(nodes, "Verify Nodes Data");
+  console.log(nodes, data, "Verify nodes data");
+
   const gradient = getNodeBorderGradient();
   const dropShadow = getNodeDropShadow();
   const bgColorValue = isDark ? "#0C1116" : "#FFFFFF";
@@ -48,8 +46,6 @@ const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
     borderRadius: "0.5rem",
     boxShadow: shadow,
   };
-
-  console.log(data, "Verify Data Listing");
 
   // Calculate minimum width based on longest label
   const allLabels = [
@@ -96,7 +92,6 @@ const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
       <div className={`font-normal mb-3 ${getNodeTextColor(isDark)} pr-6`}>
         {data.label}
       </div>
-
       {/* Content Container */}
       <div className="flex-1 flex gap-4">
         {/* Input Handles - Left Side */}
@@ -128,7 +123,6 @@ const WorkflowCanvasNode: React.FC<NodeProps<CustomNodeData>> = ({
             ))}
           </div>
         )}
-
         {/* Output Handles - Right Side */}
         {data.outputs && data.outputs.length > 0 && (
           <div className="flex flex-col gap-3 flex-1">
