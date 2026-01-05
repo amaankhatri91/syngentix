@@ -6,7 +6,7 @@ interface UseDeleteKeyHandlerOptions {
   edges?: Edge[];
   nodes?: Node<CustomNodeData>[];
   onDeleteEdge?: (edgeId: string, workflowId: string) => void;
-  onDeleteNode?: (nodeId: string, workflowId: string) => void;
+  onDeleteNode?: (nodeIds: string[], workflowId: string) => void;
   workflowId?: string;
   enabled?: boolean;
 }
@@ -29,8 +29,8 @@ interface UseDeleteKeyHandlerOptions {
  *   onDeleteEdge: (edgeId, workflowId) => {
  *     emit("connection:delete", { workflow_id: workflowId, id: edgeId });
  *   },
- *   onDeleteNode: (nodeId, workflowId) => {
- *     emit("node:delete", { workflow_id: workflowId, id: nodeId });
+ *   onDeleteNode: (nodeIds, workflowId) => {
+ *     emit("node:delete_bulk", { workflow_id: workflowId, ids: nodeIds });
  *   },
  *   workflowId,
  * });
@@ -62,13 +62,14 @@ export const useDeleteKeyHandler = ({
         }
       }
 
-      // Check for selected node if no edge is selected
+      // Check for selected nodes if no edge is selected
       if (nodes && onDeleteNode) {
-        const selectedNode = nodes.find((node) => node.selected);
-        if (selectedNode) {
+        const selectedNodes = nodes.filter((node) => node.selected);
+        if (selectedNodes.length > 0) {
           event.preventDefault();
           event.stopPropagation();
-          onDeleteNode(selectedNode.id, workflowId);
+          const selectedNodeIds = selectedNodes.map((node) => node.id);
+          onDeleteNode(selectedNodeIds, workflowId);
           return;
         }
       }
@@ -85,4 +86,3 @@ export const useDeleteKeyHandler = ({
 };
 
 export default useDeleteKeyHandler;
-

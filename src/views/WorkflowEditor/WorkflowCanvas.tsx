@@ -49,20 +49,32 @@ const WorkflowCanvas: React.FC = () => {
   const handleEdgeDelete = useCallback(
     (edgeId: string, workflowIdParam: string) => {
       if (!workflowIdParam) return;
-
       // Emit connection:delete event
       emit("connection:delete", {
         workflow_id: workflowIdParam,
         id: edgeId,
       });
-
-      // Remove edge from Redux store
       const updatedEdges = edges.filter((edge) => edge.id !== edgeId);
       dispatch(setEdges(updatedEdges));
-
-      console.log("🗑️ Connection deleted:", edgeId);
     },
     [edges, dispatch, emit]
+  );
+
+  // Handle node deletion (bulk)
+  const handleNodeDelete = useCallback(
+    (nodeIds: string[], workflowIdParam: string) => {
+      if (!workflowIdParam || nodeIds.length === 0) return;
+      // Emit node:delete_bulk event
+      emit("node:delete_bulk", {
+        workflow_id: workflowIdParam,
+        ids: nodeIds,
+      });
+      // Remove nodes from Redux store (optimistic update)
+      const updatedNodes = nodes.filter((node) => !nodeIds.includes(node.id));
+      dispatch(updateNodes(updatedNodes));
+      console.log("🗑️ Nodes deleted:", nodeIds);
+    },
+    [nodes, dispatch, emit]
   );
 
   // Handle Delete key for selected edges and nodes
@@ -70,6 +82,7 @@ const WorkflowCanvas: React.FC = () => {
     edges,
     nodes,
     onDeleteEdge: handleEdgeDelete,
+    onDeleteNode: handleNodeDelete,
     workflowId,
   });
 

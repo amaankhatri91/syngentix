@@ -1,9 +1,11 @@
+import React, { useState, useEffect, useRef } from "react";
 import useTheme from "@/utils/hooks/useTheme";
 import {
   getIconColor,
   getButtonStyles,
   getGroupedButtonStyles,
   getButtonBaseStyles,
+  getContextMenuItemClass,
 } from "@/utils/common";
 import {
   ThicknessIcon,
@@ -24,6 +26,46 @@ import DownloadIcon from "@/assets/app-icons/DownloadIcon";
 
 const WorkflowEditorHeader = () => {
   const { isDark } = useTheme();
+  const [isCopyDropdownOpen, setIsCopyDropdownOpen] = useState(false);
+  const copyButtonRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        copyButtonRef.current &&
+        !copyButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsCopyDropdownOpen(false);
+      }
+    };
+
+    if (isCopyDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+      };
+    }
+  }, [isCopyDropdownOpen]);
+
+  const handleCopyClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsCopyDropdownOpen(!isCopyDropdownOpen);
+  };
+
+  const handleCopyNodesWithConnections = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsCopyDropdownOpen(false);
+    // TODO: Implement copy nodes + connections logic
+    console.log("Copy nodes + connections");
+  };
+
+  const handleCopyNodesOnly = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsCopyDropdownOpen(false);
+    // TODO: Implement copy nodes only logic
+    console.log("Copy nodes only");
+  };
+
   return (
     <div
       className={`flex items-center mt-6 justify-between gap-1 px-3 py-2 rounded-xl ${
@@ -46,12 +88,55 @@ const WorkflowEditorHeader = () => {
       </div>
       <div className="flex gap-4">
         <div className="flex">
-          <button
-            className={`${getGroupedButtonStyles(isDark)} rounded-r-none`}
-          >
-            <CopyIcon color={getIconColor(isDark)} size={18} />
-            <h5>Copy</h5>
-          </button>
+          <div className="relative" ref={copyButtonRef}>
+            <button
+              className={`${getGroupedButtonStyles(isDark)} rounded-r-none`}
+              onClick={handleCopyClick}
+            >
+              <CopyIcon color={getIconColor(isDark)} size={18} />
+              <h5>Copy</h5>
+              {/* <ChevronDownIcon
+                color={getIconColor(isDark)}
+                size={12}
+                className="ml-1"
+              /> */}
+            </button>
+            {isCopyDropdownOpen && (
+              <div
+                className={`
+                  absolute top-full left-0 mt-1 z-50 rounded-2xl shadow-lg min-w-[220px]
+                  ${
+                    isDark
+                      ? "bg-[#0C1116] border border-[#394757]"
+                      : "bg-white border border-[#E3E6EB]"
+                  }
+                `}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className={getContextMenuItemClass(isDark)}
+                  onClick={handleCopyNodesWithConnections}
+                >
+                  <div className="flex items-center gap-3">
+                    <h5>Copy nodes + connections</h5>
+                  </div>
+                </button>
+                <div
+                  className={`${
+                    isDark ? "border-[#2B3643]" : "border-[#E3E6EB]"
+                  } border-t`}
+                />
+                <button
+                  className={getContextMenuItemClass(isDark)}
+                  onClick={handleCopyNodesOnly}
+                >
+                  <div className="flex items-center gap-3">
+                    <h5>Copy nodes only</h5>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
           <button className={`${getGroupedButtonStyles(isDark)} rounded-none`}>
             <CutIcon color={getIconColor(isDark)} size={18} />
             <h5>Cut</h5>
