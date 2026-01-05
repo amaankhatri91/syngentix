@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { NodeProps, useReactFlow, useNodeId } from "reactflow";
 import useTheme from "@/utils/hooks/useTheme";
 import { DeleteIcon } from "@/assets/app-icons";
-import { CustomNodeData } from "./dymmyData";
+import { CustomNodeData } from "./type";
 
 const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   data,

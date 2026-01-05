@@ -1,9 +1,10 @@
+import React from "react";
 import { TabItem } from "@/components/Tabs";
 import appConfig from "@/configs/app.config";
 import { NodeCategory } from "@/views/WorkflowEditor/type";
 import { io, Socket } from "socket.io-client";
-import { Node } from "reactflow";
-import { CustomNodeData } from "@/views/WorkflowEditor/dymmyData";
+import { Node, Edge } from "reactflow";
+import { CustomNodeData } from "@/views/WorkflowEditor/type";
 
 let socket: Socket | null = null;
 
@@ -199,6 +200,119 @@ export const getNodeTextColor = (isDark: boolean): string => {
  */
 export const getPortColor = (isDark: boolean): string => {
   return isDark ? "bg-[#34C759]" : "bg-[#34C759]";
+};
+
+/**
+ * Get handle color for specific handles
+ * @param handleName - Name of the handle
+ * @param isDark - Whether the theme is dark (for default color)
+ * @returns Hex color code for the handle
+ */
+export const getHandleColor = (handleName: string, isDark: boolean): string => {
+  // Input Data gets blue color
+  if (handleName === "Input Data") {
+    return "#007AFF";
+  }
+  // STDOUT and Output get purple color
+  if (handleName === "STDOUT" || handleName === "Output") {
+    return "#AF52DE";
+  }
+  // Default green color for other handles
+  return isDark ? "#34C759" : "#34C759";
+};
+
+/**
+ * Get node gradient border style based on selection state and theme
+ * @param selected - Whether the node is selected
+ * @param isDark - Whether the theme is dark
+ * @returns CSS properties object for the gradient border
+ */
+export const getNodeGradientBorderStyle = (
+  selected: boolean,
+  isDark: boolean
+): React.CSSProperties => {
+  const gradient = getNodeBorderGradient();
+  const dropShadow = getNodeDropShadow();
+  const bgColorValue = isDark ? "#0C1116" : "#FFFFFF";
+
+  // Active/Selected node styles
+  const activeBorderWidth = "2px";
+  const activeGradient = getActiveNodeBorderGradient();
+  const activeDropShadow = "0px 2px 20px 0px rgba(105, 70, 235, 0.18)";
+
+  // Default styles
+  const defaultBorderWidth = "1.5px";
+
+  const borderWidth = selected ? activeBorderWidth : defaultBorderWidth;
+  const borderGradientStart = selected ? activeGradient.start : gradient.start;
+  const borderGradientEnd = selected ? activeGradient.end : gradient.end;
+  const shadow = selected ? activeDropShadow : dropShadow;
+
+  return {
+    background: `
+      linear-gradient(${bgColorValue}, ${bgColorValue}) padding-box,
+      linear-gradient(90deg, ${borderGradientStart}, ${borderGradientEnd}) border-box
+    `,
+    border: `${borderWidth} solid transparent`,
+    borderRadius: "0.5rem",
+    boxShadow: shadow,
+  };
+};
+
+/**
+ * Calculate estimated node width based on labels
+ * @param data - Node data containing label, inputs, and outputs
+ * @returns Estimated width in pixels
+ */
+export const calculateNodeEstimatedWidth = (data: {
+  label?: string;
+  inputs?: string[];
+  outputs?: string[];
+}): number => {
+  const allLabels = [
+    data.label,
+    ...(data.inputs || []),
+    ...(data.outputs || []),
+  ].filter((label): label is string => Boolean(label));
+  
+  const longestLabel = allLabels.reduce(
+    (longest, label) => (label.length > longest.length ? label : longest),
+    ""
+  );
+  // Estimate width: ~8px per character + padding
+  return Math.max(200, longestLabel.length * 8 + 80);
+};
+
+/**
+ * Calculate estimated node height based on inputs and outputs count
+ * @param data - Node data containing inputs and outputs
+ * @returns Estimated height in pixels
+ */
+export const calculateNodeEstimatedHeight = (data: {
+  inputs?: string[];
+  outputs?: string[];
+}): number => {
+  const inputCount = data.inputs?.length || 0;
+  const outputCount = data.outputs?.length || 0;
+  const maxCount = Math.max(inputCount, outputCount);
+  // Base height: label (40px) + spacing + (maxCount * 32px per item) + padding
+  return Math.max(140, 40 + maxCount * 32 + 40);
+};
+
+/**
+ * Sort outputs to display "Next" first, then others in original order
+ * @param outputs - Array of output handle names
+ * @returns Sorted array with "Next" first
+ */
+export const sortOutputsWithNextFirst = (outputs: string[] | undefined): string[] => {
+  if (!outputs || outputs.length === 0) {
+    return [];
+  }
+  return [...outputs].sort((a, b) => {
+    if (a === "Next") return -1;
+    if (b === "Next") return 1;
+    return 0;
+  });
 };
 
 /**
@@ -495,9 +609,7 @@ export const getBorderColorByCategory = (category: string): string => {
  * @param category - Node category string
  * @returns CustomNodeData nodeType
  */
-export const mapNodeType = (
-  category: string
-): CustomNodeData["nodeType"] => {
+export const mapNodeType = (category: string): CustomNodeData["nodeType"] => {
   const typeMap: Record<string, CustomNodeData["nodeType"]> = {
     visualization: "text",
     logic: "switch",
@@ -522,12 +634,11 @@ export const transformServerNodeToReactFlowNode = (
   // Extract pin names for inputs and outputs
   const inputs = nodeData.inputs?.map((pin: any) => pin.name) || [];
   const outputs = nodeData.outputs?.map((pin: any) => pin.name) || [];
-  const triggerPins =
-    nodeData.trigger_pins?.map((pin: any) => pin.name) || [];
+  const triggerPins = nodeData.trigger_pins?.map((pin: any) => pin.name) || [];
   const nextPins = nodeData.next_pins?.map((pin: any) => pin.name) || [];
 
   // Combine all outputs (trigger_pins and next_pins are also outputs)
-  const allOutputs = [...outputs,  ...nextPins];
+  const allOutputs = [...outputs, ...nextPins];
   const allInputs = [...triggerPins, ...inputs];
 
   // Determine node type and colors based on category or type
@@ -559,4 +670,33 @@ export const transformServerNodesToReactFlowNodes = (
   serverNodes: any[]
 ): Node<CustomNodeData>[] => {
   return serverNodes.map(transformServerNodeToReactFlowNode);
+};
+
+/**
+ * Transform server connection format to ReactFlow Edge format
+ * @param serverConnection - Connection data from server
+ * @returns ReactFlow Edge
+ */
+export const transformServerConnectionToReactFlowEdge = (
+  serverConnection: any
+): Edge => {
+  return {
+    id: serverConnection.id,
+    source: serverConnection.source,
+    target: serverConnection.target,
+    sourceHandle: serverConnection.sourceHandle || undefined,
+    targetHandle: serverConnection.targetHandle || undefined,
+    type: "default",
+  };
+};
+
+/**
+ * Transform array of server connections to ReactFlow edges
+ * @param serverConnections - Array of connection data from server
+ * @returns Array of ReactFlow Edges
+ */
+export const transformServerConnectionsToReactFlowEdges = (
+  serverConnections: any[]
+): Edge[] => {
+  return serverConnections.map(transformServerConnectionToReactFlowEdge);
 };

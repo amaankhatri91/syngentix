@@ -22,12 +22,13 @@ import {
   getWorkflowCanvasBorderColor,
   getWorkflowCanvasShadow,
 } from "@/utils/common";
-import { CustomNodeData } from "./dymmyData";
+import { CustomNodeData } from "./type";
 import WorkflowEditorControls from "./WorkflowEditorControls";
 import { edgeTypes, nodeTypes } from "./type";
 import ContextMenu from "./WorkflowContextMenu";
 import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
 import { useWorkflowSocketEvents } from "@/utils/hooks/useWorkflowSocketEvents";
+import { useDeleteKeyHandler } from "@/utils/hooks/useDeleteKeyHandler";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   updateNodes,
@@ -43,6 +44,35 @@ const WorkflowCanvas: React.FC = () => {
   const { nodes, edges, isLocked } = useAppSelector(
     (state) => state.workflowEditor
   );
+
+  // Handle edge deletion
+  const handleEdgeDelete = useCallback(
+    (edgeId: string, workflowIdParam: string) => {
+      if (!workflowIdParam) return;
+
+      // Emit connection:delete event
+      emit("connection:delete", {
+        workflow_id: workflowIdParam,
+        id: edgeId,
+      });
+
+      // Remove edge from Redux store
+      const updatedEdges = edges.filter((edge) => edge.id !== edgeId);
+      dispatch(setEdges(updatedEdges));
+
+      console.log("🗑️ Connection deleted:", edgeId);
+    },
+    [edges, dispatch, emit]
+  );
+
+  // Handle Delete key for selected edges and nodes
+  useDeleteKeyHandler({
+    edges,
+    nodes,
+    onDeleteEdge: handleEdgeDelete,
+    workflowId,
+  });
+
   // Use custom hook for socket events to get on listing
   useWorkflowSocketEvents();
 
@@ -77,9 +107,7 @@ const WorkflowCanvas: React.FC = () => {
       if (!connection.source || !connection.target || !workflowId) {
         return;
       }
-
       console.log(connection, "Verify The Connections");
-
       // Generate a unique ID for the connection
       const connectionId = `edge-${connection.source}-${
         connection.sourceHandle
@@ -97,16 +125,13 @@ const WorkflowCanvas: React.FC = () => {
       // Add edge to Redux store
       const updatedEdges = addEdge(newEdge, edges);
       dispatch(setEdges(updatedEdges));
-      // Emit connection:created event with the format shown in the image
-      emit("connection:created", {
-        id: connectionId,
-        source: connection.sourceHandle
-          ? `${connection.source}.${connection.sourceHandle}`
-          : connection.source,
-        target: connection.targetHandle
-          ? `${connection.target}.${connection.targetHandle}`
-          : connection.target,
-        type: "connection",
+      // Emit connection:create event with the format shown in the image
+      emit("connection:create", {
+        workflow_id: workflowId,
+        source: connection.source,
+        target: connection.target,
+        sourceHandle: connection.sourceHandle || "",
+        targetHandle: connection.targetHandle || "",
       });
       console.log("🔗 Connection created:", connection);
     },
@@ -140,7 +165,6 @@ const WorkflowCanvas: React.FC = () => {
   const onNodeDragStop = useCallback(
     (_event: React.MouseEvent, node: Node<CustomNodeData>) => {
       console.log("🖱️ Node dropped after dragging:", node);
-
       if (workflowId && reactFlowInstance) {
         // Get the final position where the node was dropped
         const dropPosition = {
@@ -153,15 +177,15 @@ const WorkflowCanvas: React.FC = () => {
           id: node.id,
           position: dropPosition,
         });
-
-        console.log("📍 Node dropped at position:", dropPosition);
       }
     },
     [workflowId, emit, reactFlowInstance]
   );
 
   // Memoize edge styles - use #8E8E93 for all regular edges
-  // Make edges dotted if source or target node is selected/active
+  // Use active node colors (#48D8D1 to #096DBF) for edges connected to active/selected nodes
+  // Also apply gradient to edges that are directly selected
+  // Preserve existing dotted edges (for future debug mode)
   const edgesWithTheme = useMemo(() => {
     return edges.map((edge) => {
       // Check if source or target node is selected
@@ -170,23 +194,33 @@ const WorkflowCanvas: React.FC = () => {
       const isSourceSelected = sourceNode?.selected || false;
       const isTargetSelected = targetNode?.selected || false;
       const isNodeActive = isSourceSelected || isTargetSelected;
+
+      // Check if the edge itself is selected
+      const isEdgeSelected = edge.selected || false;
+
+      // Edge is active if connected to selected node OR if edge itself is selected
+      const isActive = isNodeActive || isEdgeSelected;
+
       // If edge already has strokeDasharray (dotted), keep its existing style
-      const hasExistingDotted = edge.style?.strokeDasharray;
-      // Make edge dotted if either source or target node is selected
-      const shouldBeDotted = isNodeActive || hasExistingDotted;
+      const isDotted = edge.style?.strokeDasharray;
       return {
         ...edge,
+        data: {
+          ...edge.data,
+          isActive,
+        },
         style: {
           ...edge.style,
-          // Add dotted line style if node is active
-          ...(shouldBeDotted
+          // Preserve dotted style if it exists, otherwise use solid line
+          ...(isDotted
             ? {
-                strokeDasharray: edge.style?.strokeDasharray || "5,5",
-                // Don't set stroke color for dotted edges - WorkflowEdge will apply gradient
+                // Keep existing dotted style - WorkflowEdge will apply gradient
+                strokeWidth: 2,
               }
             : {
-                // Set solid stroke color for non-dotted edges
-                stroke: "#8E8E93",
+                // For active edges, WorkflowEdge will apply gradient
+                // For regular edges, use gray color
+                stroke: isActive ? undefined : "#8E8E93",
                 strokeWidth: 2,
               }),
         },

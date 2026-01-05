@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Node, Edge, ReactFlowInstance } from "reactflow";
-import { CustomNodeData } from "@/views/WorkflowEditor/dymmyData";
+import { CustomNodeData } from "@/views/WorkflowEditor/type";
 
 const SLICE_NAME = "workflowEditor";
 

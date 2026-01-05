@@ -1,71 +1,19 @@
 import React from "react";
-import { Handle, Position, NodeProps } from "reactflow";
+import { Handle, Position } from "reactflow";
 import useTheme from "@/utils/hooks/useTheme";
 import {
   getNodeBgColor,
   getNodeTextColor,
-  getPortColor,
-  getNodeBorderGradient,
-  getNodeDropShadow,
+  getHandleColor,
+  sortOutputsWithNextFirst,
+  getNodeGradientBorderStyle,
+  calculateNodeEstimatedWidth,
+  calculateNodeEstimatedHeight,
 } from "@/utils/common";
-import { CustomNodeData } from "./dymmyData";
-import { useAppSelector } from "@/store";
+import { WorkflowCanvasNodeProps } from "./type";
 
-const WorkflowCanvasNode: React.FC<NodeProps<any>> = ({ data, selected }) => {
+const WorkflowCanvasNode: React.FC<WorkflowCanvasNodeProps> = ({ data, selected }) => {
   const { isDark } = useTheme();
-  const { nodes, edges, isLocked } = useAppSelector(
-    (state) => state.workflowEditor
-  );
-
-  console.log(nodes, data, "Verify nodes data");
-
-  const gradient = getNodeBorderGradient();
-  const dropShadow = getNodeDropShadow();
-  const bgColorValue = isDark ? "#0C1116" : "#FFFFFF";
-
-  // Active/Selected node styles
-  const activeBorderWidth = "2px";
-  const activeGradientStart = "#48D8D1";
-  const activeGradientEnd = "#096DBF";
-  const activeDropShadow = "0px 2px 20px 0px rgba(105, 70, 235, 0.18)";
-
-  // Default styles
-  const defaultBorderWidth = "1.5px";
-
-  const borderWidth = selected ? activeBorderWidth : defaultBorderWidth;
-  const borderGradientStart = selected ? activeGradientStart : gradient.start;
-  const borderGradientEnd = selected ? activeGradientEnd : gradient.end;
-  const shadow = selected ? activeDropShadow : dropShadow;
-
-  const gradientBorderStyle: React.CSSProperties = {
-    background: `
-      linear-gradient(${bgColorValue}, ${bgColorValue}) padding-box,
-      linear-gradient(90deg, ${borderGradientStart}, ${borderGradientEnd}) border-box
-    `,
-    border: `${borderWidth} solid transparent`,
-    borderRadius: "0.5rem",
-    boxShadow: shadow,
-  };
-
-  // Calculate minimum width based on longest label
-  const allLabels = [
-    data.label,
-    ...(data.inputs || []),
-    ...(data.outputs || []),
-  ];
-  const longestLabel = allLabels.reduce(
-    (longest, label) => (label.length > longest.length ? label : longest),
-    ""
-  );
-  // Estimate width: ~8px per character + padding
-  const estimatedWidth = Math.max(200, longestLabel.length * 8 + 80);
-
-  // Calculate minimum height based on number of inputs and outputs
-  const inputCount = data.inputs?.length || 0;
-  const outputCount = data.outputs?.length || 0;
-  const maxCount = Math.max(inputCount, outputCount);
-  // Base height: label (40px) + spacing + (maxCount * 32px per item) + padding
-  const estimatedHeight = Math.max(140, 40 + maxCount * 32 + 40);
 
   return (
     <div
@@ -76,9 +24,9 @@ const WorkflowCanvasNode: React.FC<NodeProps<any>> = ({ data, selected }) => {
         flex flex-col
       `}
       style={{
-        ...gradientBorderStyle,
-        minWidth: `${estimatedWidth}px`,
-        minHeight: `${estimatedHeight}px`,
+        ...getNodeGradientBorderStyle(selected, isDark),
+        minWidth: `${calculateNodeEstimatedWidth(data)}px`,
+        minHeight: `${calculateNodeEstimatedHeight(data)}px`,
       }}
     >
       {/* Dot indicator - top right */}
@@ -97,7 +45,7 @@ const WorkflowCanvasNode: React.FC<NodeProps<any>> = ({ data, selected }) => {
         {/* Input Handles - Left Side */}
         {data.inputs && data.inputs.length > 0 && (
           <div className="flex flex-col gap-3 flex-1">
-            {data.inputs.map((input) => (
+            {data.inputs.map((input: string) => (
               <div
                 key={input}
                 className="flex items-center gap-2 relative"
@@ -107,10 +55,11 @@ const WorkflowCanvasNode: React.FC<NodeProps<any>> = ({ data, selected }) => {
                   type="target"
                   position={Position.Left}
                   id={input}
-                  className={`${getPortColor(
-                    isDark
-                  )} w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0`}
-                  style={{ left: -23 }}
+                  className="w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0"
+                  style={{
+                    left: -23,
+                    backgroundColor: getHandleColor(input, isDark),
+                  }}
                 />
                 <span
                   className={`text-xs whitespace-nowrap ${
@@ -124,9 +73,9 @@ const WorkflowCanvasNode: React.FC<NodeProps<any>> = ({ data, selected }) => {
           </div>
         )}
         {/* Output Handles - Right Side */}
-        {data.outputs && data.outputs.length > 0 && (
+        {sortOutputsWithNextFirst(data.outputs)?.length > 0 && (
           <div className="flex flex-col gap-3 flex-1">
-            {data.outputs.map((output) => (
+            {sortOutputsWithNextFirst(data.outputs)?.map((output: string) => (
               <div
                 key={output}
                 className="flex items-center justify-end gap-2 relative"
@@ -143,10 +92,11 @@ const WorkflowCanvasNode: React.FC<NodeProps<any>> = ({ data, selected }) => {
                   type="source"
                   position={Position.Right}
                   id={output}
-                  className={`${getPortColor(
-                    isDark
-                  )} w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0`}
-                  style={{ right: -23 }}
+                  className="w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0"
+                  style={{
+                    right: -23,
+                    backgroundColor: getHandleColor(output, isDark),
+                  }}
                 />
               </div>
             ))}
