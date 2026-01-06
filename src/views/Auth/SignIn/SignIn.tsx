@@ -13,10 +13,11 @@ import {
   siginUpperImg,
 } from "@/utils/logoUtils";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
-import { useAppSelector } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { UserRegisterCredential } from "@/@types/auth";
 import { useGetWorkspacesQuery } from "@/services/RtkQueryService";
 import * as Yup from "yup";
+import { setCanRegister } from "@/store/auth/authSlice";
 
 const SignIn = () => {
   const { theme, isDark } = useTheme();
@@ -26,6 +27,7 @@ const SignIn = () => {
   const { can_register, register_email } = useAppSelector(
     (state) => state.auth
   );
+  const dispatch = useAppDispatch();
 
   const { data: workspaces, isLoading } = useGetWorkspacesQuery(undefined, {
     skip: !can_register,
@@ -61,6 +63,12 @@ const SignIn = () => {
               showSuccessToast(result.message || "Registration successful!");
             } else if (result?.status === "failed") {
               showErrorToast(result.message || "Registration failed");
+              dispatch(
+                setCanRegister({
+                  can_register: false,
+                  register_email: "",
+                })
+              );
             }
           } else {
             // Google sign-in flow

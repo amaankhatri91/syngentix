@@ -25,6 +25,9 @@ const authProtectedRoutes = [
   { path: "/workflows", component: Workflows },
 ];
 
-const publicRoutes = [{ path: "/sigin-in", component: SignIn }];
+const publicRoutes = [
+  { path: "/sigin-in", component: SignIn },
+  { path: "/sigin-up", component: SignIn },
+];
 
 export { authProtectedRoutes, publicRoutes };

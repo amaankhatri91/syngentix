@@ -148,6 +148,37 @@ export const useWorkflowSocketEvents = () => {
       }
     });
 
+    // Handle note:updated event - receives updated note confirmation
+    const unsubscribeNoteUpdated = on("note:updated", (data: any) => {
+      console.log("✏️ note:updated response:", data);
+      if (data && data.data) {
+        // Transform the updated note data
+        const updatedNoteNode = transformServerNoteToReactFlowNode(data.data);
+        
+        // Update the note in Redux state
+        const noteExists = nodesRef.current.some(
+          (node) => node.id === updatedNoteNode.id
+        );
+        if (noteExists) {
+          const updatedNodes = nodesRef.current.map((node) =>
+            node.id === updatedNoteNode.id ? updatedNoteNode : node
+          );
+          dispatch(updateNodes(updatedNodes));
+          console.log("✅ Note updated in workflow:", updatedNoteNode.id);
+        } else {
+          // If note doesn't exist, add it
+          dispatch(addNode(updatedNoteNode));
+          console.log("✅ Note added to workflow:", updatedNoteNode.id);
+        }
+      }
+      // Show toast message based on status
+      if (data?.status === "success") {
+        toast.success(data?.message || "Note updated successfully");
+      } else {
+        toast.error(data?.message || "Failed to update note");
+      }
+    });
+
     const unsubscribeConnectionCreated = on(
       "connection:created",
       (data: any) => {
@@ -240,6 +271,7 @@ export const useWorkflowSocketEvents = () => {
       unsubscribeNodeCreated();
       unsubscribeNoteCreated();
       unsubscribeNoteDeleted();
+      unsubscribeNoteUpdated();
       unsubscribeConnectionCreated();
       unsubscribeConnectionDeleted();
       unsubscribeNodesDeletedBulk();

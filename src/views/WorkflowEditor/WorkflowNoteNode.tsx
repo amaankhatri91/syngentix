@@ -6,18 +6,20 @@ import { setNoteEditing } from "@/store/workflowEditor/workflowEditorSlice";
 import useTheme from "@/utils/hooks/useTheme";
 import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
 import { getNoteNodeStyle } from "@/utils/common";
-import { DeleteIcon } from "@/assets/app-icons";
+import { DeleteIcon, EditIcon } from "@/assets/app-icons";
 import { CustomNodeData } from "./type";
 
 const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   data,
   selected,
+  position,
 }) => {
-  const { setNodes } = useReactFlow();
+  const { setNodes, getNode } = useReactFlow();
   const nodeId = useNodeId();
   const { workflowId } = useParams<{ workflowId: string }>();
   const { emit } = useSocketConnection();
   const dispatch = useAppDispatch();
+  const { isDark } = useTheme();
   const { editingNotes } = useAppSelector((state) => state.workflowEditor);
   const isEditing = nodeId ? editingNotes[nodeId] || false : false;
   const [editValue, setEditValue] = useState("");
@@ -96,7 +98,40 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
     }
   };
 
-  console.log(data , "Verify New Data Over Here")
+  // Handle update button click - emit note:update event
+  const handleUpdate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (nodeId && workflowId) {
+      const currentNode = getNode(nodeId);
+      const currentPosition = currentNode?.position || position || { x: 0, y: 0 };
+      // Emit note:update event
+      emit("note:update", {
+        workflow_id: workflowId,
+        id: nodeId,
+        title: editValue.trim() || data.label || "New Note",
+        content: editValue.trim() || data.label || "",
+        position: {
+          x: currentPosition.x,
+          y: currentPosition.y,
+        },
+        data: {
+          bgcolor: "#B3EFBD",
+          color: "#162230",
+          height: 160,
+          width: 200,
+        },
+      });
+      console.log("✏️ Note update event emitted:", {
+        workflow_id: workflowId,
+        id: nodeId,
+        title: editValue.trim() || data.label,
+        position: currentPosition,
+      });
+      
+      // Save the changes locally and exit edit mode
+      handleSave();
+    }
+  };
 
   return (
     <div
@@ -111,6 +146,11 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
         <div className={`font-medium text-[#162230] text-[14px] flex-1`}>
           Note
         </div>
+        {isEditing && (
+          <div className="cursor-pointer" onClick={handleUpdate}>
+            <EditIcon theme={isDark ? "dark" : "light"} height={18} />
+          </div>
+        )}
         <div className="cursor-pointer" onClick={handleDelete}>
           <DeleteIcon color="#162230" height={18} />
         </div>
