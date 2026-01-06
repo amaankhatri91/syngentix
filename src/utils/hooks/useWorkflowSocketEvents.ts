@@ -44,6 +44,7 @@ export const useWorkflowSocketEvents = () => {
   // We Can Set the connections
   useEffect(() => {
     const unsubscribeWorkflowData = on("workflow:data", (data: any) => {
+      console.log(data, "Verify Nodes Data & connections");
       if (data?.nodes && Array.isArray(data.nodes)) {
         const transformedNodes = transformServerNodesToReactFlowNodes(
           data.nodes

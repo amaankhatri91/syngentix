@@ -45,6 +45,8 @@ const WorkflowCanvas: React.FC = () => {
     (state) => state.workflowEditor
   );
 
+  console.log(nodes, "Verify Notes Data");
+
   // Handle edge deletion
   const handleEdgeDelete = useCallback(
     (edgeId: string, workflowIdParam: string) => {

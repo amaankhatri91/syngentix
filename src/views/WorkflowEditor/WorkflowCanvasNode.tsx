@@ -58,7 +58,7 @@ const WorkflowCanvasNode: React.FC<WorkflowCanvasNodeProps> = ({ data, selected 
                   className="w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0"
                   style={{
                     left: -23,
-                    backgroundColor: getHandleColor(input, isDark),
+                    backgroundColor: getHandleColor(input, isDark, true),
                   }}
                 />
                 <span
@@ -95,7 +95,7 @@ const WorkflowCanvasNode: React.FC<WorkflowCanvasNodeProps> = ({ data, selected 
                   className="w-3 h-3 border-2 border-[#FFFFFF] flex-shrink-0"
                   style={{
                     right: -23,
-                    backgroundColor: getHandleColor(output, isDark),
+                    backgroundColor: getHandleColor(output, isDark, false),
                   }}
                 />
               </div>

@@ -206,19 +206,24 @@ export const getPortColor = (isDark: boolean): string => {
  * Get handle color for specific handles
  * @param handleName - Name of the handle
  * @param isDark - Whether the theme is dark (for default color)
+ * @param isInput - Whether the handle is an input (true) or output (false)
  * @returns Hex color code for the handle
  */
-export const getHandleColor = (handleName: string, isDark: boolean): string => {
-  // Input Data gets blue color
-  if (handleName === "Input Data") {
-    return "#007AFF";
+export const getHandleColor = (
+  handleName: string,
+  isDark: boolean,
+  isInput: boolean = false
+): string => {
+  // Next and STDOUT pins always get green color regardless of input/output
+  if (handleName === "Next" || handleName === "STDOUT") {
+    return "#34C759";
   }
-  // STDOUT and Output get purple color
-  if (handleName === "STDOUT" || handleName === "Output") {
+  // Input pins get purple color
+  if (isInput) {
     return "#AF52DE";
   }
-  // Default green color for other handles
-  return isDark ? "#34C759" : "#34C759";
+  // Output pins get pink color
+  return "#FF69B4";
 };
 
 /**
@@ -274,7 +279,7 @@ export const calculateNodeEstimatedWidth = (data: {
     ...(data.inputs || []),
     ...(data.outputs || []),
   ].filter((label): label is string => Boolean(label));
-  
+
   const longestLabel = allLabels.reduce(
     (longest, label) => (label.length > longest.length ? label : longest),
     ""
@@ -304,7 +309,9 @@ export const calculateNodeEstimatedHeight = (data: {
  * @param outputs - Array of output handle names
  * @returns Sorted array with "Next" first
  */
-export const sortOutputsWithNextFirst = (outputs: string[] | undefined): string[] => {
+export const sortOutputsWithNextFirst = (
+  outputs: string[] | undefined
+): string[] => {
   if (!outputs || outputs.length === 0) {
     return [];
   }
