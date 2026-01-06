@@ -41,7 +41,7 @@ const WorkflowCanvas: React.FC = () => {
   const { workflowId } = useParams<{ workflowId: string }>();
   const { userId } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-  const { nodes, edges, isLocked } = useAppSelector(
+  const { nodes, edges, isLocked, edgeThickness } = useAppSelector(
     (state) => state.workflowEditor
   );
 
@@ -230,18 +230,18 @@ const WorkflowCanvas: React.FC = () => {
           ...(isDotted
             ? {
                 // Keep existing dotted style - WorkflowEdge will apply gradient
-                strokeWidth: 2,
+                strokeWidth: edgeThickness,
               }
             : {
                 // For active edges, WorkflowEdge will apply gradient
                 // For regular edges, use gray color
                 stroke: isActive ? undefined : "#8E8E93",
-                strokeWidth: 2,
+                strokeWidth: edgeThickness,
               }),
         },
       };
     });
-  }, [edges, nodes]);
+  }, [edges, nodes, edgeThickness]);
 
   return (
     <div

@@ -57,3 +57,18 @@ export const WorkflowActions: WorkflowActionConfig[] = [
     hasThemeColor: false,
   },
 ];
+
+export interface EdgeThicknessOption {
+  label: string;
+  value: number;
+  display: string;
+}
+
+export const EdgeThicknessOptions: EdgeThicknessOption[] = [
+  { label: "Minimal", value: 0.3, display: "0.3px" },
+  { label: "1x", value: 1.0, display: "1.0px" },
+  { label: "2x", value: 2.0, display: "2.0px" },
+  { label: "3x", value: 2.5, display: "2.5px" },
+  { label: "4x", value: 3.0, display: "3.0px" },
+  { label: "5x", value: 4.0, display: "4.0px" },
+];

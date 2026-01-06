@@ -1,5 +1,6 @@
 import React from "react";
 import { getBezierPath, EdgeProps } from "reactflow";
+import { useAppSelector } from "@/store";
 
 const WorkflowEdge: React.FC<EdgeProps> = ({
   id,
@@ -12,6 +13,8 @@ const WorkflowEdge: React.FC<EdgeProps> = ({
   style = {},
   data,
 }) => {
+  const edgeThickness = useAppSelector((state) => state.workflowEditor.edgeThickness);
+  
   const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
@@ -70,15 +73,17 @@ const WorkflowEdge: React.FC<EdgeProps> = ({
           ...(isDotted
             ? {
                 stroke: `url(#${dottedGradientId})`,
-                strokeWidth: 2,
+                strokeWidth: edgeThickness,
                 strokeDasharray: style.strokeDasharray || "5,5",
               }
             : isActive
             ? {
                 stroke: `url(#${activeGradientId})`,
-                strokeWidth: 2,
+                strokeWidth: edgeThickness,
               }
-            : {}),
+            : {
+                strokeWidth: edgeThickness,
+              }),
         }}
         className="react-flow__edge-path"
         d={edgePath}

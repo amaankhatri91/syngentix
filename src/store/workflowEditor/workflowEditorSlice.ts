@@ -11,6 +11,7 @@ export type WorkflowEditorState = {
   nodes: Node<CustomNodeData>[];
   edges: Edge[];
   isLocked: boolean;
+  edgeThickness: number;
 };
 
 const initialState: WorkflowEditorState = {
@@ -20,6 +21,7 @@ const initialState: WorkflowEditorState = {
   nodes: [],
   edges: [],
   isLocked: false,
+  edgeThickness: 0.3, // Default to Minimal (0.3px)
 };
 
 const workflowEditorSlice = createSlice({
@@ -68,6 +70,9 @@ const workflowEditorSlice = createSlice({
     toggleLock: (state) => {
       state.isLocked = !state.isLocked;
     },
+    setEdgeThickness: (state, action: PayloadAction<number>) => {
+      state.edgeThickness = action.payload;
+    },
   },
 });
 
@@ -81,6 +86,7 @@ export const {
   updateNodes,
   setEdges,
   toggleLock,
+  setEdgeThickness,
 } = workflowEditorSlice.actions;
 
 export default workflowEditorSlice.reducer;
