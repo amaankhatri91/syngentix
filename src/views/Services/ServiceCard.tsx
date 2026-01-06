@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Service } from "./types";
 import useTheme from "@/utils/hooks/useTheme";
 import { Button } from "@/components/Button";
@@ -18,6 +19,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   onMenuClick,
 }) => {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +41,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
   const handleViewDetails = () => {
     onViewDetails?.(service.id);
+    navigate(`/services/${service.id}`);
   };
 
   const handleTestService = () => {

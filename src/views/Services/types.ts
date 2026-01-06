@@ -5,6 +5,8 @@ export interface Service {
   username: string;
   host: string;
   port: string;
+  connectionName?: string;
+  securitySSL?: string;
   avatar?: string;
 }
 

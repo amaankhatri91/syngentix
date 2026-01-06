@@ -9,6 +9,7 @@ import AgentDetails from "@/views/AgentDetails";
 import Workflows from "@/views/Workflows";
 import WorkflowEditor from "@/views/WorkflowEditor";
 import Services from "@/views/Services";
+import ServiceDetails from "@/views/ServiceDetails";
 
 // Define routes
 const authProtectedRoutes = [
@@ -25,6 +26,7 @@ const authProtectedRoutes = [
   { path: "/profile", component: Profile },
   { path: "/workflows", component: Workflows },
   { path: "/services", component: Services },
+  { path: "/services/:id", component: ServiceDetails },
 ];
 
 const publicRoutes = [{ path: "/sigin-in", component: SignIn }];
