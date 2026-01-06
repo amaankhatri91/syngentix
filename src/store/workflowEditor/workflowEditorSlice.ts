@@ -12,6 +12,7 @@ export type WorkflowEditorState = {
   edges: Edge[];
   isLocked: boolean;
   edgeThickness: number;
+  editingNotes: Record<string, boolean>; // Map of node ID to editing state
 };
 
 const initialState: WorkflowEditorState = {
@@ -22,6 +23,7 @@ const initialState: WorkflowEditorState = {
   edges: [],
   isLocked: false,
   edgeThickness: 0.3, // Default to Minimal (0.3px)
+  editingNotes: {}, // Map of node ID to editing state
 };
 
 const workflowEditorSlice = createSlice({
@@ -73,6 +75,20 @@ const workflowEditorSlice = createSlice({
     setEdgeThickness: (state, action: PayloadAction<number>) => {
       state.edgeThickness = action.payload;
     },
+    setNoteEditing: (
+      state,
+      action: PayloadAction<{ nodeId: string; isEditing: boolean }>
+    ) => {
+      const { nodeId, isEditing } = action.payload;
+      if (isEditing) {
+        state.editingNotes[nodeId] = true;
+      } else {
+        delete state.editingNotes[nodeId];
+      }
+    },
+    clearEditingNotes: (state) => {
+      state.editingNotes = {};
+    },
   },
 });
 
@@ -87,6 +103,8 @@ export const {
   setEdges,
   toggleLock,
   setEdgeThickness,
+  setNoteEditing,
+  clearEditingNotes,
 } = workflowEditorSlice.actions;
 
 export default workflowEditorSlice.reducer;

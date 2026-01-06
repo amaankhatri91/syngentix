@@ -16,6 +16,29 @@ import {
   transformServerConnectionToReactFlowEdge,
 } from "@/utils/common";
 import { toast } from "react-toastify";
+import { Node } from "reactflow";
+import { CustomNodeData } from "@/views/WorkflowEditor/type";
+
+/**
+ * Transform server note data to ReactFlow Node format
+ * @param noteData - Note data from server
+ * @returns ReactFlow Node with CustomNodeData
+ */
+const transformServerNoteToReactFlowNode = (
+  noteData: any
+): Node<CustomNodeData> => {
+  return {
+    id: noteData.id,
+    type: "note", // Use "note" type for WorkflowNoteNode
+    position: noteData.position || { x: 0, y: 0 },
+    data: {
+      label: noteData.content || noteData.title || "",
+      nodeType: "text",
+      dotColor: "#94A3B8", // Default gray
+      borderColor: "from-gray-500 to-gray-600", // Default
+    } as CustomNodeData,
+  };
+};
 
 /**
  * Custom hook to handle workflow-related socket events
@@ -45,12 +68,30 @@ export const useWorkflowSocketEvents = () => {
   useEffect(() => {
     const unsubscribeWorkflowData = on("workflow:data", (data: any) => {
       console.log(data, "Verify Nodes Data & connections");
+
+      // Collect all nodes (regular nodes + notes)
+      const allNodes: Node<CustomNodeData>[] = [];
+      // Transform and add regular nodes
       if (data?.nodes && Array.isArray(data.nodes)) {
         const transformedNodes = transformServerNodesToReactFlowNodes(
           data.nodes
         );
-        dispatch(setNodes(transformedNodes));
+        allNodes.push(...transformedNodes);
       }
+      // Transform and add notes
+      if (data?.notes && Array.isArray(data.notes)) {
+        const transformedNotes = data.notes.map((note: any) =>
+          transformServerNoteToReactFlowNode(note)
+        );
+        allNodes.push(...transformedNotes);
+        console.log("📝 Notes transformed and added:", transformedNotes.length);
+      }
+
+      // Set all nodes together (regular nodes + notes)
+      if (allNodes.length > 0) {
+        dispatch(setNodes(allNodes));
+      }
+
       if (data?.connections && Array.isArray(data.connections)) {
         const transformedEdges = transformServerConnectionsToReactFlowEdges(
           data.connections
@@ -67,6 +108,44 @@ export const useWorkflowSocketEvents = () => {
       data?.status === "success"
         ? toast.success(data?.message || "Node created successfully")
         : toast.error(data?.message || "Failed to created node");
+    });
+
+    // Handle note:created event - receives newly created sticky note
+    const unsubscribeNoteCreated = on("note:created", (data: any) => {
+      console.log("📝 note:created response:", data);
+      if (data && data.data) {
+        const noteNode = transformServerNoteToReactFlowNode(data.data);
+        dispatch(addNode(noteNode));
+        console.log("✅ Sticky note added to workflow:", noteNode.id);
+      }
+      // Show toast message based on status
+      if (data?.status === "success") {
+        toast.success(data?.message || "Note added successfully");
+      } else {
+        toast.error(data?.message || "Failed to add note");
+      }
+    });
+
+    // Handle note:deleted event - receives deleted note confirmation
+    const unsubscribeNoteDeleted = on("note:deleted", (data: any) => {
+      console.log("🗑️ note:deleted response:", data);
+      if (data && data.id) {
+        // Remove the deleted note from Redux state
+        const noteExists = nodesRef.current.some((node) => node.id === data.id);
+        if (noteExists) {
+          const updatedNodes = nodesRef.current.filter(
+            (node) => node.id !== data.id
+          );
+          dispatch(updateNodes(updatedNodes));
+          console.log("✅ Note removed from workflow:", data.id);
+        }
+      }
+      // Show toast message based on status
+      if (data?.status === "success") {
+        toast.success(data?.message || "Note deleted successfully");
+      } else {
+        toast.error(data?.message || "Failed to delete note");
+      }
     });
 
     const unsubscribeConnectionCreated = on(
@@ -111,8 +190,20 @@ export const useWorkflowSocketEvents = () => {
 
     // Handle node:deleted_bulk event - receives bulk deleted nodes response
     const unsubscribeNodesDeletedBulk = on("node:deleted_bulk", (data: any) => {
-      console.log("🗑️ node:deleted_bulk response:", data);
+      console.log("node deleted", data);
 
+      // Show toast message first (always show, regardless of data structure)
+      // Remove toastId to ensure toast always shows
+      if (data?.status === "success") {
+        toast.success(data?.message || "Nodes deleted successfully");
+      } else if (data?.status === "error" || data?.status === "failed") {
+        toast.error(data?.message || "Failed to delete nodes");
+      } else {
+        // If no status or unknown status, show success toast with message
+        toast.success(data?.message || "Nodes deleted successfully");
+      }
+
+      // Handle node removal if ids are provided
       if (data && data.ids && Array.isArray(data.ids)) {
         // Create a unique key from sorted node IDs to track this deletion
         const deletionKey = data.ids.sort().join(",");
@@ -136,19 +227,6 @@ export const useWorkflowSocketEvents = () => {
         dispatch(updateNodes(updatedNodes));
         console.log("✅ Nodes removed from server:", data.ids);
 
-        // Show toast with server message (only once)
-        // Use a unique toastId to prevent duplicate toasts
-        const toastId = `node-deleted-bulk-${deletionKey}`;
-        if (data.status === "success") {
-          toast.success(data.message || "Nodes deleted successfully", {
-            toastId,
-          });
-        } else {
-          toast.error(data.message || "Failed to delete nodes", {
-            toastId,
-          });
-        }
-
         // Clean up the processed key after a delay to allow for retries if needed
         setTimeout(() => {
           processedDeletionsRef.current.delete(deletionKey);
@@ -160,6 +238,8 @@ export const useWorkflowSocketEvents = () => {
     return () => {
       unsubscribeWorkflowData();
       unsubscribeNodeCreated();
+      unsubscribeNoteCreated();
+      unsubscribeNoteDeleted();
       unsubscribeConnectionCreated();
       unsubscribeConnectionDeleted();
       unsubscribeNodesDeletedBulk();

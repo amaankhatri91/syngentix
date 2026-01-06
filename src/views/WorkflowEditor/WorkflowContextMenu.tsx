@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import useTheme from "@/utils/hooks/useTheme";
+import { ReactFlowInstance } from "reactflow";
 import ChevronRightIcon from "@/assets/app-icons/ChevronRightIcon";
 import {
   getIconColor,
@@ -8,17 +9,27 @@ import {
 } from "@/utils/common";
 import { useAppDispatch } from "@/store";
 import { setOpenNodeList } from "@/store/workflowEditor/workflowEditorSlice";
+import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
 
 interface ContextMenuProps {
   x: number;
   y: number;
   onClose: () => void;
+  workflowId: string;
+  reactFlowInstance: ReactFlowInstance | null;
 }
 
-const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
+const WorkflowContextMenu: React.FC<ContextMenuProps> = ({
+  x,
+  y,
+  onClose,
+  workflowId,
+  reactFlowInstance,
+}) => {
   const { isDark } = useTheme();
   const menuRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
+  const { emit } = useSocketConnection();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -81,6 +92,33 @@ const WorkflowContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose }) => {
         onClick={(e) => {
           e.stopPropagation();
           onClose();
+          // Convert screen coordinates to flow coordinates
+          if (reactFlowInstance && workflowId) {
+            const position = reactFlowInstance.screenToFlowPosition({
+              x,
+              y,
+            });
+            // Emit note:create event
+            emit("note:create", {
+              workflow_id: workflowId,
+              title: "New Note",
+              content: "",
+              position: {
+                x: position.x,
+                y: position.y,
+              },
+              data: {
+                bgcolor: "#B3EFBD",
+                color: "#162230",
+                height: 160,
+                width: 200,
+              },
+            });
+            console.log("📝Sticky note creation event emitted:", {
+              workflow_id: workflowId,
+              position,
+            });
+          }
         }}
       >
         <h5>Add Sticky Note</h5>

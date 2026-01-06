@@ -336,6 +336,8 @@ const WorkflowCanvas: React.FC = () => {
           x={contextMenu.x}
           y={contextMenu.y}
           onClose={() => setContextMenu(null)}
+          workflowId={workflowId || ""}
+          reactFlowInstance={reactFlowInstance}
         />
       )}
     </div>

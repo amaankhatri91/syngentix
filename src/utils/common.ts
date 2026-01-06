@@ -707,3 +707,24 @@ export const transformServerConnectionsToReactFlowEdges = (
 ): Edge[] => {
   return serverConnections.map(transformServerConnectionToReactFlowEdge);
 };
+
+/**
+ * Get note node style based on editing and selection state
+ * Note nodes have no border, no border radius, and a fixed background color
+ * @param isEditing - Whether the note is currently being edited
+ * @param selected - Whether the note is currently selected
+ * @returns CSS properties object for the note node
+ */
+export const getNoteNodeStyle = (
+  isEditing: boolean,
+  selected: boolean
+): React.CSSProperties => {
+  return {
+    backgroundColor: isEditing ? "#94D29E" : "#B3EFBD",
+    border: "none",
+    borderRadius: 0,
+    boxShadow: selected ? "0px 2px 20px 0px rgba(105, 70, 235, 0.18)" : "none",
+  };
+};
+
+
