@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Node, Edge, ReactFlowInstance } from "reactflow";
-import { CustomNodeData } from "@/views/WorkflowEditor/dymmyData";
+import { CustomNodeData } from "@/views/WorkflowEditor/type";
 
 const SLICE_NAME = "workflowEditor";
 
@@ -11,6 +11,8 @@ export type WorkflowEditorState = {
   nodes: Node<CustomNodeData>[];
   edges: Edge[];
   isLocked: boolean;
+  edgeThickness: number;
+  editingNotes: Record<string, boolean>; // Map of node ID to editing state
 };
 
 const initialState: WorkflowEditorState = {
@@ -20,6 +22,8 @@ const initialState: WorkflowEditorState = {
   nodes: [],
   edges: [],
   isLocked: false,
+  edgeThickness: 0.3, // Default to Minimal (0.3px)
+  editingNotes: {}, // Map of node ID to editing state
 };
 
 const workflowEditorSlice = createSlice({
@@ -68,6 +72,23 @@ const workflowEditorSlice = createSlice({
     toggleLock: (state) => {
       state.isLocked = !state.isLocked;
     },
+    setEdgeThickness: (state, action: PayloadAction<number>) => {
+      state.edgeThickness = action.payload;
+    },
+    setNoteEditing: (
+      state,
+      action: PayloadAction<{ nodeId: string; isEditing: boolean }>
+    ) => {
+      const { nodeId, isEditing } = action.payload;
+      if (isEditing) {
+        state.editingNotes[nodeId] = true;
+      } else {
+        delete state.editingNotes[nodeId];
+      }
+    },
+    clearEditingNotes: (state) => {
+      state.editingNotes = {};
+    },
   },
 });
 
@@ -81,6 +102,9 @@ export const {
   updateNodes,
   setEdges,
   toggleLock,
+  setEdgeThickness,
+  setNoteEditing,
+  clearEditingNotes,
 } = workflowEditorSlice.actions;
 
 export default workflowEditorSlice.reducer;

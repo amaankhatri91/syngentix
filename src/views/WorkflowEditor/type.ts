@@ -1,4 +1,4 @@
-import { EdgeTypes, NodeTypes } from "reactflow";
+import { EdgeTypes, NodeTypes, NodeProps } from "reactflow";
 import WorkflowEdge from "./WorkflowEdge";
 import CanvasNode from "./WorkflowCanvasNode";
 import WorkflowNoteNode from "./WorkflowNoteNode";
@@ -38,9 +38,22 @@ export interface CustomControlsProps {
   onToggleLock: () => void;
 }
 
-// Workflow Node types
+// Custom Node Data types
+export interface CustomNodeData {
+  label: string;
+  nodeType: "text" | "switch" | "api";
+  dotColor: string;
+  borderColor: string;
+  inputs?: string[];
+  outputs?: string[];
+}
+
+// Workflow Canvas Node Props
+export type WorkflowCanvasNodeProps = NodeProps<CustomNodeData>;
+
+// Workflow Node types (legacy - kept for backward compatibility)
 export interface WorkflowNodeProps {
-  data: any; // CustomNodeData from dummy.ts
+  data: CustomNodeData;
   selected?: boolean;
 }
 

@@ -1,17 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NodeProps, useReactFlow, useNodeId } from "reactflow";
+import { useParams } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { setNoteEditing } from "@/store/workflowEditor/workflowEditorSlice";
 import useTheme from "@/utils/hooks/useTheme";
+import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
+import { getNoteNodeStyle } from "@/utils/common";
 import { DeleteIcon } from "@/assets/app-icons";
-import { CustomNodeData } from "./dymmyData";
+import { CustomNodeData } from "./type";
 
 const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   data,
   selected,
 }) => {
-  const { isDark } = useTheme();
   const { setNodes } = useReactFlow();
   const nodeId = useNodeId();
-  const [isEditing, setIsEditing] = useState(false);
+  const { workflowId } = useParams<{ workflowId: string }>();
+  const { emit } = useSocketConnection();
+  const dispatch = useAppDispatch();
+  const { editingNotes } = useAppSelector((state) => state.workflowEditor);
+  const isEditing = nodeId ? editingNotes[nodeId] || false : false;
   const [editValue, setEditValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -26,8 +34,10 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
 
   // Handle double-click to enter edit mode
   const handleDoubleClick = () => {
-    setIsEditing(true);
-    setEditValue(data.label || "");
+    if (nodeId) {
+      dispatch(setNoteEditing({ nodeId, isEditing: true }));
+      setEditValue(data.label || "");
+    }
   };
 
   // Handle saving the edited text
@@ -47,14 +57,16 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
           return node;
         })
       );
+      dispatch(setNoteEditing({ nodeId, isEditing: false }));
     }
-    setIsEditing(false);
   };
 
   // Handle canceling edit
   const handleCancel = () => {
     setEditValue(data.label || "");
-    setIsEditing(false);
+    if (nodeId) {
+      dispatch(setNoteEditing({ nodeId, isEditing: false }));
+    }
   };
 
   // Handle key press in textarea
@@ -68,56 +80,65 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
     }
   };
 
-  // Note nodes have no border, no border radius, and a fixed background color
-  // Add border when editing
-  const nodeStyle: React.CSSProperties = {
-    backgroundColor: isEditing ? "#94D29E" : "#B3EFBD",
-    border: "none",
-    borderRadius: 0,
-    boxShadow: selected ? "0px 2px 20px 0px rgba(105, 70, 235, 0.18)" : "none",
+  // Handle delete button click
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (nodeId && workflowId) {
+      // Emit note:delete event
+      emit("note:delete", {
+        workflow_id: workflowId,
+        id: nodeId,
+      });
+      console.log("🗑️ Note delete event emitted:", {
+        workflow_id: workflowId,
+        id: nodeId,
+      });
+    }
   };
+
+  console.log(data , "Verify New Data Over Here")
 
   return (
     <div
-        className={`
+      className={`
           px-2 pt-2 pb-4 w-[200px]  min-h-[160px] relative
           transition-all duration-200
         `}
-        style={nodeStyle}
-        onDoubleClick={handleDoubleClick}
-      >
-        <div className="flex justify-between items-center mb-2">
-          <div className={`font-medium text-[#162230] text-[14px] flex-1`}>
-            Note
-          </div>
-          <div className="cursor-pointer" onClick={(e) => e.stopPropagation()}>
-            <DeleteIcon color="#162230" height={18} />
-          </div>
+      style={getNoteNodeStyle(isEditing, selected)}
+      onDoubleClick={handleDoubleClick}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <div className={`font-medium text-[#162230] text-[14px] flex-1`}>
+          Note
         </div>
-        {isEditing ? (
-          <textarea
-            ref={textareaRef}
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleSave}
-            onKeyDown={handleKeyDown}
-            className="w-full h-[115px] text-[14px] text-[#162230] bg-transparent resize-none focus:outline-none overflow-y-auto note-scrollbar"
-            style={{
-              fontFamily: "inherit",
-              lineHeight: "1.5",
-              scrollbarWidth: "thin",
-              scrollbarColor: "#162230 #B3EFBD",
-            }}
-            onClick={(e) => e.stopPropagation()}
-            onDoubleClick={(e) => e.stopPropagation()}
-            placeholder="Type your note here..."
-          />
-        ) : (
-          <div className="text-[#162230] text-[14px] whitespace-pre-wrap break-words min-h-[120px] max-h-[130px] overflow-y-auto note-no-scrollbar">
-            {data.label || "Double-click to edit"}
-          </div>
-        )}
+        <div className="cursor-pointer" onClick={handleDelete}>
+          <DeleteIcon color="#162230" height={18} />
+        </div>
       </div>
+      {isEditing ? (
+        <textarea
+          ref={textareaRef}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          className="w-full h-[115px] text-[14px] text-[#162230] bg-transparent resize-none focus:outline-none overflow-y-auto note-scrollbar"
+          style={{
+            fontFamily: "inherit",
+            lineHeight: "1.5",
+            scrollbarWidth: "thin",
+            scrollbarColor: "#162230 #B3EFBD",
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          placeholder="Type your note here..."
+        />
+      ) : (
+        <div className="text-[#162230] text-[14px] whitespace-pre-wrap break-words min-h-[120px] max-h-[130px] overflow-y-auto note-no-scrollbar">
+          {data.label || "Double-click to edit"}
+        </div>
+      )}
+    </div>
   );
 };
 
