@@ -8,6 +8,7 @@ import {
   SettingIcon,
   ProfileIcon,
   WorkFlowIcon,
+  ServiceIcon,
 } from "@/assets/app-icons";
 
 export interface SidebarItem {
@@ -20,6 +21,7 @@ export const menuItems: SidebarItem[] = [
   { label: "Dashboard", icon: DashboardIcon, path: "/dashboard" },
   { label: "Agents", icon: AgentsIcon, path: "/agents" },
   { label: "Users", icon: UserIcon, path: "/users" },
+  { label: "Services", icon: ServiceIcon, path: "/services" },
   { label: "Templates", icon: TemplateIcon, path: "/templates" },
 ];
 

@@ -35,6 +35,8 @@ export { default as ZoomOut } from "./ZoomOut";
 export { default as FitView } from "./FitView";
 export { default as ViewIcon } from "./ViewIcon";
 export { default as FileIcon } from "./FileIcon";
+export { default as ServiceIcon } from "./ServiceIcon";
+export { default as MenuDotsVerticalIcon } from "./MenuDotsVerticalIcon";
 
 
 
