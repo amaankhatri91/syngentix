@@ -2,7 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { useGetWorkflowsQuery } from "@/services/RtkQueryService";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { setWorkflowDialog } from "@/store/workflow/workflowSlice";
+import { setWorkflowDialog, setDeleteDialog } from "@/store/workflow/workflowSlice";
 import WorkflowCard from "./WorkflowCard";
 import WorkflowSkeleton from "./WorkflowSkeleton";
 import useTheme from "@/utils/hooks/useTheme";
@@ -45,7 +45,16 @@ const WorkflowList: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    console.log("Delete clicked for workflow:", id);
+    // Find workflow from API data
+    const workflow = data?.data?.find((w: any) => w.id === id);
+    if (workflow) {
+      dispatch(
+        setDeleteDialog({
+          deleteDialog: true,
+          deleteWorkflowRow: workflow,
+        })
+      );
+    }
   };
 
   // Show loading state

@@ -45,3 +45,16 @@ export async function apiEditWorkflow(
   });
 }
 
+export async function apiDeleteWorkflow(
+  workflowId: string,
+  workspaceId: string
+) {
+  return ApiService.fetchData({
+    url: `/v1/workflow/${workflowId}`,
+    method: "delete",
+    params: {
+      workspace_id: workspaceId,
+    },
+  });
+}
+

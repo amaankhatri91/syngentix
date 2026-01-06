@@ -10,7 +10,7 @@ import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
 import { useAppDispatch } from "@/store";
-import { setAgentDailog } from "@/store/agent/agentSlice";
+import { setAgentDailog, setDeleteDialog } from "@/store/agent/agentSlice";
 import { useNavigate } from "react-router-dom";
 
 // Wrapper component for Actions cell to access theme from auth
@@ -48,8 +48,12 @@ const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
           icon: <DeleteIcon theme={theme} />,
           label: "Delete",
           onClick: (row) => {
-            console.log("Delete clicked for:", row);
-            // Handle delete action
+            dispatch(
+              setDeleteDialog({
+                deleteDialog: true,
+                deleteAgentRow: row,
+              })
+            );
           },
         },
       ]}

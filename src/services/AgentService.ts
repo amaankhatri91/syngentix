@@ -34,3 +34,16 @@ export async function apiEditAgent(data: {
     },
   });
 }
+
+export async function apiDeleteAgent(
+  agentId: string,
+  workspaceId: string
+) {
+  return ApiService.fetchData({
+    url: `/v1/agents/${agentId}`,
+    method: "delete",
+    params: {
+      workspace_id: workspaceId,
+    },
+  });
+}

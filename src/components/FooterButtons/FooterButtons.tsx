@@ -109,9 +109,3 @@ const FooterButtons: React.FC<FooterButtonsProps> = ({
 };
 
 export default FooterButtons;
-
-
-
-
-
-
