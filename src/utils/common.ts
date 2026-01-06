@@ -215,7 +215,7 @@ export const getHandleColor = (
   isInput: boolean = false
 ): string => {
   // Next and STDOUT pins always get green color regardless of input/output
-  if (handleName === "Next" || handleName === "STDOUT") {
+  if (handleName === "Next" || handleName === "Start") {
     return "#34C759";
   }
   // Input pins get purple color
