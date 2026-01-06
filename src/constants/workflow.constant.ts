@@ -1,5 +1,4 @@
 import React from "react";
-import InfoIcon from "@/assets/app-icons/InfoIcon";
 import EditIcon from "@/assets/app-icons/EditIcon";
 import DownloadIcon from "@/assets/app-icons/DownloadIcon";
 import DeleteIcon from "@/assets/app-icons/DeleteIcon";
@@ -36,11 +35,6 @@ export interface WorkflowActionConfig {
 }
 
 export const WorkflowActions: WorkflowActionConfig[] = [
-  {
-    id: "info",
-    icon: InfoIcon,
-    hasThemeColor: true,
-  },
   {
     id: "edit",
     icon: EditIcon,

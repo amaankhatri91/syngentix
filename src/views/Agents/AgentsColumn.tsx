@@ -24,7 +24,6 @@ const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
       actions={[
         {
           icon: <Connectivity theme={theme} />,
-          label: "Connect",
           onClick: (row) => {
             console.log("Connect clicked for:", row);
             // Handle connect action
@@ -32,7 +31,6 @@ const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
         },
         {
           icon: <EditIcon theme={theme} />,
-          label: "Link",
           onClick: (row) => {
             console.log("Link clicked for:", row);
             // Handle link action
@@ -46,7 +44,6 @@ const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
         },
         {
           icon: <DeleteIcon theme={theme} />,
-          label: "Delete",
           onClick: (row) => {
             dispatch(
               setDeleteDialog({

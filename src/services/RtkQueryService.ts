@@ -55,13 +55,42 @@ const RtkQueryService = createApi({
     }),
     getWorkflows: builder.query<
       WorkflowsResponse,
-      { agentId: string; workspaceId?: string }
+      {
+        agentId: string;
+        workspaceId?: string;
+        page?: number;
+        limit?: number;
+        search?: string;
+        status?: boolean;
+        sort_by?: string;
+        sort_order?: "ASC" | "DESC";
+      }
     >({
-      query: ({ agentId, workspaceId }) => ({
-        url: `/v1/workflows/${agentId}`,
-        method: "get",
-        params: workspaceId ? { workspace_id: workspaceId } : undefined,
-      }),
+      query: ({
+        agentId,
+        workspaceId,
+        page = 1,
+        limit = 10,
+        search,
+        status,
+        sort_by = "updated_at",
+        sort_order = "DESC",
+      }) => {
+        const params: Record<string, any> = {};
+        if (workspaceId) params.workspace_id = workspaceId;
+        if (page) params.page = page;
+        if (limit) params.limit = limit;
+        if (search) params.search = search;
+        if (status !== undefined) params.status = status;
+        if (sort_by) params.sort_by = sort_by;
+        if (sort_order) params.sort_order = sort_order;
+
+        return {
+          url: `/v1/workflows/${agentId}`,
+          method: "get",
+          params: Object.keys(params).length > 0 ? params : undefined,
+        };
+      },
       // Cache the data for 1 hour (3600 seconds)
       keepUnusedDataFor: 3600,
       // Provide tags for cache invalidation if needed

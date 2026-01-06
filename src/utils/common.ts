@@ -727,4 +727,17 @@ export const getNoteNodeStyle = (
   };
 };
 
+/**
+ * Get total pages from pagination data
+ * @param data - Response data object with optional pagination property
+ * @param defaultPages - Default value if pagination is not available (default: 1)
+ * @returns Total number of pages
+ */
+export const getTotalPages = (
+  data?: { pagination?: { totalPages?: number } } | null,
+  defaultPages: number = 1
+): number => {
+  return data?.pagination?.totalPages || defaultPages;
+};
+
 

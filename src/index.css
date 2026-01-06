@@ -338,3 +338,7 @@ div[class*="backdrop"],
   bottom: 0 !important;
   z-index: 9998 !important;
 }
+
+.flow-btn {
+  background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
+}

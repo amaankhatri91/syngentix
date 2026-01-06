@@ -19,8 +19,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           key={index}
           onClick={() => action.onClick(row)}
-          title={action.label}
-          aria-label={action.label}
+          title={action.label || undefined}
+          aria-label={action.label || "Action"}
         >
           {action.icon}
         </button>

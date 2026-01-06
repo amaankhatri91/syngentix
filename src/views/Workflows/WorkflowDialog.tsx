@@ -1,8 +1,8 @@
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { Textarea } from "@material-tailwind/react";
 import { Dialog } from "@/components/Dialog";
 import { FormikInput } from "@/components/FormikInput";
+import { FormikTextarea } from "@/components/FormikTextarea";
 import { FooterButtons } from "@/components/FooterButtons";
 import useTheme from "@/utils/hooks/useTheme";
 import { WorkflowFormValues } from "./types";
@@ -13,12 +13,14 @@ import {
   createWorkflow,
   editWorkflow,
 } from "@/store/workflow/workflowSlice";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
+import { showSuccessToast, showErrorToast } from "@/utils/toast";
 
 const WorkflowDialog = () => {
   const { isDark } = useTheme();
   const { agentId } = useParams<{ agentId: string }>();
+  const navigate = useNavigate();
   const { workflowDialog, workflowRow } = useAppSelector(
     (state) => state.workflow
   );
@@ -56,7 +58,7 @@ const WorkflowDialog = () => {
         validationSchema={WorkflowSchema}
         onSubmit={async (values: WorkflowFormValues) => {
           try {
-            const response = workflowRow?.workflow_id
+            const response: any = workflowRow?.workflow_id
               ? await dispatch(
                   editWorkflow({
                     id: workflowRow?.workflow_id,
@@ -70,15 +72,59 @@ const WorkflowDialog = () => {
                     agentId: agentId,
                   })
                 ).unwrap();
-            dispatch(
-              setWorkflowDialog({
-                workflowDialog: false,
-                workflowRow: {},
-              })
-            );
+            if (response?.data?.status === "success") {
+              showSuccessToast(
+                response?.data?.message ||
+                  `Workflow ${
+                    workflowRow?.workflow_id ? "updated" : "created"
+                  } successfully`
+              );
+              
+              // If creating a new workflow, redirect to editor
+              if (!workflowRow?.workflow_id && response?.data?.data?.workflow_id) {
+                const newWorkflowId = response.data.data.workflow_id;
+                const newWorkflowTitle = response.data.data.title || values.title;
+                dispatch(
+                  setWorkflowDialog({
+                    workflowDialog: false,
+                    workflowRow: {},
+                  })
+                );
+                // Navigate to workflow editor
+                navigate(`/agent/${agentId}/workflow/${newWorkflowId}`, {
+                  state: {
+                    workflowTitle: newWorkflowTitle,
+                  },
+                });
+              } else {
+                // For edit, just close the dialog
+                dispatch(
+                  setWorkflowDialog({
+                    workflowDialog: false,
+                    workflowRow: {},
+                  })
+                );
+              }
+            } else {
+              showErrorToast(
+                response?.data?.message ||
+                  `Failed to ${
+                    workflowRow?.workflow_id ? "update" : "create"
+                  } workflow. Please try again.`
+              );
+            }
             invalidateAllQueries();
           } catch (error: any) {
-            console.log(error, "Verify Error");
+            // Show error toast with error message
+            const errorMessage =
+              error?.message ||
+              error?.response?.data?.message ||
+              error?.data?.message ||
+              `Failed to ${
+                workflowRow?.workflow_id ? "update" : "create"
+              } workflow. Please try again.`;
+            showErrorToast(errorMessage);
+            console.error(error, "Verify Error");
           }
         }}
         enableReinitialize
@@ -114,7 +160,9 @@ const WorkflowDialog = () => {
                       errors={errors}
                       touched={touched}
                       onFieldTouched={() => setFieldTouched("title", true)}
-                      onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      onFieldChange={(
+                        e: React.ChangeEvent<HTMLInputElement>
+                      ) => {
                         setFieldValue("title", e.target.value);
                       }}
                     />
@@ -134,43 +182,33 @@ const WorkflowDialog = () => {
                 </h5>
                 <Field name="description">
                   {({ field }: any) => (
-                    <Textarea
-                      {...field}
+                    <FormikTextarea
+                      field={field}
                       id="description"
                       placeholder="Please provide a brief description of the workflow"
                       rows={4}
                       className={`
-                        !border ${
-                          errors.description && touched.description
-                            ? "!border-red-500"
-                            : "!border-gray-300"
-                        }
-                        !bg-white
-                        !rounded-xl
+                        !min-w-0
                         ${
                           isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
                         }
-                        !resize-none
                       `}
-                      labelProps={{
-                        className: "hidden",
-                      }}
-                      containerProps={{
-                        className: "!min-w-0",
-                      }}
-                      error={!!(errors.description && touched.description)}
-                      onBlur={() => setFieldTouched("description", true)}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                      errors={errors}
+                      touched={touched}
+                      onFieldTouched={() => setFieldTouched("description", true)}
+                      onFieldChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                         setFieldValue("description", e.target.value);
                       }}
                     />
                   )}
                 </Field>
-                <ErrorMessage
-                  name="description"
-                  component="div"
-                  className="text-red-500 text-xs mt-1"
-                />
+                <div className="min-h-[17px]">
+                  <ErrorMessage
+                    name="description"
+                    component="div"
+                    className="text-red-500 text-xs mt-1"
+                  />
+                </div>
               </div>
             </div>
             <FooterButtons

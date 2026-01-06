@@ -9,7 +9,7 @@ export interface StatusBadge {
 
 export interface ActionButton {
   icon: ReactNode;
-  label: string;
+  label?: string;
   onClick: (row: any) => void;
   variant?: "primary" | "secondary" | "danger";
 }

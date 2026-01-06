@@ -101,9 +101,11 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   // Handle update button click - emit note:update event
   const handleUpdate = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log(nodeId, workflowId, "Verify Notes Hitting");
     if (nodeId && workflowId) {
       const currentNode = getNode(nodeId);
-      const currentPosition = currentNode?.position || position || { x: 0, y: 0 };
+      const currentPosition = currentNode?.position ||
+        position || { x: 0, y: 0 };
       // Emit note:update event
       emit("note:update", {
         workflow_id: workflowId,
@@ -127,7 +129,7 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
         title: editValue.trim() || data.label,
         position: currentPosition,
       });
-      
+
       // Save the changes locally and exit edit mode
       handleSave();
     }
@@ -146,13 +148,15 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
         <div className={`font-medium text-[#162230] text-[14px] flex-1`}>
           Note
         </div>
-        {isEditing && (
-          <div className="cursor-pointer" onClick={handleUpdate}>
-            <EditIcon theme={isDark ? "dark" : "light"} height={18} />
+        <div className="flex gap-1">
+          {isEditing && (
+            <div className="cursor-pointer " onClick={handleUpdate}>
+              <EditIcon theme={"light"} height={18} />
+            </div>
+          )}
+          <div className="cursor-pointer" onClick={handleDelete}>
+            <DeleteIcon color="#162230" height={18} />
           </div>
-        )}
-        <div className="cursor-pointer" onClick={handleDelete}>
-          <DeleteIcon color="#162230" height={18} />
         </div>
       </div>
       {isEditing ? (

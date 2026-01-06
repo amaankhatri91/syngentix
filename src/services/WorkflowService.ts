@@ -8,11 +8,11 @@ export async function apiCreateWorkflow(
   const params: Record<string, string> = {
     workspace_id: workspaceId,
   };
-  
+
   if (data.agentId) {
     params.agent_id = data.agentId;
   }
-  
+
   return ApiService.fetchData({
     url: "/v1/workflow/",
     method: "post",
@@ -57,4 +57,3 @@ export async function apiDeleteWorkflow(
     },
   });
 }
-

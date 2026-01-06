@@ -10,7 +10,19 @@ export interface Workflow {
   isActive?: boolean;
 }
 
-export type WorkflowsResponse = Workflow[];
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface WorkflowsResponse {
+  status: string;
+  message: string;
+  data: Workflow[];
+  pagination: PaginationMeta;
+}
 
 export interface WorkflowFormValues {
   title: string;

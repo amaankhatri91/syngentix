@@ -1,10 +1,10 @@
 import React from "react";
 import { Workflow } from "./types";
-import WorkFlowIcon from "@/assets/app-icons/WorkFlowIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import StatusBadge from "@/components/DataTable/StatusBadge";
 import Play from "@/assets/app-icons/Play";
 import Power from "@/assets/app-icons/Power";
+import { Button } from "@/components/Button";
 import {
   WorkflowActionConfig,
   WorkflowMetrics,
@@ -30,6 +30,15 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const { agentId } = useParams<{ agentId: string }>();
+
+  const handleGoToFlow = () => {
+    navigate(`/agent/${agentId}/workflow/${workflow?.workflow_id}`, {
+      state: {
+        workflowTitle: workflow?.title,
+      },
+    });
+    onInfo?.(workflow.id);
+  };
 
   const handleClick = (action: WorkflowActionConfig) => {
     console.log(workflow, "Check It");
@@ -81,25 +90,6 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
     >
       {/* ========= INFO : 4/12 ========= */}
       <div className="flex items-center gap-4 min-w-0 basis-full xl:basis-4/12">
-        <div
-          className={`
-            ${
-              !isDark
-                ? "bg-gradient-to-r from-[#9133EA] to-[#2962EB] p-[1px]"
-                : `${isDark ? "bg-[#1C2643]" : "bg-white"} p-3`
-            }
-            rounded-full
-            flex-shrink-0
-          `}
-        >
-          {!isDark ? (
-            <div className="bg-white rounded-full p-3">
-              <WorkFlowIcon useGradient size={20} />
-            </div>
-          ) : (
-            <WorkFlowIcon color="white" size={20} />
-          )}
-        </div>
         <div className="flex flex-col min-w-0">
           <h3 className="font-medium text-base truncate">{workflow.title}</h3>
           <p
@@ -166,16 +156,25 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
         ))}
       </div>
       {/* ========= STATUS : 2/12 ========= */}
-      <div className="flex items-center justify-start lg:justify-center basis-full md:basis-3/12 xl:basis-2/12">
+      <div className="flex items-center justify-start lg:justify-center basis-full md:basis-3/12 xl:basis-1/12">
         <StatusBadge
+          className="!text-[14px]"
           status={{
             label: workflow.status === true ? "Active" : "Offline",
             variant: workflow.status === true ? "active" : "offline",
           }}
         />
       </div>
+      <div className="flex items-center justify-start lg:justify-center basis-full md:basis-3/12 xl:basis-2/12">
+        <Button
+          onClick={handleGoToFlow}
+          className="flow-btn text-[14px] py-1 text-white px-3 !rounded-full"
+        >
+          Go to Flow
+        </Button>
+      </div>
       {/* ========= ACTIONS : 2/12 ========= */}
-      <div className="flex items-center gap-3 justify-start lg:justify-end basis-full md:basis-3/12 xl:basis-2/12">
+      <div className="flex items-center gap-3 justify-start lg:justify-end basis-full md:basis-3/12 xl:basis-1/12">
         {WorkflowActions?.map((action) => {
           const Icon = action.icon;
           return (

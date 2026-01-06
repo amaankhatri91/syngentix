@@ -9,6 +9,7 @@ import {
   deleteWorkflow,
 } from "@/store/workflow/workflowSlice";
 import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 const WorkflowDeleteDialog: React.FC = () => {
   const { isDark } = useTheme();
@@ -27,23 +28,35 @@ const WorkflowDeleteDialog: React.FC = () => {
     );
   };
 
-  const handleDelete = async () => {
-    // if (deleteWorkflowRow?.workflow_id || deleteWorkflowRow?.id) {
-    //   try {
-    //     await dispatch(
-    //       deleteWorkflow(
-    //         deleteWorkflowRow?.workflow_id || deleteWorkflowRow?.id
-    //       )
-    //     ).unwrap();
-    //     invalidateAllQueries();
-    //   } catch (error: any) {
-    //     console.log(error, "Delete Workflow Error");
-    //   }
-    // }
-  };
-
   const workflowName =
     deleteWorkflowRow?.title || deleteWorkflowRow?.name || "this workflow";
+
+  const handleDelete = async () => {
+    if (deleteWorkflowRow?.workflow_id || deleteWorkflowRow?.id) {
+      try {
+        const response: any = await dispatch(
+          deleteWorkflow(
+            deleteWorkflowRow?.workflow_id || deleteWorkflowRow?.id
+          )
+        ).unwrap();
+
+        // Show success toast with workflow name or API message
+        showSuccessToast(
+          response?.message || `${workflowName} deleted successfully`
+        );
+
+        invalidateAllQueries();
+      } catch (error: any) {
+        // Show error toast with error message
+        const errorMessage =
+          error?.message ||
+          error?.response?.data?.message ||
+          "Failed to delete workflow. Please try again.";
+        showErrorToast(errorMessage);
+        console.error(error, "Delete Workflow Error");
+      }
+    }
+  };
 
   return (
     <Dialog
