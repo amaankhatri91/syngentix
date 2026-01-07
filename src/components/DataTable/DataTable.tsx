@@ -119,6 +119,7 @@ const DataTable = <T extends Record<string, any>>({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
+                key={headerGroup.id}
                 style={
                   !isDark
                     ? {
