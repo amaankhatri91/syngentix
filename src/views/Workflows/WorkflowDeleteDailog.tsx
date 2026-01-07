@@ -39,11 +39,17 @@ const WorkflowDeleteDialog: React.FC = () => {
             deleteWorkflowRow?.workflow_id || deleteWorkflowRow?.id
           )
         ).unwrap();
-
-        // Show success toast with workflow name or API message
-        showSuccessToast(
-          response?.message || `${workflowName} deleted successfully`
-        );
+        console.log(response, "Verify Response");
+        if (response?.data?.status === "success") {
+          // Show success toast with workflow name or API message
+          showSuccessToast(
+            response?.data?.message || `Workflow deleted successfully`
+          );
+        } else {
+          showErrorToast(
+            response?.data?.message || `Failed to  deleted Workflow`
+          );
+        }
 
         invalidateAllQueries();
       } catch (error: any) {

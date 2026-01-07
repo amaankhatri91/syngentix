@@ -96,7 +96,9 @@ const AgentDialog = () => {
           <Form>
             <div>
               <div className="text-left w-full">
-                <h5 className="block text-sm md:text-base mb-1">Agent Name</h5>
+                <h5 className="block text-sm md:text-base mb-1">
+                  Agent Name <span className="text-red-500">*</span>
+                </h5>
                 <Field name="agentName">
                   {({ field }: any) => (
                     <FormikInput

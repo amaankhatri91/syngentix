@@ -74,3 +74,24 @@ export async function apiUpdateWorkflowStatus(
     },
   });
 }
+
+export async function apiDuplicateWorkflow(
+  sourceAgentId: string,
+  workflowId: string,
+  targetAgentId: string,
+  workflowTitle: string,
+  workspaceId: string
+) {
+  return ApiService.fetchData({
+    url: `/v1/agents/${sourceAgentId}/workflow/duplicate`,
+    method: "post",
+    params: {
+      workspace_id: workspaceId,
+    },
+    data: {
+      workflow_id: workflowId,
+      agent_id: targetAgentId,
+      workflow_title: workflowTitle || undefined,
+    },
+  });
+}

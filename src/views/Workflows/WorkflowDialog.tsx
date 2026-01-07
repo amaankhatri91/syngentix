@@ -146,7 +146,7 @@ const WorkflowDialog = () => {
             <div>
               <div className="space-y-1">
                 <h5 className="text-sm 2xl:text-[16px] font-medium">
-                  Workflow Name
+                  Workflow Name <span className="text-red-500">*</span>
                 </h5>
                 <Field name="title">
                   {({ field }: any) => (

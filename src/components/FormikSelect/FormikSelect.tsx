@@ -7,6 +7,7 @@ import Select, {
 } from "react-select";
 import useTheme from "@/utils/hooks/useTheme";
 import { getReactSelectStyles } from "@/utils/common";
+import SelectDropdownIndicator from "../SelectDropdownIndicator";
 
 export interface SelectOption {
   value: string | number;
@@ -73,35 +74,16 @@ export interface FormikSelectProps {
    */
   iconColor?: string;
   /**
+   * Whether to render menu in a portal (useful for modals)
+   */
+  menuPortalTarget?: HTMLElement | null;
+  /**
    * Additional react-select props
    */
   [key: string]: any;
 }
 
-// Custom Dropdown Indicator Component
-const DropdownIndicator = (props: any) => {
-  const { iconSize = 16, iconColor = "#0C1116" } = props.selectProps || {};
-  return (
-    <components.DropdownIndicator {...props}>
-      <svg
-        width={iconSize}
-        height={iconSize}
-        viewBox="0 0 12 12"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g opacity="0.8">
-          <path
-            d="M2 4L6 8L10 4"
-            stroke={iconColor}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-      </svg>
-    </components.DropdownIndicator>
-  );
-};
+// Use SelectDropdownIndicator directly as it already wraps components.DropdownIndicator
 
 const FormikSelect: React.FC<FormikSelectProps> = ({
   field,
@@ -117,6 +99,7 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
   placement,
   iconSize = 12,
   iconColor = "#0C1116",
+  menuPortalTarget,
   ...props
 }) => {
   const { isDark } = useTheme();
@@ -145,6 +128,14 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
   };
 
   const customStyles = getReactSelectStyles(isDark, hasError);
+  // Set icon color based on theme
+  const themeIconColor = isDark ? "#FFFFFF" : "#0C1116";
+
+  // Use document.body as portal target if menuPortalTarget is provided, otherwise null
+  const portalTarget =
+    menuPortalTarget !== undefined
+      ? menuPortalTarget || document.body
+      : undefined;
 
   return (
     <div className={className}>
@@ -158,6 +149,8 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
         placeholder={placeholder}
         isDisabled={isDisabled}
         menuPlacement={placement || props.menuPlacement || "auto"}
+        menuPortalTarget={portalTarget}
+        menuPosition={portalTarget ? "fixed" : "absolute"}
         styles={
           customStyles as StylesConfig<
             SelectOption,
@@ -167,12 +160,12 @@ const FormikSelect: React.FC<FormikSelectProps> = ({
         }
         classNamePrefix="react-select"
         components={{
-          DropdownIndicator,
+          DropdownIndicator: SelectDropdownIndicator,
           ...props.components,
         }}
         selectProps={{
           iconSize,
-          iconColor,
+          iconColor: iconColor || themeIconColor,
           ...props.selectProps,
         }}
       />

@@ -10,7 +10,11 @@ import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { setAgentDailog, setDeleteDialog, updateAgentStatus } from "@/store/agent/agentSlice";
+import {
+  setAgentDailog,
+  setDeleteDialog,
+  updateAgentStatus,
+} from "@/store/agent/agentSlice";
 import { useNavigate } from "react-router-dom";
 import Redirect from "@/assets/app-icons/Redirect";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
@@ -27,7 +31,7 @@ const StatusCell: React.FC<{ row: Agent }> = ({ row }) => {
   const { isDark } = useTheme();
 
   const agentId = row.agent_id || row.id;
-  
+
   // Determine if agent is active - handle both boolean and string status values
   let isActive = false;
   if (typeof row.status === "boolean") {
@@ -35,9 +39,8 @@ const StatusCell: React.FC<{ row: Agent }> = ({ row }) => {
   } else if (typeof row.status === "string") {
     isActive = row.status.toLowerCase() === "active";
   }
-  
-  const isCurrentlyUpdating =
-    isUpdatingStatus && updatingAgentId === agentId;
+
+  const isCurrentlyUpdating = isUpdatingStatus && updatingAgentId === agentId;
   const isDisabled = isUpdatingStatus; // Disable all status badges when any update is in progress
 
   const handleStatusClick = async () => {
@@ -91,9 +94,7 @@ const StatusCell: React.FC<{ row: Agent }> = ({ row }) => {
           handleStatusClick();
         }
       }}
-      aria-label={`Toggle agent status to ${
-        isActive ? "Offline" : "Active"
-      }`}
+      aria-label={`Toggle agent status to ${isActive ? "Offline" : "Active"}`}
       aria-disabled={isDisabled}
     >
       {isCurrentlyUpdating ? (
@@ -192,12 +193,12 @@ export const columns: DataTableColumn<Agent>[] = [
     cell: (value, row) => {
       const navigate = useNavigate();
       return (
-        <button
-          onClick={() => navigate(`/agents/${row?.agent_id}`)}
-          className="font-medium text-left"
+        <div
+        // onClick={() => navigate(`/agents/${row?.agent_id}`)}
+        // className="font-medium text-left"
         >
           {row.name || "-"}
-        </button>
+        </div>
       );
     },
   },

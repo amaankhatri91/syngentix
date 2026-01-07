@@ -58,11 +58,12 @@ const Dialog: React.FC<DialogProps> = ({
           rounded-[27px]
           max-h-[90dvh]
           overflow-y-auto
+          overflow-x-visible
         `}
       >
         {title && (
           <DialogHeader
-            className={`flex justify-center pt-6 pb-0 ${
+            className={`flex justify-center !font-light pt-8 pb-0 ${
               isDark ? "text-white" : "text-[#162230]"
             }`}
           >
@@ -75,6 +76,7 @@ const Dialog: React.FC<DialogProps> = ({
             ${bodyClassName}
             ${isDark ? "text-gray-300" : "text-gray-700"}
             overflow-visible
+            overflow-x-visible
           `}
         >
           {children}

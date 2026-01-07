@@ -1,4 +1,4 @@
-import { apiCreateWorkflow, apiEditWorkflow, apiDeleteWorkflow, apiUpdateWorkflowStatus } from "@/services/WorkflowService";
+import { apiCreateWorkflow, apiEditWorkflow, apiDeleteWorkflow, apiUpdateWorkflowStatus, apiDuplicateWorkflow } from "@/services/WorkflowService";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "@/store";
 
@@ -9,6 +9,8 @@ export type WorkflowState = {
   workflowRow: any;
   deleteDialog: boolean;
   deleteWorkflowRow: any;
+  duplicateWorkflowDialog: boolean;
+  duplicateWorkflowRow: any;
   isDeleting: boolean;
   isUpdatingStatus: boolean;
   updatingWorkflowId: string | null;
@@ -25,6 +27,8 @@ const initialState: WorkflowState = {
   workflowRow: {},
   deleteDialog: false,
   deleteWorkflowRow: {},
+  duplicateWorkflowDialog: false,
+  duplicateWorkflowRow: {},
   isDeleting: false,
   isUpdatingStatus: false,
   updatingWorkflowId: null,
@@ -120,6 +124,33 @@ export const updateWorkflowStatus = createAsyncThunk(
   }
 );
 
+export const duplicateWorkflow = createAsyncThunk(
+  `${SLICE_NAME}/duplicateWorkflow`,
+  async (data: { sourceAgentId: string; workflowId: string; targetAgentId: string; workflowTitle: string }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as RootState;
+      const workspaceId = state.auth.workspace?.id;
+      
+      if (!workspaceId) {
+        return rejectWithValue({ message: "Workspace ID is required" });
+      }
+      
+      const response = await apiDuplicateWorkflow(
+        data.sourceAgentId,
+        data.workflowId,
+        data.targetAgentId,
+        data.workflowTitle,
+        workspaceId
+      );
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data || { message: "Unknown error" }
+      );
+    }
+  }
+);
+
 const workflowSlice = createSlice({
   name: `${SLICE_NAME}`,
   initialState,
@@ -133,6 +164,11 @@ const workflowSlice = createSlice({
       const { deleteDialog, deleteWorkflowRow } = action.payload;
       state.deleteDialog = deleteDialog;
       state.deleteWorkflowRow = deleteWorkflowRow || {};
+    },
+    setDuplicateWorkflowDialog: (state, action) => {
+      const { duplicateWorkflowDialog, duplicateWorkflowRow } = action.payload;
+      state.duplicateWorkflowDialog = duplicateWorkflowDialog;
+      state.duplicateWorkflowRow = duplicateWorkflowRow || {};
     },
     setWorkflowLimit: (state, action) => {
       state.limit = action.payload;
@@ -183,6 +219,6 @@ const workflowSlice = createSlice({
   },
 });
 
-export const { setWorkflowDialog, setDeleteDialog, setWorkflowSearch, setWorkflowStatus, setWorkflowSort, setWorkflowLimit, setWorkflowPage } = workflowSlice.actions;
+export const { setWorkflowDialog, setDeleteDialog, setDuplicateWorkflowDialog, setWorkflowSearch, setWorkflowStatus, setWorkflowSort, setWorkflowLimit, setWorkflowPage } = workflowSlice.actions;
 export default workflowSlice.reducer;
 

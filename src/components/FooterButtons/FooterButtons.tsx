@@ -67,7 +67,7 @@ const FooterButtons: React.FC<FooterButtonsProps> = ({
   const { isDark } = useTheme();
 
   return (
-    <div className={`flex justify-end gap-3 w-full ${className}`}>
+    <div className={`flex justify-end gap-3 pb-3 w-full ${className}`}>
       {showCancel && (
         <Button
           type="button"

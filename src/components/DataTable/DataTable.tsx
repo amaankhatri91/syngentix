@@ -271,9 +271,9 @@ const DataTable = <T extends Record<string, any>>({
                 return (
                   <tr
                     key={row.id}
-                    className={`transition-all duration-200 rounded-lg overflow-hidden ${
+                    className={`transition-all duration-200 rounded-lg overflow-hidden  ${
                       isDark
-                        ? "bg-[#0F1724] hover:bg-[#1A2335]"
+                        ? "bg-[#0F1724] hover:bg-[#1A2335] "
                         : "bg-white hover:bg-gray-50"
                     } shadow-sm`}
                   >
@@ -296,9 +296,10 @@ const DataTable = <T extends Record<string, any>>({
                       return (
                         <td
                           key={cell.id}
-                          className={`px-4 py-2 text-sm ${textAlignClass} ${
-                            isFirst ? "rounded-tl-lg rounded-bl-lg" : ""
-                          } ${isLast ? "rounded-tr-lg rounded-br-lg" : ""} ${
+                          className={`px-4 py-2 text-sm border-t border-b
+                        border-t-[#2B3643] border-b-[#2B3643] ${textAlignClass} ${
+                            isFirst ? "rounded-tl-lg rounded-bl-lg border-l border-l-[#2B3643]" : ""
+                          } ${isLast ? "rounded-tr-lg rounded-br-lg border-r border-r-[#2B3643]" : ""} ${
                             isDark ? "!text-white" : "!text-gray-700"
                           }`}
                           style={{

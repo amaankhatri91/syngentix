@@ -9,11 +9,12 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setWorkflowDialog,
   setDeleteDialog,
+  setDuplicateWorkflowDialog,
   updateWorkflowStatus,
 } from "@/store/workflow/workflowSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/Button";
-import { EditIcon } from "@/assets/app-icons";
+import { CopyIcon, EditIcon } from "@/assets/app-icons";
 import { formatDate, formatRelativeTime } from "@/utils/common";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import { useRefetchQueries } from "@/utils/hooks/useRefetchQueries";
@@ -109,6 +110,30 @@ const StatusCell: React.FC<{ row: Workflow }> = ({ row }) => {
   );
 };
 
+const FlowCell: React.FC<{ row: Workflow }> = ({ row }) => {
+  const { agentId } = useParams<{ agentId: string }>();
+  const navigate = useNavigate();
+
+  const handleGoToFlow = () => {
+    navigate(`/agent/${agentId}/workflow/${row?.workflow_id}`, {
+      state: {
+        workflowTitle: row?.title,
+      },
+    });
+  };
+
+  return (
+    <div className="flex items-center justify-center">
+      <Button
+        onClick={handleGoToFlow}
+        className="!px-4 !py-1 !text-sm !rounded-full text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb]"
+      >
+        Go to Flow
+      </Button>
+    </div>
+  );
+};
+
 // Wrapper component for Actions cell to access theme and handlers
 const ActionsCell: React.FC<{ row: Workflow }> = ({ row }) => {
   const { theme, isDark } = useTheme();
@@ -146,15 +171,25 @@ const ActionsCell: React.FC<{ row: Workflow }> = ({ row }) => {
     );
   };
 
+  const handleDuplicate = () => {
+    dispatch(
+      setDuplicateWorkflowDialog({
+        duplicateWorkflowDialog: true,
+        duplicateWorkflowRow: row,
+      })
+    );
+  };
+
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button
-        onClick={handleGoToFlow}
-        className="!px-4 !py-1 !text-sm !rounded-full text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb]"
-      >
-        Go to Flow
-      </Button>
       <div className="flex items-center gap-1">
+        <button
+          onClick={handleDuplicate}
+          className={`p-1.5 rounded`}
+          aria-label="Duplicate"
+        >
+          <CopyIcon size={18} />
+        </button>
         <button
           onClick={handleEdit}
           className={`p-1.5 rounded`}
@@ -269,6 +304,14 @@ export const columns: DataTableColumn<Workflow>[] = [
     cell: (value, row) => {
       return <StatusCell row={row} />;
     },
+  },
+  {
+    id: "actions",
+    header: "",
+    enableSorting: false,
+    size: 300,
+    align: "center",
+    cell: (value, row) => <FlowCell row={row} />,
   },
   {
     id: "actions",

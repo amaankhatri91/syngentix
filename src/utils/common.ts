@@ -366,123 +366,123 @@ export const getReactSelectStyles = (
   return {
     control: (base: any, state: any) => {
       const isLightModeNoError = !isDark && !hasError;
+      const borderColor = hasError 
+        ? "#EF4444" 
+        : isDark 
+        ? "#2B3643" 
+        : "#D1D5DB";
+      const hoverBorderColor = hasError 
+        ? "#EF4444" 
+        : isDark 
+        ? "#2B3643" 
+        : "#9CA3AF";
 
       return {
         ...base,
-        backgroundColor: "#FFFFFF",
-        borderColor: hasError ? "#EF4444" : "#D1D5DB",
+        backgroundColor: isDark ? "#0F141D" : "#FFFFFF",
+        borderColor: borderColor,
         borderTopColor: isLightModeNoError
           ? "#EAEAEA"
-          : hasError
-          ? "#EF4444"
-          : "#D1D5DB",
+          : borderColor,
         borderBottomColor: isLightModeNoError
           ? "transparent"
-          : hasError
-          ? "#EF4444"
-          : "#D1D5DB",
+          : borderColor,
         borderLeftColor: isLightModeNoError
           ? "transparent"
-          : hasError
-          ? "#EF4444"
-          : "#D1D5DB",
+          : borderColor,
         borderRightColor: isLightModeNoError
           ? "transparent"
-          : hasError
-          ? "#EF4444"
-          : "#D1D5DB",
+          : borderColor,
         borderTopWidth: "1px",
         borderBottomWidth: isLightModeNoError ? "0px" : "1px",
         borderLeftWidth: isLightModeNoError ? "0px" : "1px",
         borderRightWidth: isLightModeNoError ? "0px" : "1px",
-        borderRadius: "12px",
-        minHeight: "42px",
-        maxHeight: "42px",
+        borderRadius: "6px",
+        minHeight: "43px",
+        maxHeight: "43px",
+        paddingLeft: "12px",
+        paddingRight: "12px",
         boxShadow: isLightModeNoError ? "0 4px 8px 0 rgba(1,5,17,0.1)" : "none",
         "&:hover": {
-          borderColor: hasError ? "#EF4444" : "#9CA3AF",
+          borderColor: hoverBorderColor,
           borderTopColor: isLightModeNoError
             ? "#EAEAEA"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
           borderBottomColor: isLightModeNoError
             ? "transparent"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
           borderLeftColor: isLightModeNoError
             ? "transparent"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
           borderRightColor: isLightModeNoError
             ? "transparent"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
         },
         ...(state.isFocused && {
-          borderColor: hasError ? "#EF4444" : "#9CA3AF",
+          borderColor: hoverBorderColor,
           borderTopColor: isLightModeNoError
             ? "#EAEAEA"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
           borderBottomColor: isLightModeNoError
             ? "transparent"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
           borderLeftColor: isLightModeNoError
             ? "transparent"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
           borderRightColor: isLightModeNoError
             ? "transparent"
-            : hasError
-            ? "#EF4444"
-            : "#9CA3AF",
+            : hoverBorderColor,
           boxShadow: isLightModeNoError
             ? "0 4px 8px 0 rgba(1,5,17,0.1)"
             : "none",
         }),
       };
     },
+    valueContainer: (base: any) => ({
+      ...base,
+      padding: 0,
+    }),
     placeholder: (base: any) => ({
       ...base,
-      color: "#737373",
+      color: isDark ? "#9CA3AF" : "#737373",
       fontSize: "14px",
     }),
     singleValue: (base: any) => ({
       ...base,
-      color: "#162230",
+      color: isDark ? "#FFFFFF" : "#162230",
       fontSize: "14px",
     }),
     input: (base: any) => ({
       ...base,
-      color: "#162230",
+      color: isDark ? "#FFFFFF" : "#162230",
       fontSize: "14px",
+      margin: 0,
+      padding: 0,
     }),
     indicatorSeparator: () => ({
       display: "none",
     }),
     dropdownIndicator: (base: any) => ({
       ...base,
-      color: "#0C1116",
+      color: isDark ? "#FFFFFF" : "#0C1116",
       padding: "8px",
       "&:hover": {
-        color: "#0C1116",
+        color: isDark ? "#FFFFFF" : "#0C1116",
       },
     }),
     menu: (base: any) => ({
       ...base,
+      backgroundColor: isDark ? "#1C2643" : "#FFFFFF",
       borderRadius: "12px",
-      boxShadow:
-        "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      boxShadow: isDark
+        ? "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)"
+        : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
       marginTop: "4px",
-      zIndex: 9999,
+      zIndex: 99999,
+    }),
+    menuPortal: (base: any) => ({
+      ...base,
+      zIndex: 99999,
     }),
     menuList: (base: any) => ({
       ...base,
@@ -491,17 +491,23 @@ export const getReactSelectStyles = (
     option: (base: any, state: any) => ({
       ...base,
       backgroundColor: state.isSelected
-        ? "#F3F4F6"
+        ? isDark
+          ? "#0C1116"
+          : "#F3F4F6"
         : state.isFocused
-        ? "#F9FAFB"
+        ? isDark
+          ? "#0F1724"
+          : "#F9FAFB"
+        : isDark
+        ? "#1C2643"
         : "#FFFFFF",
-      color: "#111827",
+      color: isDark ? "#FFFFFF" : "#111827",
       fontSize: "14px",
       padding: "10px 12px",
-      borderRadius: "8px",
+      borderRadius: "6px",
       cursor: "pointer",
       "&:active": {
-        backgroundColor: "#F3F4F6",
+        backgroundColor: isDark ? "#0C1116" : "#F3F4F6",
       },
     }),
   };
@@ -920,6 +926,110 @@ export const getWorkflowSelectStyles = <T>(
  * @returns StylesConfig object for react-select
  */
 export const getLimitSelectStyles = <T>(
+  isDark: boolean
+): StylesConfig<T, false, GroupBase<T>> => {
+  return {
+    control: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#0C1116" : "#FFFFFF",
+      borderColor: isDark ? "#2B3643" : "#D1D5DB",
+      borderRadius: "8px",
+      minHeight: "35px",
+      maxHeight: "35px",
+      height: "35px",
+      paddingLeft: "4px",
+      paddingTop: "5px",
+      paddingRight: "4px",
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: isDark ? "#2B3643" : "#9CA3AF",
+      },
+      ...(state.isFocused && {
+        borderColor: isDark ? "#2B3643" : "#9CA3AF",
+        boxShadow: "none",
+      }),
+    }),
+    valueContainer: (base: any) => ({
+      ...base,
+      height: "35px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: isDark ? "#A1A1A1" : "#737373",
+      fontSize: "14px",
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: "#FFFFFF",
+      fontSize: "14px",
+      fontWeight: "400",
+      margin: 0,
+      padding: 0,
+      textAlign: "center",
+      width: "100%",
+    }),
+    input: (base: any) => ({
+      ...base,
+      margin: "0px",
+      padding: 0,
+      color: "#FFFFFF",
+      fontSize: "14px",
+    }),
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+    dropdownIndicator: (base: any) => ({
+      ...base,
+      color: isDark ? "#FFFFFF" : "#0C1116",
+      padding: "8px",
+      "&:hover": {
+        color: isDark ? "#FFFFFF" : "#0C1116",
+      },
+    }),
+    indicatorsContainer: (base: any) => ({
+      ...base,
+      height: "35px",
+      paddingRight: "4px",
+    }),
+    menu: (base: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#0C1116" : "#FFFFFF",
+      borderRadius: "8px",
+      padding: "4px",
+      marginTop: "4px",
+      zIndex: 9999,
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      padding: 0,
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? isDark
+          ? "#1A2335"
+          : "#EEF4FF"
+        : state.isFocused
+        ? isDark
+          ? "#1A2335"
+          : "#F5F7FA"
+        : "transparent",
+      color: isDark ? "#FFFFFF" : "#162230",
+      borderRadius: "6px",
+      padding: "6px 8px",
+      margin: "2px 0",
+      cursor: "pointer",
+      "&:hover": {
+        backgroundColor: isDark ? "#1A2335" : "#F5F7FA",
+      },
+    }),
+  };
+};
+
+export const modalSelect = <T>(
   isDark: boolean
 ): StylesConfig<T, false, GroupBase<T>> => {
   return {
