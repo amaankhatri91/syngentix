@@ -6,6 +6,7 @@ import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { setDeleteDialog, deleteAgent } from "@/store/agent/agentSlice";
 import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 const AgentDeleteDialog: React.FC = () => {
   const { isDark } = useTheme();
@@ -25,18 +26,36 @@ const AgentDeleteDialog: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    // if (deleteAgentRow?.agent_id || deleteAgentRow?.id) {
-    //   try {
-    //     await dispatch(
-    //       deleteAgent(
-    //         deleteAgentRow?.agent_id || deleteAgentRow?.id
-    //       )
-    //     ).unwrap();
-    //     invalidateAllQueries();
-    //   } catch (error: any) {
-    //     console.log(error, "Delete Agent Error");
-    //   }
-    // }
+    if (deleteAgentRow?.agent_id || deleteAgentRow?.id) {
+      try {
+        const response: any = await dispatch(
+          deleteAgent(
+            deleteAgentRow?.agent_id || deleteAgentRow?.id
+          )
+        ).unwrap();
+        console.log(response, "Verify Response");
+        if (response?.data?.status === "success") {
+          // Show success toast with agent name or API message
+          showSuccessToast(
+            response?.data?.message || `Agent deleted successfully`
+          );
+        } else {
+          showErrorToast(
+            response?.data?.message || `Failed to delete Agent`
+          );
+        }
+
+        invalidateAllQueries();
+      } catch (error: any) {
+        // Show error toast with error message
+        const errorMessage =
+          error?.message ||
+          error?.response?.data?.message ||
+          "Failed to delete agent. Please try again.";
+        showErrorToast(errorMessage);
+        console.error(error, "Delete Agent Error");
+      }
+    }
   };
 
   const agentName = deleteAgentRow?.name || "this agent";

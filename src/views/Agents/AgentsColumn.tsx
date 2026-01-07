@@ -122,6 +122,17 @@ const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
   const navigate = useNavigate();
   console.log(row, "Verify Row Data");
 
+  // Determine if agent is active - handle both boolean and string status values
+  let isActive = false;
+  if (typeof row.status === "boolean") {
+    isActive = row.status === true;
+  } else if (typeof row.status === "string") {
+    isActive = row.status.toLowerCase() === "active";
+  }
+
+  // Set color based on status: #AEB9E1 when status is false, otherwise use theme default
+  const connectivityColor = !isActive ? "#AEB9E1" : undefined;
+
   return (
     <ActionButtons
       actions={[
@@ -137,7 +148,7 @@ const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
           },
         },
         {
-          icon: <Connectivity theme={theme} />,
+          icon: <Connectivity theme={theme} color={connectivityColor} />,
           onClick: (row) => {
             console.log("Connect clicked for:", row);
             // Handle connect action

@@ -35,6 +35,9 @@ const Dialog: React.FC<DialogProps> = ({
 
   const bgColor = isDark ? "bg-[#0D131A]" : "bg-white";
 
+  // Handle responsive width for xs size
+
+
   return (
     <MTDialog
       open={open}
@@ -44,7 +47,6 @@ const Dialog: React.FC<DialogProps> = ({
         p-[1px]
         bg-gradient-to-r from-[#9133EA] to-[#2962EB]
         rounded-[28px]
-        ${width}
         ${className}
       `}
       containerProps={{

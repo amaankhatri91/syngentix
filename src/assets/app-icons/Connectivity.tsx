@@ -3,13 +3,15 @@ import React from "react";
 interface ConnectivityProps {
   theme?: string;
   height?: number | string;
+  color?: string;
 }
 
 const Connectivity: React.FC<ConnectivityProps> = ({
   theme = "light",
   height = 14,
+  color: customColor,
 }) => {
-  const color = theme === "dark" ? "#00FF86" : "#00A85A";
+  const color = customColor || (theme === "dark" ? "#00FF86" : "#00A85A");
   const heightNum = typeof height === "string" ? parseFloat(height) : height;
   const width = (heightNum * 18) / 14;
 
