@@ -5,6 +5,7 @@ import { NodeCategory } from "@/views/WorkflowEditor/type";
 import { io, Socket } from "socket.io-client";
 import { Node, Edge } from "reactflow";
 import { CustomNodeData } from "@/views/WorkflowEditor/type";
+import { StylesConfig, GroupBase } from "react-select";
 
 let socket: Socket | null = null;
 
@@ -738,6 +739,179 @@ export const getTotalPages = (
   defaultPages: number = 1
 ): number => {
   return data?.pagination?.totalPages || defaultPages;
+};
+
+/**
+ * Extract pagination values from response data
+ * @param data - Response data object with optional pagination property
+ * @returns Object with totalPages and total, defaults to 0 if not available
+ */
+export const getPaginationValues = (
+  data?: { pagination?: { totalPages?: number; total?: number } } | null
+): { totalPages: number; total: number } => {
+  const pagination = data?.pagination;
+  return {
+    totalPages: pagination?.totalPages || 0,
+    total: pagination?.total || 0,
+  };
+};
+
+/**
+ * Format date helper
+ * Formats a date string to "Month Day, Hour:Minute AM/PM" format
+ * @param dateString - ISO date string or date string
+ * @returns Formatted date string or "-" if invalid
+ */
+export const formatDate = (dateString?: string): string => {
+  if (!dateString) return "-";
+  try {
+    const date = new Date(dateString);
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, "0");
+    return `${month} ${day}, ${displayHours}:${displayMinutes} ${ampm}`;
+  } catch {
+    return "-";
+  }
+};
+
+/**
+ * Format relative time helper
+ * Formats a date string to relative time (e.g., "2 min ago", "1 hour ago")
+ * @param dateString - ISO date string or date string
+ * @returns Formatted relative time string or "-" if invalid
+ */
+export const formatRelativeTime = (dateString?: string): string => {
+  if (!dateString) return "-";
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds} sec ago`;
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} min ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} hour ago`;
+    return `${Math.floor(diffInSeconds / 86400)} day ago`;
+  } catch {
+    return "-";
+  }
+};
+
+/**
+ * Get workflow select styles for react-select component
+ * Provides dark/light theme support with custom styling
+ * @param isDark - Whether the theme is dark
+ * @returns StylesConfig object for react-select
+ */
+export const getWorkflowSelectStyles = <T,>(
+  isDark: boolean
+): StylesConfig<T, false, GroupBase<T>> => {
+  return {
+    control: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#0C1116" : "#FFFFFF",
+      borderColor: isDark ? "#2B3643" : "#D1D5DB",
+      borderRadius: "8px",
+      minHeight: "48px",
+      maxHeight: "48px",
+      paddingLeft: "16px",
+      paddingRight: "16px",
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: isDark ? "#2B3643" : "#9CA3AF",
+      },
+      ...(state.isFocused && {
+        borderColor: isDark ? "#2B3643" : "#9CA3AF",
+        boxShadow: "none",
+      }),
+    }),
+    valueContainer: (base: any) => ({
+      ...base,
+      padding: 0,
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: isDark ? "#9CA3AF" : "#737373",
+      fontSize: "14px",
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: isDark ? "#FFFFFF" : "#162230",
+      fontSize: "14px",
+    }),
+    input: (base: any) => ({
+      ...base,
+      color: isDark ? "#FFFFFF" : "#162230",
+      fontSize: "14px",
+    }),
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+    dropdownIndicator: (base: any) => ({
+      ...base,
+      color: isDark ? "#FFFFFF" : "#0C1116",
+      padding: "8px",
+      "&:hover": {
+        color: isDark ? "#FFFFFF" : "#0C1116",
+      },
+    }),
+    menu: (base: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#1C2643" : "#FFFFFF",
+      borderRadius: "8px",
+      boxShadow: isDark
+        ? "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)"
+        : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      marginTop: "4px",
+      zIndex: 9999,
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      padding: "4px",
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? isDark
+          ? "#0C1116"
+          : "#F3F4F6"
+        : state.isFocused
+        ? isDark
+          ? "#0F1724"
+          : "#F9FAFB"
+        : isDark
+        ? "#1C2643"
+        : "#FFFFFF",
+      color: isDark ? "#FFFFFF" : "#111827",
+      fontSize: "14px",
+      padding: "10px 12px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      "&:active": {
+        backgroundColor: isDark ? "#0C1116" : "#F3F4F6",
+      },
+    }),
+  };
 };
 
 

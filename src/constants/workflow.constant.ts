@@ -66,3 +66,32 @@ export const EdgeThicknessOptions: EdgeThicknessOption[] = [
   { label: "4x", value: 3.0, display: "3.0px" },
   { label: "5x", value: 4.0, display: "4.0px" },
 ];
+
+export interface SelectOption {
+  value: string | boolean;
+  label: string;
+}
+
+export const statusOptions: SelectOption[] = [
+  { value: true, label: "Active" },
+  { value: false, label: "Inactive" },
+];
+
+export const sortOptions: SelectOption[] = [
+  { value: "updated_at-asc", label: "Sort by Updated (Newest)" },
+  { value: "updated_at-desc", label: "Sort by Updated (Oldest)" },
+  { value: "title-asc", label: "Sort by Name (A-Z)" },
+  { value: "title-desc", label: "Sort by Name (Z-A)" },
+];
+
+export interface LimitOption {
+  value: number;
+  label: string;
+}
+
+export const limitOptions: LimitOption[] = [
+  { value: 10, label: "10" },
+  { value: 20, label: "20" },
+  { value: 50, label: "50" },
+  { value: 100, label: "100" },
+];

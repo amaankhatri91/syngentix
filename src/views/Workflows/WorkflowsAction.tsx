@@ -1,13 +1,66 @@
 import { Button } from "@/components/Button";
 import Add from "@/assets/app-icons/Add";
-import { useAppDispatch } from "@/store";
-import { setWorkflowDialog } from "@/store/workflow/workflowSlice";
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  setWorkflowDialog,
+  setWorkflowSearch,
+  setWorkflowStatus,
+  setWorkflowSort,
+} from "@/store/workflow/workflowSlice";
+import Select, { components } from "react-select";
+import useTheme from "@/utils/hooks/useTheme";
+import { SearchInput } from "@/components/SearchInput";
+import { useState } from "react";
+import Search from "@/assets/app-icons/Search";
+import { getWorkflowSelectStyles } from "@/utils/common";
+import {
+  SelectOption,
+  statusOptions,
+  sortOptions,
+} from "@/constants/workflow.constant";
 
 const WorkflowsAction = () => {
   const dispatch = useAppDispatch();
+  const { isDark } = useTheme();
+  const { search, status, sort_by, sort_order } = useAppSelector(
+    (state) => state.workflow
+  );
+  const [localSearchValue, setLocalSearchValue] = useState<string>(search);
+  const [selectedStatus, setSelectedStatus] = useState<SelectOption>(
+    status !== undefined
+      ? statusOptions.find((opt) => opt.value === status) || statusOptions[0]
+      : statusOptions[0]
+  );
+  const [selectedSort, setSelectedSort] = useState<SelectOption>(() => {
+    const sortValue = `${sort_by}-${sort_order.toLowerCase()}`;
+    return sortOptions.find((opt) => opt.value === sortValue) || sortOptions[0];
+  });
+
+  const DropdownIndicator = (props: any) => {
+    return (
+      <components.DropdownIndicator {...props}>
+        <svg
+          width={12}
+          height={12}
+          viewBox="0 0 12 12"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g opacity="0.8">
+            <path
+              d="M2 4L6 8L10 4"
+              stroke={isDark ? "#FFFFFF" : "#0C1116"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        </svg>
+      </components.DropdownIndicator>
+    );
+  };
 
   return (
-    <div className="mb-2">
+    <div className="mb-4">
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-[18px]">Workflow</h2>
         <Button
@@ -24,6 +77,67 @@ const WorkflowsAction = () => {
         >
           Create Workflow
         </Button>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="w-[600px]">
+          <SearchInput
+            placeholder="Search workflow or other..."
+            width="w-full"
+            value={localSearchValue}
+            onChange={(value) => setLocalSearchValue(value)}
+            onSearch={(value) => dispatch(setWorkflowSearch(value))}
+            iconComponent={
+              <div className="pl-1">
+                <Search color={isDark ? "#FFFFFF" : "#0C1116"} size={18} />
+              </div>
+            }
+            inputClassName={`!py-6 
+              ${
+                isDark
+                  ? "!bg-[#0F141D] !text-white !placeholder-[#FFFFFF] !border-[#2B3643]"
+                  : "!bg-white !text-gray-900 !placeholder-gray-600 !border-[#B7C0CF]"
+              }
+              !border !rounded-lg
+            `}
+          />
+        </div>
+        <div className="w-[140px]">
+          <Select
+            value={selectedStatus}
+            onChange={(option) => {
+              const selected = option as SelectOption;
+              setSelectedStatus(selected);
+              dispatch(setWorkflowStatus(selected.value as boolean));
+            }}
+            options={statusOptions}
+            styles={getWorkflowSelectStyles<SelectOption>(isDark)}
+            classNamePrefix="react-select"
+            components={{ DropdownIndicator }}
+            isSearchable={false}
+          />
+        </div>
+        <div className="w-[230px]">
+          <Select
+            value={selectedSort}
+            onChange={(option) => {
+              const selected = option as SelectOption;
+              setSelectedSort(selected);
+              // Split the value (e.g., "updated_at-asc") into sort_by and sort_order
+              const [sortBy, sortOrder] = (selected.value as string).split("-");
+              dispatch(
+                setWorkflowSort({
+                  sort_by: sortBy,
+                  sort_order: sortOrder.toUpperCase() as "ASC" | "DESC",
+                })
+              );
+            }}
+            options={sortOptions}
+            styles={getWorkflowSelectStyles<SelectOption>(isDark)}
+            classNamePrefix="react-select"
+            components={{ DropdownIndicator }}
+            isSearchable={false}
+          />
+        </div>
       </div>
     </div>
   );

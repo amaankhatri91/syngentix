@@ -10,6 +10,12 @@ export type WorkflowState = {
   deleteDialog: boolean;
   deleteWorkflowRow: any;
   isDeleting: boolean;
+  search: string;
+  status: boolean | undefined;
+  sort_by: string;
+  sort_order: "ASC" | "DESC";
+  limit: number;
+  page: number;
 };
 
 const initialState: WorkflowState = {
@@ -18,6 +24,12 @@ const initialState: WorkflowState = {
   deleteDialog: false,
   deleteWorkflowRow: {},
   isDeleting: false,
+  search: "",
+  status: undefined,
+  sort_by: "updated_at",
+  sort_order: "DESC",
+  limit: 10,
+  page: 1,
 };
 
 export const createWorkflow = createAsyncThunk(
@@ -97,6 +109,26 @@ const workflowSlice = createSlice({
       state.deleteDialog = deleteDialog;
       state.deleteWorkflowRow = deleteWorkflowRow || {};
     },
+    setWorkflowLimit: (state, action) => {
+      state.limit = action.payload;
+      state.page = 1; // Reset to page 1 when limit changes
+    },
+    setWorkflowPage: (state, action) => {
+      state.page = action.payload;
+    },
+    setWorkflowSearch: (state, action) => {
+      state.search = action.payload;
+      state.page = 1; // Reset to page 1 when search changes
+    },
+    setWorkflowStatus: (state, action) => {
+      state.status = action.payload;
+      state.page = 1; // Reset to page 1 when status changes
+    },
+    setWorkflowSort: (state, action) => {
+      state.sort_by = action.payload.sort_by;
+      state.sort_order = action.payload.sort_order;
+      state.page = 1; // Reset to page 1 when sort changes
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -114,6 +146,6 @@ const workflowSlice = createSlice({
   },
 });
 
-export const { setWorkflowDialog, setDeleteDialog } = workflowSlice.actions;
+export const { setWorkflowDialog, setDeleteDialog, setWorkflowSearch, setWorkflowStatus, setWorkflowSort, setWorkflowLimit, setWorkflowPage } = workflowSlice.actions;
 export default workflowSlice.reducer;
 

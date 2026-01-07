@@ -32,18 +32,21 @@ const DataTable = <T extends Record<string, any>>({
 }: DataTableProps<T>) => {
   const { theme, isDark } = useTheme();
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [rowSelectionState, setRowSelectionState] = useState<RowSelectionState>({});
-  
+  const [rowSelectionState, setRowSelectionState] = useState<RowSelectionState>(
+    {}
+  );
+
   // Use rowSelection prop if provided, otherwise fall back to enableRowSelection
-  const shouldShowRowSelection = rowSelection !== undefined ? rowSelection : enableRowSelection;
+  const shouldShowRowSelection =
+    rowSelection !== undefined ? rowSelection : enableRowSelection;
 
   // Convert custom columns to TanStack Table columns
   const tableColumns = useMemo<ColumnDef<T>[]>(() => {
     // Filter out select column if rowSelection is disabled
-    const filteredColumns = shouldShowRowSelection 
-      ? columns 
+    const filteredColumns = shouldShowRowSelection
+      ? columns
       : columns.filter((col) => col.id !== "select");
-    
+
     return filteredColumns.map((col) => ({
       id: col.id,
       header: col.header,
@@ -73,7 +76,9 @@ const DataTable = <T extends Record<string, any>>({
       rowSelection: shouldShowRowSelection ? rowSelectionState : undefined,
     },
     enableRowSelection: shouldShowRowSelection,
-    onRowSelectionChange: shouldShowRowSelection ? setRowSelectionState : undefined,
+    onRowSelectionChange: shouldShowRowSelection
+      ? setRowSelectionState
+      : undefined,
     onSortingChange: (updater) => {
       const newSorting =
         typeof updater === "function" ? updater(sorting) : updater;
@@ -107,7 +112,7 @@ const DataTable = <T extends Record<string, any>>({
     <div className={`data-table-container ${className}`} data-theme={theme}>
       <div className="overflow-x-auto">
         <table
-          className={`w-full border-separate border-spacing-y-1 ${
+          className={`w-full border-separate border-spacing-y-2 ${
             isDark ? "bg-[#0c1116]" : "bg-white"
           }`}
         >
@@ -121,7 +126,7 @@ const DataTable = <T extends Record<string, any>>({
                       }
                     : undefined
                 }
-                className={!isDark ? "rounded-lg" : ""}
+                className={!isDark ? "rounded-2xl" : ""}
               >
                 {headerGroup.headers.map((header, index) => {
                   const canSort = header.column.getCanSort();
@@ -156,7 +161,7 @@ const DataTable = <T extends Record<string, any>>({
                       } ${
                         !isDark
                           ? isFirst
-                            ? "rounded-tl-lg rounded-bl-lg"
+                            ? "rounded-tl-2xl rounded-bl-2xl"
                             : ""
                           : ""
                       } ${
@@ -266,7 +271,7 @@ const DataTable = <T extends Record<string, any>>({
                 return (
                   <tr
                     key={row.id}
-                    className={`transition-all duration-200 rounded-lg overflow-hidden ${
+                    className={`transition-all duration-200 rounded-2xl overflow-hidden ${
                       isDark
                         ? "bg-[#0F1724] hover:bg-[#1A2335]"
                         : "bg-white hover:bg-gray-50"
@@ -292,8 +297,8 @@ const DataTable = <T extends Record<string, any>>({
                         <td
                           key={cell.id}
                           className={`px-4 py-2 text-sm ${textAlignClass} ${
-                            isFirst ? "rounded-tl-lg rounded-bl-lg" : ""
-                          } ${isLast ? "rounded-tr-lg rounded-br-lg" : ""} ${
+                            isFirst ? "rounded-tl-2xl rounded-bl-2xl" : ""
+                          } ${isLast ? "rounded-tr-2xl rounded-br-2xl" : ""} ${
                             isDark ? "!text-white" : "!text-gray-700"
                           }`}
                           style={{

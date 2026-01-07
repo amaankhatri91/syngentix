@@ -57,6 +57,10 @@ export interface SearchInputProps {
    */
   iconSrc?: string;
   /**
+   * Custom icon component (React component, overrides iconSrc)
+   */
+  iconComponent?: React.ReactNode;
+  /**
    * Disable the input
    */
   disabled?: boolean;
@@ -75,6 +79,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   inputClassName = "",
   showIcon = true,
   iconSrc,
+  iconComponent,
   disabled = false,
 }) => {
   const { theme } = useTheme();
@@ -117,6 +122,13 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
   const iconSource = iconSrc || searchIcon();
 
+  // Don't apply inline border style if custom inputClassName with border is provided
+  // Inline styles have higher specificity than !important classes, so we need to skip it
+  const hasCustomBorder = inputClassName && (
+    inputClassName.includes("!border") || 
+    inputClassName.includes("border-")
+  );
+
   return (
     <div className={`relative ${className}`}>
       <input
@@ -125,9 +137,13 @@ const SearchInput: React.FC<SearchInputProps> = ({
         value={currentValue}
         onChange={handleChange}
         disabled={disabled}
-        style={{
-          border: theme === "light" ? "0.6px solid #B7C0CF" : "none",
-        }}
+        style={
+          !hasCustomBorder
+            ? {
+                border: theme === "light" ? "0.6px solid #B7C0CF" : "none",
+              }
+            : undefined
+        }
         className={`
           ${width} ${height} px-4 ${showIcon ? "pl-10" : "pl-4"}
           bg-white rounded-lg
@@ -140,11 +156,15 @@ const SearchInput: React.FC<SearchInputProps> = ({
         `}
       />
       {showIcon && (
-        <img
-          src={iconSource}
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none"
-          alt="search"
-        />
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          {iconComponent || (
+            <img
+              src={iconSource}
+              className="w-5 h-5 text-gray-900"
+              alt="search"
+            />
+          )}
+        </div>
       )}
     </div>
   );

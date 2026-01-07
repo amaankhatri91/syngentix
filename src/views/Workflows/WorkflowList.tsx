@@ -1,78 +1,50 @@
-import React, { useState } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import { useGetWorkflowsQuery } from "@/services/RtkQueryService";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
-  setWorkflowDialog,
-  setDeleteDialog,
+  setWorkflowLimit,
+  setWorkflowPage,
 } from "@/store/workflow/workflowSlice";
-import WorkflowCard from "./WorkflowCard";
+import { DataTable } from "@/components/DataTable";
+import { columns } from "./WorkflowsColumn";
 import WorkflowSkeleton from "./WorkflowSkeleton";
 import Pagination from "@/components/Pagination";
 import useTheme from "@/utils/hooks/useTheme";
-import { getTotalPages } from "@/utils/common";
+import Select, { components } from "react-select";
+import { getWorkflowSelectStyles, getPaginationValues } from "@/utils/common";
+import { limitOptions, LimitOption } from "@/constants/workflow.constant";
 
 const WorkflowList: React.FC = () => {
+  const dispatch = useAppDispatch();
   const { agentId } = useParams<{ agentId: string }>();
   const { token, workspace } = useAppSelector((state) => state.auth);
-  const dispatch = useAppDispatch();
+  const { search, status, sort_by, sort_order, limit, page } = useAppSelector(
+    (state) => state.workflow
+  );
   const { isDark } = useTheme();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit] = useState(10);
 
-  // RTK Query hook - automatically caches data and won't refetch on navigation
   // Only refetches on page refresh or when cache expires (1 hour)
   const { data, isLoading, error }: any = useGetWorkflowsQuery(
     {
       agentId: agentId || "",
       workspaceId: workspace?.id,
-      page: currentPage,
+      page: page,
       limit: limit,
-      sort_by: "updated_at",
-      sort_order: "DESC",
+      search: search || undefined,
+      status: status !== undefined ? status : undefined,
+      sort_by: sort_by,
+      sort_order: sort_order,
     },
     {
       // Skip query if no token, no agentId, or no workspace ID
       skip: !token || !agentId || !workspace?.id,
     }
   );
+  const { totalPages, total } = getPaginationValues(data);
 
-  const handleInfo = (id: string) => {
-    console.log("Info clicked for workflow:", id);
-  };
-
-  const handleEdit = (id: string) => {
-    // Find workflow from API data
-    const workflow = data?.data?.find((w: any) => w.id === id);
-    if (workflow) {
-      dispatch(
-        setWorkflowDialog({
-          workflowDialog: true,
-          workflowRow: workflow,
-        })
-      );
-    }
-  };
-
-  const handleDownload = (id: string) => {
-    console.log("Download clicked for workflow:", id);
-  };
-
-  const handleDelete = (id: string) => {
-    // Find workflow from API data
-    const workflow = data?.data?.find((w: any) => w.id === id);
-    if (workflow) {
-      dispatch(
-        setDeleteDialog({
-          deleteDialog: true,
-          deleteWorkflowRow: workflow,
-        })
-      );
-    }
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handlePageChange = (newPage: number) => {
+    dispatch(setWorkflowPage(newPage));
   };
 
   // Show loading state
@@ -106,30 +78,183 @@ const WorkflowList: React.FC = () => {
     );
   }
 
-  const totalPages = getTotalPages(data);
+  const customStyles = getWorkflowSelectStyles<LimitOption>(isDark);
+
+  const limitSelectStyles = {
+    ...customStyles,
+    control: (base: any, state: any) => ({
+      ...customStyles.control?.(base, state),
+      minHeight: "35px",
+      maxHeight: "35px",
+      height: "35px",
+      paddingLeft: "4px",
+      paddingRight: "4px",
+    }),
+    valueContainer: (base: any) => ({
+      ...base,
+      height: "35px",
+      paddingTop: "5px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }),
+    singleValue: (base: any) => {
+      return {
+        ...base,
+        color: "#FFFFFF",
+        fontSize: "14px",
+        fontWeight: "400",
+        margin: 0,
+        padding: 0,
+        textAlign: "center",
+        width: "100%",
+      };
+    },
+    input: (base: any) => ({
+      ...base,
+      margin: "0px",
+      padding: 0,
+      color: "#FFFFFF",
+      fontSize: "14px",
+    }),
+    indicatorsContainer: (base: any) => ({
+      ...base,
+      height: "35px",
+      paddingRight: "4px",
+    }),
+    menu: (base: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#0C1116" : "#FFFFFF",
+      borderRadius: "8px",
+      padding: "4px",
+      marginTop: "4px",
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      padding: 0,
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? isDark
+          ? "#1A2335"
+          : "#EEF4FF"
+        : state.isFocused
+        ? isDark
+          ? "#1A2335"
+          : "#F5F7FA"
+        : "transparent",
+      color: isDark ? "#FFFFFF" : "#162230",
+      borderRadius: "6px",
+      padding: "6px 8px",
+      margin: "2px 0",
+      cursor: "pointer",
+      "&:hover": {
+        backgroundColor: isDark ? "#1A2335" : "#F5F7FA",
+      },
+    }),
+  };
+
+  const DropdownIndicator = (props: any) => {
+    return (
+      <components.DropdownIndicator {...props}>
+        <svg
+          width={12}
+          height={12}
+          viewBox="0 0 12 12"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g opacity="0.8">
+            <path
+              d="M2 4L6 8L10 4"
+              stroke={isDark ? "#FFFFFF" : "#0C1116"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        </svg>
+      </components.DropdownIndicator>
+    );
+  };
+
+  const SingleValue = (props: any) => {
+    return (
+      <components.SingleValue
+        {...props}
+        style={{ color: "#FFFFFF", textAlign: "center", width: "100%" }}
+      >
+        {props.children}
+      </components.SingleValue>
+    );
+  };
+
+  const handleLimitChange = (option: LimitOption) => {
+    dispatch(setWorkflowLimit(option.value));
+  };
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
-        {data?.data?.map((workflow: any) => (
-          <WorkflowCard
-            key={workflow.id}
-            workflow={workflow}
-            onInfo={handleInfo}
-            onEdit={handleEdit}
-            onDownload={handleDownload}
-            onDelete={handleDelete}
-          />
-        ))}
+      <div className="rounded-lg overflow-hidden">
+        <DataTable
+          data={data?.data || []}
+          columns={columns}
+          enableRowSelection={false}
+          enableSorting={false}
+          enablePagination={false}
+          getRowId={(row) => row.id}
+          emptyMessage="No workflows found"
+          loading={isLoading}
+        />
       </div>
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center pt-2">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+      {/* Pagination Footer */}
+      {total > 0 && (
+        <div className={`flex items-center justify-between pt-2 px-2 `}>
+          {/* Total Count */}
+          <div
+            className={`text-sm font-medium ${
+              isDark ? "text-gray-300" : "text-gray-700"
+            }`}
+          >
+            Total Workflow : {total}
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex-1 flex justify-center">
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                showFirstLast={false}
+              />
+            )}
+          </div>
+          {/* Show Per Page */}
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-sm ${
+                isDark ? "text-gray-300" : "text-gray-700"
+              }`}
+            >
+              Show Per Page:
+            </span>
+            <div className="w-[80px]">
+              <Select
+                menuPlacement="top"
+                value={
+                  limitOptions.find((opt) => opt.value === limit) ||
+                  limitOptions[0]
+                }
+                onChange={(option) => handleLimitChange(option as LimitOption)}
+                options={limitOptions}
+                styles={limitSelectStyles}
+                classNamePrefix="react-select"
+                components={{ DropdownIndicator, SingleValue }}
+                isSearchable={false}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
