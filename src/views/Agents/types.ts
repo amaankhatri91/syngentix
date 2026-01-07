@@ -12,7 +12,7 @@ export interface Agent {
   workflows: string[];
   users?: string;
   files?: string;
-  status?: string;
+  status?: string | boolean;
 }
 
 // API Response type - array of agents

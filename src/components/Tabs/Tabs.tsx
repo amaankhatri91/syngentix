@@ -58,7 +58,7 @@ const Tabs: React.FC<TabsProps> = ({
             type="button"
             onClick={() => onTabChange(tab.value)}
             className={`
-              rounded-2xl
+              rounded-lg
               px-4
               py-2
               transition-all

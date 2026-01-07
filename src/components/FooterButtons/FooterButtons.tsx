@@ -67,7 +67,7 @@ const FooterButtons: React.FC<FooterButtonsProps> = ({
   const { isDark } = useTheme();
 
   return (
-    <div className={`flex justify-end gap-3 w-full pt-4 ${className}`}>
+    <div className={`flex justify-end gap-3 w-full ${className}`}>
       {showCancel && (
         <Button
           type="button"
@@ -86,7 +86,7 @@ const FooterButtons: React.FC<FooterButtonsProps> = ({
               : "bg-[#E6E6E6] hover:bg-gray-300 text-gray-900"
           }
           width="w-full"
-          className="px-6 !rounded-xl !py-2"
+          className="px-6 !rounded-md !py-2"
         >
           {cancelText}
         </Button>
@@ -98,7 +98,7 @@ const FooterButtons: React.FC<FooterButtonsProps> = ({
           disabled={isDisabled || isLoading}
           backgroundColor="!bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-white"
           width="w-full"
-          className="px-6 !rounded-xl !py-2"
+          className="px-6 !rounded-md !py-2.5"
           loading={isLoading}
         >
           {submitText}

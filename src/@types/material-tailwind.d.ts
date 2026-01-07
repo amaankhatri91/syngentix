@@ -20,5 +20,6 @@ declare module "@material-tailwind/react" {
     export const DialogHeader: any;
     export const DialogBody: any;
     export const DialogFooter: any;
+    export const Spinner: any;
 }
 

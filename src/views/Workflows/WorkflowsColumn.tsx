@@ -5,15 +5,109 @@ import DownloadIcon from "@/assets/app-icons/DownloadIcon";
 import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
-import { useAppDispatch } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setWorkflowDialog,
   setDeleteDialog,
+  updateWorkflowStatus,
 } from "@/store/workflow/workflowSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { EditIcon } from "@/assets/app-icons";
 import { formatDate, formatRelativeTime } from "@/utils/common";
+import { showSuccessToast, showErrorToast } from "@/utils/toast";
+import { useRefetchQueries } from "@/utils/hooks/useRefetchQueries";
+import { Spinner } from "@material-tailwind/react";
+
+// Wrapper component for Status cell to handle click and API call
+const StatusCell: React.FC<{ row: Workflow }> = ({ row }) => {
+  const dispatch = useAppDispatch();
+  const { invalidateAllQueries } = useRefetchQueries();
+  const { isUpdatingStatus, updatingWorkflowId } = useAppSelector(
+    (state) => state.workflow
+  );
+  const { isDark } = useTheme();
+
+  const workflowId = row.workflow_id || row.id;
+  const isActive =
+    row.status === true || row.status === "active" || row.isActive === true;
+  const isCurrentlyUpdating =
+    isUpdatingStatus && updatingWorkflowId === workflowId;
+  const isDisabled = isUpdatingStatus; // Disable all status badges when any update is in progress
+
+  const handleStatusClick = async () => {
+    if (isDisabled) return;
+
+    try {
+      if (!workflowId) {
+        showErrorToast("Workflow ID is missing");
+        return;
+      }
+
+      const newStatus = !isActive;
+      const response: any = await dispatch(
+        updateWorkflowStatus({
+          workflowId: workflowId,
+          status: newStatus,
+        })
+      ).unwrap();
+
+      if (response?.data?.status === "success") {
+        showSuccessToast(
+          response?.data?.message || `Workflow status updated successfully`
+        );
+        // Invalidate workflows cache to refetch the updated data
+        invalidateAllQueries();
+      } else {
+        showErrorToast(
+          response?.data?.message || "Failed to update workflow status"
+        );
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        error?.data?.message ||
+        "Failed to update workflow status. Please try again.";
+      showErrorToast(errorMessage);
+    }
+  };
+
+  return (
+    <div
+      onClick={handleStatusClick}
+      className={`inline-block`}
+      role="button"
+      tabIndex={isDisabled ? -1 : 0}
+      onKeyDown={(e) => {
+        if (isDisabled) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleStatusClick();
+        }
+      }}
+      aria-label={`Toggle workflow status to ${
+        isActive ? "Offline" : "Active"
+      }`}
+      aria-disabled={isDisabled}
+    >
+      {isCurrentlyUpdating ? (
+        <div className="flex items-center justify-center">
+          <Spinner
+            className={`h-5 w-5 ${isDark ? "text-[#AEB9E1]" : "text-gray-500"}`}
+          />
+        </div>
+      ) : (
+        <StatusBadge
+          status={{
+            label: isActive ? "Active" : "Offline",
+            variant: isActive ? "active" : "offline",
+          }}
+        />
+      )}
+    </div>
+  );
+};
 
 // Wrapper component for Actions cell to access theme and handlers
 const ActionsCell: React.FC<{ row: Workflow }> = ({ row }) => {
@@ -173,16 +267,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     size: 120,
     align: "center",
     cell: (value, row) => {
-      const isActive =
-        row.status === true || row.status === "active" || row.isActive === true;
-      return (
-        <StatusBadge
-          status={{
-            label: isActive ? "Active" : "Offline",
-            variant: isActive ? "active" : "offline",
-          }}
-        />
-      );
+      return <StatusCell row={row} />;
     },
   },
   {

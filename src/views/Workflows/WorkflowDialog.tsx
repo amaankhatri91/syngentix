@@ -42,7 +42,7 @@ const WorkflowDialog = () => {
       open={workflowDialog}
       handler={handleCancel}
       title={`${workflowRow?.id ? "Edit" : "Create"} New Workflow`}
-      size="sm"
+      size="xs"
       bodyClassName="!px-8 !pb-5"
     >
       <div className="mb-4">
@@ -79,11 +79,15 @@ const WorkflowDialog = () => {
                     workflowRow?.workflow_id ? "updated" : "created"
                   } successfully`
               );
-              
+
               // If creating a new workflow, redirect to editor
-              if (!workflowRow?.workflow_id && response?.data?.data?.workflow_id) {
+              if (
+                !workflowRow?.workflow_id &&
+                response?.data?.data?.workflow_id
+              ) {
                 const newWorkflowId = response.data.data.workflow_id;
-                const newWorkflowTitle = response.data.data.title || values.title;
+                const newWorkflowTitle =
+                  response.data.data.title || values.title;
                 dispatch(
                   setWorkflowDialog({
                     workflowDialog: false,
@@ -153,9 +157,6 @@ const WorkflowDialog = () => {
                       placeholder="Please enter workflow name"
                       className={`
                         !min-w-0
-                        ${
-                          isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
-                        }
                       `}
                       errors={errors}
                       touched={touched}
@@ -186,17 +187,18 @@ const WorkflowDialog = () => {
                       field={field}
                       id="description"
                       placeholder="Please provide a brief description of the workflow"
-                      rows={4}
+                      rows={5}
                       className={`
-                        !min-w-0
-                        ${
-                          isDark ? "!text-gray-900" : "!text-gray-900 shadow-md"
-                        }
+                        !min-w-0 
                       `}
                       errors={errors}
                       touched={touched}
-                      onFieldTouched={() => setFieldTouched("description", true)}
-                      onFieldChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                      onFieldTouched={() =>
+                        setFieldTouched("description", true)
+                      }
+                      onFieldChange={(
+                        e: React.ChangeEvent<HTMLTextAreaElement>
+                      ) => {
                         setFieldValue("description", e.target.value);
                       }}
                     />

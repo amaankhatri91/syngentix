@@ -57,3 +57,20 @@ export async function apiDeleteWorkflow(
     },
   });
 }
+
+export async function apiUpdateWorkflowStatus(
+  workflowId: string,
+  status: boolean,
+  workspaceId: string
+) {
+  return ApiService.fetchData({
+    url: `/v1/workflow/${workflowId}/status`,
+    method: "patch",
+    params: {
+      workspace_id: workspaceId,
+    },
+    data: {
+      status: status,
+    },
+  });
+}

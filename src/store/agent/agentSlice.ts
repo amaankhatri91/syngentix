@@ -1,4 +1,4 @@
-import { apiCreateAgent, apiEditAgent, apiDeleteAgent } from "@/services/AgentService";
+import { apiCreateAgent, apiEditAgent, apiDeleteAgent, apiUpdateAgentStatus } from "@/services/AgentService";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "@/store";
 
@@ -11,6 +11,8 @@ export type AgentState = {
   deleteDialog: boolean;
   deleteAgentRow: any;
   isDeleting: boolean;
+  isUpdatingStatus: boolean;
+  updatingAgentId: string | null;
 };
 
 const initialState: AgentState = {
@@ -20,6 +22,8 @@ const initialState: AgentState = {
   deleteDialog: false,
   deleteAgentRow: {},
   isDeleting: false,
+  isUpdatingStatus: false,
+  updatingAgentId: null,
 };
 
 export const createAgent = createAsyncThunk(
@@ -88,6 +92,27 @@ export const deleteAgent = createAsyncThunk(
   }
 );
 
+export const updateAgentStatus = createAsyncThunk(
+  `${SLICE_NAME}/updateAgentStatus`,
+  async (data: { agentId: string; status: boolean }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as RootState;
+      const workspaceId = state.auth.workspace?.id;
+      
+      if (!workspaceId) {
+        return rejectWithValue({ message: "Workspace ID is required" });
+      }
+      
+      const response = await apiUpdateAgentStatus(data.agentId, data.status, workspaceId);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data || { message: "Unknown error" }
+      );
+    }
+  }
+);
+
 const agentSlice = createSlice({
   name: `${SLICE_NAME}`,
   initialState,
@@ -118,6 +143,18 @@ const agentSlice = createSlice({
       })
       .addCase(deleteAgent.rejected, (state) => {
         state.isDeleting = false;
+      })
+      .addCase(updateAgentStatus.pending, (state, action) => {
+        state.isUpdatingStatus = true;
+        state.updatingAgentId = action.meta.arg.agentId;
+      })
+      .addCase(updateAgentStatus.fulfilled, (state) => {
+        state.isUpdatingStatus = false;
+        state.updatingAgentId = null;
+      })
+      .addCase(updateAgentStatus.rejected, (state) => {
+        state.isUpdatingStatus = false;
+        state.updatingAgentId = null;
       });
   },
 });

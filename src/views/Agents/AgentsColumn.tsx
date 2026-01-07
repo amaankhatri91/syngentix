@@ -9,19 +9,132 @@ import EditIcon from "@/assets/app-icons/EditIcon";
 import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import React from "react";
-import { useAppDispatch } from "@/store";
-import { setAgentDailog, setDeleteDialog } from "@/store/agent/agentSlice";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { setAgentDailog, setDeleteDialog, updateAgentStatus } from "@/store/agent/agentSlice";
 import { useNavigate } from "react-router-dom";
+import Redirect from "@/assets/app-icons/Redirect";
+import { showSuccessToast, showErrorToast } from "@/utils/toast";
+import { useRefetchQueries } from "@/utils/hooks/useRefetchQueries";
+import { Spinner } from "@material-tailwind/react";
+
+// Wrapper component for Status cell to handle click and API call
+const StatusCell: React.FC<{ row: Agent }> = ({ row }) => {
+  const dispatch = useAppDispatch();
+  const { invalidateAllQueries } = useRefetchQueries();
+  const { isUpdatingStatus, updatingAgentId } = useAppSelector(
+    (state) => state.agent
+  );
+  const { isDark } = useTheme();
+
+  const agentId = row.agent_id || row.id;
+  
+  // Determine if agent is active - handle both boolean and string status values
+  let isActive = false;
+  if (typeof row.status === "boolean") {
+    isActive = row.status === true;
+  } else if (typeof row.status === "string") {
+    isActive = row.status.toLowerCase() === "active";
+  }
+  
+  const isCurrentlyUpdating =
+    isUpdatingStatus && updatingAgentId === agentId;
+  const isDisabled = isUpdatingStatus; // Disable all status badges when any update is in progress
+
+  const handleStatusClick = async () => {
+    if (isDisabled) return;
+
+    try {
+      if (!agentId) {
+        showErrorToast("Agent ID is missing");
+        return;
+      }
+
+      const newStatus = !isActive;
+      const response: any = await dispatch(
+        updateAgentStatus({
+          agentId: agentId,
+          status: newStatus,
+        })
+      ).unwrap();
+
+      if (response?.data?.status === "success") {
+        showSuccessToast(
+          response?.data?.message || `Agent status updated successfully`
+        );
+        // Invalidate agents cache to refetch the updated data
+        invalidateAllQueries();
+      } else {
+        showErrorToast(
+          response?.data?.message || "Failed to update agent status"
+        );
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        error?.data?.message ||
+        "Failed to update agent status. Please try again.";
+      showErrorToast(errorMessage);
+    }
+  };
+
+  return (
+    <div
+      onClick={handleStatusClick}
+      className={`inline-block`}
+      role="button"
+      tabIndex={isDisabled ? -1 : 0}
+      onKeyDown={(e) => {
+        if (isDisabled) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleStatusClick();
+        }
+      }}
+      aria-label={`Toggle agent status to ${
+        isActive ? "Offline" : "Active"
+      }`}
+      aria-disabled={isDisabled}
+    >
+      {isCurrentlyUpdating ? (
+        <div className="flex items-center justify-center">
+          <Spinner
+            className={`h-5 w-5 ${isDark ? "text-[#AEB9E1]" : "text-gray-500"}`}
+          />
+        </div>
+      ) : (
+        <StatusBadge
+          status={{
+            label: isActive ? "Active" : "Offline",
+            variant: isActive ? "active" : "offline",
+          }}
+        />
+      )}
+    </div>
+  );
+};
 
 // Wrapper component for Actions cell to access theme from auth
 const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   console.log(row, "Verify Row Data");
 
   return (
     <ActionButtons
       actions={[
+        {
+          icon: (
+            <Redirect
+              color={theme === "dark" ? "#FFFFFF" : "#162230"}
+              size={18}
+            />
+          ),
+          onClick: (row) => {
+            navigate(`/agents/${row?.agent_id}`);
+          },
+        },
         {
           icon: <Connectivity theme={theme} />,
           onClick: (row) => {
@@ -29,6 +142,7 @@ const ActionsCell: React.FC<{ row: Agent }> = ({ row }) => {
             // Handle connect action
           },
         },
+
         {
           icon: <EditIcon theme={theme} />,
           onClick: (row) => {
@@ -132,14 +246,9 @@ export const columns: DataTableColumn<Agent>[] = [
     enableSorting: true,
     size: 120,
     align: "center",
-    cell: (value, row) => (
-      <StatusBadge
-        status={{
-          label: row.status !== "active" ? "Active" : "Offline",
-          variant: row.status !== "active" ? "active" : "offline",
-        }}
-      />
-    ),
+    cell: (value, row) => {
+      return <StatusCell row={row} />;
+    },
   },
   {
     id: "actions",

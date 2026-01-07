@@ -11,9 +11,11 @@ import { columns } from "./WorkflowsColumn";
 import WorkflowSkeleton from "./WorkflowSkeleton";
 import Pagination from "@/components/Pagination";
 import useTheme from "@/utils/hooks/useTheme";
-import Select, { components } from "react-select";
-import { getWorkflowSelectStyles, getPaginationValues } from "@/utils/common";
+import Select from "react-select";
+import { getLimitSelectStyles, getPaginationValues } from "@/utils/common";
 import { limitOptions, LimitOption } from "@/constants/workflow.constant";
+import SelectDropdownIndicator from "@/components/SelectDropdownIndicator";
+import SelectDropDownLimit from "@/components/SelectDropDownLimit";
 
 const WorkflowList: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -78,116 +80,7 @@ const WorkflowList: React.FC = () => {
     );
   }
 
-  const customStyles = getWorkflowSelectStyles<LimitOption>(isDark);
-
-  const limitSelectStyles = {
-    ...customStyles,
-    control: (base: any, state: any) => ({
-      ...customStyles.control?.(base, state),
-      minHeight: "35px",
-      maxHeight: "35px",
-      height: "35px",
-      paddingLeft: "4px",
-      paddingRight: "4px",
-    }),
-    valueContainer: (base: any) => ({
-      ...base,
-      height: "35px",
-      paddingTop: "5px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }),
-    singleValue: (base: any) => {
-      return {
-        ...base,
-        color: "#FFFFFF",
-        fontSize: "14px",
-        fontWeight: "400",
-        margin: 0,
-        padding: 0,
-        textAlign: "center",
-        width: "100%",
-      };
-    },
-    input: (base: any) => ({
-      ...base,
-      margin: "0px",
-      padding: 0,
-      color: "#FFFFFF",
-      fontSize: "14px",
-    }),
-    indicatorsContainer: (base: any) => ({
-      ...base,
-      height: "35px",
-      paddingRight: "4px",
-    }),
-    menu: (base: any) => ({
-      ...base,
-      backgroundColor: isDark ? "#0C1116" : "#FFFFFF",
-      borderRadius: "8px",
-      padding: "4px",
-      marginTop: "4px",
-    }),
-    menuList: (base: any) => ({
-      ...base,
-      padding: 0,
-    }),
-    option: (base: any, state: any) => ({
-      ...base,
-      backgroundColor: state.isSelected
-        ? isDark
-          ? "#1A2335"
-          : "#EEF4FF"
-        : state.isFocused
-        ? isDark
-          ? "#1A2335"
-          : "#F5F7FA"
-        : "transparent",
-      color: isDark ? "#FFFFFF" : "#162230",
-      borderRadius: "6px",
-      padding: "6px 8px",
-      margin: "2px 0",
-      cursor: "pointer",
-      "&:hover": {
-        backgroundColor: isDark ? "#1A2335" : "#F5F7FA",
-      },
-    }),
-  };
-
-  const DropdownIndicator = (props: any) => {
-    return (
-      <components.DropdownIndicator {...props}>
-        <svg
-          width={12}
-          height={12}
-          viewBox="0 0 12 12"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g opacity="0.8">
-            <path
-              d="M2 4L6 8L10 4"
-              stroke={isDark ? "#FFFFFF" : "#0C1116"}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-        </svg>
-      </components.DropdownIndicator>
-    );
-  };
-
-  const SingleValue = (props: any) => {
-    return (
-      <components.SingleValue
-        {...props}
-        style={{ color: "#FFFFFF", textAlign: "center", width: "100%" }}
-      >
-        {props.children}
-      </components.SingleValue>
-    );
-  };
+  const limitSelectStyles = getLimitSelectStyles<LimitOption>(isDark);
 
   const handleLimitChange = (option: LimitOption) => {
     dispatch(setWorkflowLimit(option.value));
@@ -209,7 +102,7 @@ const WorkflowList: React.FC = () => {
       </div>
       {/* Pagination Footer */}
       {total > 0 && (
-        <div className={`flex items-center justify-between pt-2 px-2 `}>
+        <div className={`flex items-center justify-between  px-2 `}>
           {/* Total Count */}
           <div
             className={`text-sm font-medium ${
@@ -218,7 +111,6 @@ const WorkflowList: React.FC = () => {
           >
             Total Workflow : {total}
           </div>
-
           {/* Pagination Controls */}
           <div className="flex-1 flex justify-center">
             {totalPages > 1 && (
@@ -237,20 +129,20 @@ const WorkflowList: React.FC = () => {
                 isDark ? "text-gray-300" : "text-gray-700"
               }`}
             >
-              Show Per Page:
+              Show Per Page :
             </span>
             <div className="w-[80px]">
               <Select
                 menuPlacement="top"
                 value={
-                  limitOptions.find((opt) => opt.value === limit) ||
+                  limitOptions?.find((opt) => opt?.value === limit) ||
                   limitOptions[0]
                 }
                 onChange={(option) => handleLimitChange(option as LimitOption)}
                 options={limitOptions}
                 styles={limitSelectStyles}
                 classNamePrefix="react-select"
-                components={{ DropdownIndicator, SingleValue }}
+                components={{ DropdownIndicator: SelectDropDownLimit }}
                 isSearchable={false}
               />
             </div>

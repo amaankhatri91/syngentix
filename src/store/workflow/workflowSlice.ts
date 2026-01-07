@@ -1,4 +1,4 @@
-import { apiCreateWorkflow, apiEditWorkflow, apiDeleteWorkflow } from "@/services/WorkflowService";
+import { apiCreateWorkflow, apiEditWorkflow, apiDeleteWorkflow, apiUpdateWorkflowStatus } from "@/services/WorkflowService";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "@/store";
 
@@ -10,6 +10,8 @@ export type WorkflowState = {
   deleteDialog: boolean;
   deleteWorkflowRow: any;
   isDeleting: boolean;
+  isUpdatingStatus: boolean;
+  updatingWorkflowId: string | null;
   search: string;
   status: boolean | undefined;
   sort_by: string;
@@ -24,6 +26,8 @@ const initialState: WorkflowState = {
   deleteDialog: false,
   deleteWorkflowRow: {},
   isDeleting: false,
+  isUpdatingStatus: false,
+  updatingWorkflowId: null,
   search: "",
   status: undefined,
   sort_by: "updated_at",
@@ -95,6 +99,27 @@ export const deleteWorkflow = createAsyncThunk(
   }
 );
 
+export const updateWorkflowStatus = createAsyncThunk(
+  `${SLICE_NAME}/updateWorkflowStatus`,
+  async (data: { workflowId: string; status: boolean }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as RootState;
+      const workspaceId = state.auth.workspace?.id;
+      
+      if (!workspaceId) {
+        return rejectWithValue({ message: "Workspace ID is required" });
+      }
+      
+      const response = await apiUpdateWorkflowStatus(data.workflowId, data.status, workspaceId);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data || { message: "Unknown error" }
+      );
+    }
+  }
+);
+
 const workflowSlice = createSlice({
   name: `${SLICE_NAME}`,
   initialState,
@@ -142,6 +167,18 @@ const workflowSlice = createSlice({
       })
       .addCase(deleteWorkflow.rejected, (state) => {
         state.isDeleting = false;
+      })
+      .addCase(updateWorkflowStatus.pending, (state, action) => {
+        state.isUpdatingStatus = true;
+        state.updatingWorkflowId = action.meta.arg.workflowId;
+      })
+      .addCase(updateWorkflowStatus.fulfilled, (state) => {
+        state.isUpdatingStatus = false;
+        state.updatingWorkflowId = null;
+      })
+      .addCase(updateWorkflowStatus.rejected, (state) => {
+        state.isUpdatingStatus = false;
+        state.updatingWorkflowId = null;
       });
   },
 });

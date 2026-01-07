@@ -62,7 +62,7 @@ const WorkflowDeleteDialog: React.FC = () => {
     <Dialog
       open={deleteDialog}
       handler={handleCancel}
-      size="sm"
+      size="xs"
       bodyClassName="!px-8 !pb-5"
     >
       <div className="flex flex-col items-center text-center pt-10">
@@ -97,9 +97,7 @@ const WorkflowDeleteDialog: React.FC = () => {
           Delete Workflow
         </h3>
 
-        <h5 className={`text-base mb-2`}>
-          Are you sure you want to delete {workflowName}?
-        </h5>
+        <h5 className={`text-base mb-2`}>Are you sure you want to delete ?</h5>
 
         <p
           className={`text-sm mb-4 ${

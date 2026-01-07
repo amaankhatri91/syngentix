@@ -4,10 +4,7 @@ import { FooterButtons } from "@/components/FooterButtons";
 import useTheme from "@/utils/hooks/useTheme";
 import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  setDeleteDialog,
-  deleteAgent,
-} from "@/store/agent/agentSlice";
+import { setDeleteDialog, deleteAgent } from "@/store/agent/agentSlice";
 import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
 
 const AgentDeleteDialog: React.FC = () => {
@@ -42,14 +39,13 @@ const AgentDeleteDialog: React.FC = () => {
     // }
   };
 
-  const agentName =
-    deleteAgentRow?.name || "this agent";
+  const agentName = deleteAgentRow?.name || "this agent";
 
   return (
     <Dialog
       open={deleteDialog}
       handler={handleCancel}
-      size="sm"
+      size="xs"
       bodyClassName="!px-8 !pb-5"
     >
       <div className="flex flex-col items-center text-center pt-10">
@@ -84,9 +80,7 @@ const AgentDeleteDialog: React.FC = () => {
           Delete Agent
         </h3>
 
-        <h5 className={`text-base mb-2`}>
-          Are you sure you want to delete {agentName}?
-        </h5>
+        <h5 className={`text-base mb-2`}>Are you sure you want to delete ?</h5>
 
         <p
           className={`text-sm mb-4 ${
@@ -111,5 +105,3 @@ const AgentDeleteDialog: React.FC = () => {
 };
 
 export default AgentDeleteDialog;
-
-

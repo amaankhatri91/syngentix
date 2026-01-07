@@ -126,7 +126,7 @@ const DataTable = <T extends Record<string, any>>({
                       }
                     : undefined
                 }
-                className={!isDark ? "rounded-2xl" : ""}
+                className={!isDark ? "rounded-lg" : ""}
               >
                 {headerGroup.headers.map((header, index) => {
                   const canSort = header.column.getCanSort();
@@ -161,7 +161,7 @@ const DataTable = <T extends Record<string, any>>({
                       } ${
                         !isDark
                           ? isFirst
-                            ? "rounded-tl-2xl rounded-bl-2xl"
+                            ? "rounded-tl-lg rounded-bl-lg"
                             : ""
                           : ""
                       } ${
@@ -271,7 +271,7 @@ const DataTable = <T extends Record<string, any>>({
                 return (
                   <tr
                     key={row.id}
-                    className={`transition-all duration-200 rounded-2xl overflow-hidden ${
+                    className={`transition-all duration-200 rounded-lg overflow-hidden ${
                       isDark
                         ? "bg-[#0F1724] hover:bg-[#1A2335]"
                         : "bg-white hover:bg-gray-50"
@@ -297,8 +297,8 @@ const DataTable = <T extends Record<string, any>>({
                         <td
                           key={cell.id}
                           className={`px-4 py-2 text-sm ${textAlignClass} ${
-                            isFirst ? "rounded-tl-2xl rounded-bl-2xl" : ""
-                          } ${isLast ? "rounded-tr-2xl rounded-br-2xl" : ""} ${
+                            isFirst ? "rounded-tl-lg rounded-bl-lg" : ""
+                          } ${isLast ? "rounded-tr-lg rounded-br-lg" : ""} ${
                             isDark ? "!text-white" : "!text-gray-700"
                           }`}
                           style={{

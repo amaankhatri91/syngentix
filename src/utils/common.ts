@@ -823,7 +823,7 @@ export const formatRelativeTime = (dateString?: string): string => {
  * @param isDark - Whether the theme is dark
  * @returns StylesConfig object for react-select
  */
-export const getWorkflowSelectStyles = <T,>(
+export const getWorkflowSelectStyles = <T>(
   isDark: boolean
 ): StylesConfig<T, false, GroupBase<T>> => {
   return {
@@ -870,7 +870,6 @@ export const getWorkflowSelectStyles = <T,>(
     dropdownIndicator: (base: any) => ({
       ...base,
       color: isDark ? "#FFFFFF" : "#0C1116",
-      padding: "8px",
       "&:hover": {
         color: isDark ? "#FFFFFF" : "#0C1116",
       },
@@ -914,4 +913,112 @@ export const getWorkflowSelectStyles = <T,>(
   };
 };
 
-
+/**
+ * Get limit select styles for react-select component
+ * Provides dark/light theme support with compact styling (35px height)
+ * @param isDark - Whether the theme is dark
+ * @returns StylesConfig object for react-select
+ */
+export const getLimitSelectStyles = <T>(
+  isDark: boolean
+): StylesConfig<T, false, GroupBase<T>> => {
+  return {
+    control: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#0C1116" : "#FFFFFF",
+      borderColor: isDark ? "#2B3643" : "#D1D5DB",
+      borderRadius: "8px",
+      minHeight: "35px",
+      maxHeight: "35px",
+      height: "35px",
+      paddingLeft: "4px",
+      paddingTop: "5px",
+      paddingRight: "4px",
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: isDark ? "#2B3643" : "#9CA3AF",
+      },
+      ...(state.isFocused && {
+        borderColor: isDark ? "#2B3643" : "#9CA3AF",
+        boxShadow: "none",
+      }),
+    }),
+    valueContainer: (base: any) => ({
+      ...base,
+      height: "35px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: isDark ? "#A1A1A1" : "#737373",
+      fontSize: "14px",
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: "#FFFFFF",
+      fontSize: "14px",
+      fontWeight: "400",
+      margin: 0,
+      padding: 0,
+      textAlign: "center",
+      width: "100%",
+    }),
+    input: (base: any) => ({
+      ...base,
+      margin: "0px",
+      padding: 0,
+      color: "#FFFFFF",
+      fontSize: "14px",
+    }),
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+    dropdownIndicator: (base: any) => ({
+      ...base,
+      color: isDark ? "#FFFFFF" : "#0C1116",
+      padding: "8px",
+      "&:hover": {
+        color: isDark ? "#FFFFFF" : "#0C1116",
+      },
+    }),
+    indicatorsContainer: (base: any) => ({
+      ...base,
+      height: "35px",
+      paddingRight: "4px",
+    }),
+    menu: (base: any) => ({
+      ...base,
+      backgroundColor: isDark ? "#0C1116" : "#FFFFFF",
+      borderRadius: "8px",
+      padding: "4px",
+      marginTop: "4px",
+      zIndex: 9999,
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      padding: 0,
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? isDark
+          ? "#1A2335"
+          : "#EEF4FF"
+        : state.isFocused
+        ? isDark
+          ? "#1A2335"
+          : "#F5F7FA"
+        : "transparent",
+      color: isDark ? "#FFFFFF" : "#162230",
+      borderRadius: "6px",
+      padding: "6px 8px",
+      margin: "2px 0",
+      cursor: "pointer",
+      "&:hover": {
+        backgroundColor: isDark ? "#1A2335" : "#F5F7FA",
+      },
+    }),
+  };
+};

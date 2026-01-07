@@ -40,7 +40,7 @@ const AgentDialog = () => {
       open={agentDailog}
       handler={handleCancel}
       title={`${agentRow?.id ? "Edit" : "Create"} New Agent`}
-      size="sm"
+      size="xs"
       bodyClassName="!px-8 !pb-5"
     >
       <Formik<AgentFormValues>

@@ -47,3 +47,20 @@ export async function apiDeleteAgent(
     },
   });
 }
+
+export async function apiUpdateAgentStatus(
+  agentId: string,
+  status: boolean,
+  workspaceId: string
+) {
+  return ApiService.fetchData({
+    url: `/v1/agents/${agentId}/status`,
+    method: "patch",
+    params: {
+      workspace_id: workspaceId,
+    },
+    data: {
+      status: status,
+    },
+  });
+}

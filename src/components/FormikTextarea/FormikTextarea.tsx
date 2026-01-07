@@ -75,19 +75,19 @@ const FormikTextarea: React.FC<FormikTextareaProps> = ({
       {...field}
       {...props}
       className={`
-        !border ${hasError ? "!border-red-500" : "!border-gray-300"}
+        !border ${hasError ? "!border-red-500" : isDark ? "!border-[#2B3643]" : "!border-[#E3E6EB]"}
         ${!isDark && !hasError ? "!border-t-[#EAEAEA]" : ""}
         ${!isDark && !hasError ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""}
-        !bg-white
-        !rounded-xl
-        ${isDark ? "!text-[#162230]" : "!text-[#162230]"}
+        ${isDark ? "!bg-[#0F141D]" : "!bg-white"}
+        !rounded-md
+        ${isDark ? "!text-[#FFFFFF]" : "!text-[#162230]"}
         !resize-none
         [&::placeholder]:opacity-100
-        [&::placeholder]:text-[#737373]
+        [&::placeholder]:!text-[#A1A1A1]
         [&:focus::placeholder]:opacity-100
         [&:not(:placeholder-shown)::placeholder]:opacity-100
         [&_textarea::placeholder]:opacity-100
-        [&_textarea::placeholder]:text-[#737373]
+        [&_textarea::placeholder]:!text-[#A1A1A1]
         [&_textarea:focus::placeholder]:opacity-100
         [&_textarea:not(:placeholder-shown)::placeholder]:opacity-100
         ${className}

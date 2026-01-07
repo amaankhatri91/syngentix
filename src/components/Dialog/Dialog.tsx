@@ -34,7 +34,6 @@ const Dialog: React.FC<DialogProps> = ({
   const { isDark } = useTheme();
 
   const bgColor = isDark ? "bg-[#0D131A]" : "bg-white";
-  const borderColor = isDark ? "border-[#2B3643]" : "border-[#E3E6EB]";
 
   return (
     <MTDialog
@@ -42,45 +41,53 @@ const Dialog: React.FC<DialogProps> = ({
       handler={handler}
       size={size}
       className={`
-        ${bgColor}
-        ${borderColor}
-        border
+        p-[1px]
+        bg-gradient-to-r from-[#9133EA] to-[#2962EB]
         rounded-[28px]
         ${width}
         ${className}
-        max-h-[90dvh]
-        overflow-y-auto
       `}
       containerProps={{
         className:
           "fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4",
       }}
     >
-      {title && (
-        <DialogHeader
-          className={`flex justify-center pt-6 pb-0 ${
-            isDark ? "text-white" : "text-[#162230]"
-          }`}
-        >
-          {title}
-        </DialogHeader>
-      )}
-
-      <DialogBody
+      <div
         className={`
-          ${bodyClassName}
-          ${isDark ? "text-gray-300" : "text-gray-700"}
-          overflow-visible
+          ${bgColor}
+          rounded-[27px]
+          max-h-[90dvh]
+          overflow-y-auto
         `}
       >
-        {children}
-      </DialogBody>
+        {title && (
+          <DialogHeader
+            className={`flex justify-center pt-6 pb-0 ${
+              isDark ? "text-white" : "text-[#162230]"
+            }`}
+          >
+            {title}
+          </DialogHeader>
+        )}
 
-      {footer && (
-        <DialogFooter className={`${isDark ? "text-white" : "text-gray-900"}`}>
-          {footer}
-        </DialogFooter>
-      )}
+        <DialogBody
+          className={`
+            ${bodyClassName}
+            ${isDark ? "text-gray-300" : "text-gray-700"}
+            overflow-visible
+          `}
+        >
+          {children}
+        </DialogBody>
+
+        {footer && (
+          <DialogFooter
+            className={`${isDark ? "text-white" : "text-gray-900"}`}
+          >
+            {footer}
+          </DialogFooter>
+        )}
+      </div>
     </MTDialog>
   );
 };

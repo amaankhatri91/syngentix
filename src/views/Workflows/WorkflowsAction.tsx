@@ -18,6 +18,7 @@ import {
   statusOptions,
   sortOptions,
 } from "@/constants/workflow.constant";
+import SelectDropdownIndicator from "@/components/SelectDropdownIndicator";
 
 const WorkflowsAction = () => {
   const dispatch = useAppDispatch();
@@ -36,29 +37,6 @@ const WorkflowsAction = () => {
     return sortOptions.find((opt) => opt.value === sortValue) || sortOptions[0];
   });
 
-  const DropdownIndicator = (props: any) => {
-    return (
-      <components.DropdownIndicator {...props}>
-        <svg
-          width={12}
-          height={12}
-          viewBox="0 0 12 12"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g opacity="0.8">
-            <path
-              d="M2 4L6 8L10 4"
-              stroke={isDark ? "#FFFFFF" : "#0C1116"}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-        </svg>
-      </components.DropdownIndicator>
-    );
-  };
-
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-3">
@@ -73,7 +51,7 @@ const WorkflowsAction = () => {
             );
           }}
           icon={<Add size={18} />}
-          className="px-3 !py-2 !rounded-xl !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb]"
+          className="px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb]"
         >
           Create Workflow
         </Button>
@@ -91,7 +69,7 @@ const WorkflowsAction = () => {
                 <Search color={isDark ? "#FFFFFF" : "#0C1116"} size={18} />
               </div>
             }
-            inputClassName={`!py-6 
+            inputClassName={`!py-[23px] 
               ${
                 isDark
                   ? "!bg-[#0F141D] !text-white !placeholder-[#FFFFFF] !border-[#2B3643]"
@@ -112,7 +90,7 @@ const WorkflowsAction = () => {
             options={statusOptions}
             styles={getWorkflowSelectStyles<SelectOption>(isDark)}
             classNamePrefix="react-select"
-            components={{ DropdownIndicator }}
+            components={{ DropdownIndicator: SelectDropdownIndicator }}
             isSearchable={false}
           />
         </div>
@@ -134,7 +112,7 @@ const WorkflowsAction = () => {
             options={sortOptions}
             styles={getWorkflowSelectStyles<SelectOption>(isDark)}
             classNamePrefix="react-select"
-            components={{ DropdownIndicator }}
+            components={{ DropdownIndicator: SelectDropdownIndicator }}
             isSearchable={false}
           />
         </div>
