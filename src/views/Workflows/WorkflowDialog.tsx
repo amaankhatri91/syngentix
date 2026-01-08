@@ -19,9 +19,6 @@ import { showSuccessToast, showErrorToast } from "@/utils/toast";
 
 const WorkflowDialog = () => {
   const { isDark } = useTheme();
-  const isSmallScreen = useIsSmallScreen();
-
-  console.log(isSmallScreen , "Verify Small Screens")
 
   const { agentId } = useParams<{ agentId: string }>();
   const navigate = useNavigate();

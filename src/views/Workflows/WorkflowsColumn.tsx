@@ -222,7 +222,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     header: "Workflow Name",
     accessorKey: "title",
     enableSorting: true,
-    size: 250,
+    size: 90,
     align: "left",
     cell: (value, row) => (
       <div className="flex flex-col">
@@ -238,7 +238,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     header: "Owner",
     accessorKey: "owner_name",
     enableSorting: true,
-    size: 150,
+    size: 80,
     align: "left",
     cell: (value) => <h5 className="text-sm">{value || "-"}</h5>,
   },
@@ -247,7 +247,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     header: "Triggers",
     accessorKey: "triggers_count",
     enableSorting: true,
-    size: 100,
+    size: 80,
     align: "center",
     cell: (value) => (
       <h5 className="font-mono text-sm">
@@ -262,7 +262,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     header: "Actions",
     accessorKey: "actions_count",
     enableSorting: true,
-    size: 100,
+    size: 80,
     align: "center",
     cell: (value) => (
       <h5 className="font-mono text-sm">
@@ -277,7 +277,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     header: "Last Run",
     accessorKey: "last_run_at",
     enableSorting: true,
-    size: 120,
+    size: 190,
     align: "left",
     cell: (value) => (
       <h5 className="text-sm">{value ? formatRelativeTime(value) : "Never"}</h5>
@@ -288,7 +288,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     header: "Updated Time",
     accessorKey: "updated_at",
     enableSorting: true,
-    size: 180,
+    size: 350,
     align: "left",
     cell: (value) => (
       <h5 className="text-sm">{formatDate(value) || "Oct 24, 10:30 AM"}</h5>
@@ -309,7 +309,7 @@ export const columns: DataTableColumn<Workflow>[] = [
     id: "actions",
     header: "",
     enableSorting: false,
-    size: 300,
+    size: 320,
     align: "center",
     cell: (value, row) => <FlowCell row={row} />,
   },
