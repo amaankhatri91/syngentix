@@ -68,7 +68,7 @@ const WorkflowDeleteDialog: React.FC = () => {
     <Dialog
       open={deleteDialog}
       handler={handleCancel}
-      size="xs"
+      size="sm"
       bodyClassName="!px-8 !pb-5"
     >
       <div className="flex flex-col items-center text-center pt-10">

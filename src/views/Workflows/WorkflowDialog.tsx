@@ -5,6 +5,7 @@ import { FormikInput } from "@/components/FormikInput";
 import { FormikTextarea } from "@/components/FormikTextarea";
 import { FooterButtons } from "@/components/FooterButtons";
 import useTheme from "@/utils/hooks/useTheme";
+import useIsSmallScreen from "@/utils/hooks/useIsSmallScreen";
 import { WorkflowFormValues } from "./types";
 import { WorkflowSchema } from "./WorkflowSchema";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -19,6 +20,10 @@ import { showSuccessToast, showErrorToast } from "@/utils/toast";
 
 const WorkflowDialog = () => {
   const { isDark } = useTheme();
+  const isSmallScreen = useIsSmallScreen();
+
+  console.log(isSmallScreen , "Verify Small Screens")
+
   const { agentId } = useParams<{ agentId: string }>();
   const navigate = useNavigate();
   const { workflowDialog, workflowRow } = useAppSelector(
@@ -42,7 +47,7 @@ const WorkflowDialog = () => {
       open={workflowDialog}
       handler={handleCancel}
       title={`${workflowRow?.id ? "Edit" : "Create"} New Workflow`}
-      size="xs"
+      size='sm'
       bodyClassName="!px-8 !pb-5"
     >
       <div className="mb-4">
