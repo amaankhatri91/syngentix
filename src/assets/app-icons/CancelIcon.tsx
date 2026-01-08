@@ -1,9 +1,23 @@
+import React from "react";
 
-const CancelIcon = () => {
+interface CancelIconProps {
+  theme?: "light" | "dark";
+  size?: number | string;
+}
+
+const CancelIcon: React.FC<CancelIconProps> = ({
+  theme = "light",
+  size = 24,
+}) => {
+  const isDark = theme === "dark";
+  const backgroundColor = isDark ? "#0C1116" : "#FFFFFF";
+  const strokeColor = isDark ? "#394757" : "#E3E6EB";
+  const iconColor = isDark ? "white" : "#162230";
+
   return (
     <svg
-      width="24"
-      height="24"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -14,14 +28,14 @@ const CancelIcon = () => {
         width="23.4"
         height="23.4"
         rx="7.7"
-        fill="#0C1116"
-        stroke="#394757"
-        stroke-width="0.6"
+        fill={backgroundColor}
+        stroke={strokeColor}
+        strokeWidth="0.6"
       />
-      <g clip-path="url(#clip0_1056_2498)">
+      <g clipPath="url(#clip0_1056_2498)">
         <path
           d="M15.9598 15.3L12.66 12.0002L15.9598 8.70032C16.142 8.51808 16.142 8.22261 15.9598 8.04036C15.7776 7.85812 15.4821 7.85812 15.2998 8.04036L12 11.3402L8.70017 8.04035C8.51792 7.85812 8.22245 7.85812 8.0402 8.04036C7.85796 8.22261 7.85796 8.51808 8.0402 8.70032L11.34 12.0001L8.0402 15.3C7.85796 15.4822 7.85796 15.7777 8.0402 15.9599C8.22245 16.1422 8.51792 16.1422 8.70016 15.9599L12 12.6601L15.2998 15.9599C15.4821 16.1422 15.7775 16.1422 15.9598 15.9599C16.142 15.7777 16.142 15.4822 15.9598 15.3Z"
-          fill="white"
+          fill={iconColor}
         />
       </g>
       <defs>

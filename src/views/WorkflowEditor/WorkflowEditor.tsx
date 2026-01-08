@@ -9,7 +9,9 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 const WorkflowEditor = () => {
-  const { openNodeList } = useAppSelector((state) => state.workflowEditor);
+  const { openNodeList, openSettings } = useAppSelector(
+    (state) => state.workflowEditor
+  );
   const { workflowId } = useParams<{ workflowId: string }>();
   const { emit } = useSocketConnection();
 
@@ -31,18 +33,22 @@ const WorkflowEditor = () => {
     <>
       <WorkflowEditorAction />
       <WorkflowEditorHeader />
-      <div className="flex flex-col h-[calc(100vh-174px)] overflow-hidden gap-8 lg:flex-row mt-4">
-        {openNodeList && (
-          <div className="lg:w-[30%] w-full mt-4 lg:mt-0">
-            <WorkflowNodesList />
+      <div>
+        <div className="flex flex-col h-[calc(100vh-174px)] overflow-hidden gap-8 lg:flex-row mt-4">
+          {openNodeList && (
+            <div className="w-[350px] min-w-0 flex-shrink-0">
+              <WorkflowNodesList />
+            </div>
+          )}
+          <div className="transition-all duration-300 flex-1 min-w-0">
+            <WorkflowCanvas />
           </div>
-        )}
-        <div className="transition-all duration-300 w-[100%]">
-          <WorkflowCanvas />
+          {openSettings && (
+            <div className="w-[400px] min-w-0 flex-shrink-0">
+              <WorkflowSettings />
+            </div>
+          )}
         </div>
-        {/* <div className="w-[40%]">
-          <WorkflowSettings />
-        </div> */}
       </div>
     </>
   );

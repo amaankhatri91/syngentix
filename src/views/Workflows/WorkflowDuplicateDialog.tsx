@@ -62,7 +62,7 @@ const WorkflowDuplicateDialog = () => {
       open={duplicateWorkflowDialog}
       handler={handleCancel}
       title="Duplicate Workflow"
-      size="xs"
+      size="sm"
       bodyClassName="!px-8 !pb-5"
     >
       <div className="mb-4">

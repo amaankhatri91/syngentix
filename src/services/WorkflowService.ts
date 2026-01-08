@@ -95,3 +95,24 @@ export async function apiDuplicateWorkflow(
     },
   });
 }
+
+export async function apiUpdateWorkflowSettings(
+  workflowId: string,
+  data: {
+    title: string;
+    description: string;
+    execution_timeout: number;
+    retry_attempts: number;
+    concurrency_limit: boolean;
+  },
+  workspaceId: string
+) {
+  return ApiService.fetchData({
+    url: `/v1/workflow/${workflowId}`,
+    method: "put",
+    params: {
+      workspace_id: workspaceId,
+    },
+    data,
+  });
+}

@@ -1,4 +1,4 @@
-import { apiCreateWorkflow, apiEditWorkflow, apiDeleteWorkflow, apiUpdateWorkflowStatus, apiDuplicateWorkflow } from "@/services/WorkflowService";
+import { apiCreateWorkflow, apiEditWorkflow, apiDeleteWorkflow, apiUpdateWorkflowStatus, apiDuplicateWorkflow, apiUpdateWorkflowSettings } from "@/services/WorkflowService";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "@/store";
 
@@ -140,6 +140,37 @@ export const duplicateWorkflow = createAsyncThunk(
         data.workflowId,
         data.targetAgentId,
         data.workflowTitle,
+        workspaceId
+      );
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data || { message: "Unknown error" }
+      );
+    }
+  }
+);
+
+export const updateWorkflowSettings = createAsyncThunk(
+  `${SLICE_NAME}/updateWorkflowSettings`,
+  async (data: { workflowId: string; title: string; description: string; execution_timeout: number; retry_attempts: number; concurrency_limit: boolean }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as RootState;
+      const workspaceId = state.auth.workspace?.id;
+      
+      if (!workspaceId) {
+        return rejectWithValue({ message: "Workspace ID is required" });
+      }
+      
+      const response = await apiUpdateWorkflowSettings(
+        data.workflowId,
+        {
+          title: data.title,
+          description: data.description,
+          execution_timeout: data.execution_timeout,
+          retry_attempts: data.retry_attempts,
+          concurrency_limit: data.concurrency_limit,
+        },
         workspaceId
       );
       return response;

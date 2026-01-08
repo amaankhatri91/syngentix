@@ -220,7 +220,7 @@ export const useWorkflowSocketEvents = () => {
     );
 
     // Handle node:deleted_bulk event - receives bulk deleted nodes response
-    const unsubscribeNodesDeletedBulk = on("node:deleted_bulk", (data: any) => {
+    const unsubscribeNodesDeletedBulk = on("node:deleted", (data: any) => {
       console.log("node deleted", data);
 
       // Show toast message first (always show, regardless of data structure)
