@@ -40,9 +40,9 @@ const WorkflowEditor = () => {
         <div className="transition-all duration-300 w-[100%]">
           <WorkflowCanvas />
         </div>
-        <div className="w-[40%]">
+        {/* <div className="w-[40%]">
           <WorkflowSettings />
-        </div>
+        </div> */}
       </div>
     </>
   );

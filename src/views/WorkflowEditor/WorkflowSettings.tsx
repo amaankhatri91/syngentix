@@ -17,7 +17,7 @@ interface WorkflowSettingsFormValues {
 }
 
 const WorkflowSettingsSchema = Yup.object().shape({
-  workflowName: Yup.string().required("Workflow Name is required"),
+  workflowName: Yup.string().required("Required"),
   description: Yup.string(),
   executionTimeout: Yup.number()
     .min(1, "Execution timeout must be at least 1 second")
@@ -56,7 +56,7 @@ const WorkflowSettings: React.FC = () => {
       >
         <div className="p-4 pb-0 flex-shrink-0">
           {/* Header */}
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between  items-center mb-4">
             <h3
               className={`text-base text-[18px] font-medium ${
                 isDark ? "text-white" : "text-[#162230]"
@@ -66,10 +66,15 @@ const WorkflowSettings: React.FC = () => {
             </h3>
             <CancelIcon />
           </div>
+          <hr
+            className={`border-t ${
+              isDark ? "border-[#2B3643]" : "border-[#E3E6EB]"
+            }`}
+          />
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           <Formik<WorkflowSettingsFormValues>
             initialValues={{
               workflowName: "D1 Work Flow",
@@ -98,19 +103,15 @@ const WorkflowSettings: React.FC = () => {
               isSubmitting,
             }) => (
               <Form className="h-full flex flex-col">
-                <div className=" flex-1">
+                <div className="flex-1">
                   {/* Workflow Identity Section */}
                   <div className="">
-                    <h3
-                      className={`text-base font-medium ${
-                        isDark ? "text-white" : "text-[#162230]"
-                      }`}
-                    >
+                    <span className={`text-base font-medium `}>
                       Workflow Identity
-                    </h3>
+                    </span>
 
                     {/* Workflow Name */}
-                    <div className="text-left w-full mt-2">
+                    <div className="text-left w-full mt-4">
                       <label
                         className={`block text-sm mb-1 ${
                           isDark ? "text-[#FFFFFF]" : "text-[#162230]"
@@ -193,175 +194,171 @@ const WorkflowSettings: React.FC = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Execution Settings Section */}
-                  <div className="space-y-4">
-                    <h3
-                      className={`text-base font-medium ${
-                        isDark ? "text-white" : "text-[#162230]"
-                      }`}
-                    >
-                      Execution Settings
-                    </h3>
-
-                    {/* Execution Timeout */}
-                    <div className="text-left w-full">
-                      <label
-                        className={`block text-sm mb-1 ${
-                          isDark ? "text-[#FFFFFF]" : "text-[#162230]"
-                        }`}
-                      >
-                        Execution Timeout
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Field name="executionTimeout">
-                          {({ field }: any) => (
-                            <FormikInput
-                              field={field}
-                              type="number"
-                              className={`!py-3 flex-1 ${
-                                !isDark
-                                  ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                                  : ""
+                    {/* Execution Settings Section */}
+                    <div className="space-y-3">
+                      <span className={`text-base font-medium`}>
+                        Execution Settings
+                      </span>
+                      <div className="flex items-start gap-4">
+                        {/* Execution Timeout */}
+                        <div className="text-left flex-1">
+                          <label
+                            className={`block text-sm mb-1 ${
+                              isDark ? "text-[#FFFFFF]" : "text-[#162230]"
+                            }`}
+                          >
+                            Execution Timeout
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <Field name="executionTimeout">
+                              {({ field }: any) => (
+                                <FormikInput
+                                  field={field}
+                                  type="number"
+                                  className={`!py-3 flex-1 ${
+                                    !isDark
+                                      ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
+                                      : ""
+                                  }`}
+                                  placeholder="300"
+                                  errors={errors}
+                                  touched={touched}
+                                  onFieldTouched={() =>
+                                    setFieldTouched("executionTimeout", true)
+                                  }
+                                  onFieldChange={(
+                                    e: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setFieldValue(
+                                      "executionTimeout",
+                                      parseInt(e.target.value) || 0
+                                    );
+                                  }}
+                                />
+                              )}
+                            </Field>
+                            <span
+                              className={`text-sm whitespace-nowrap ${
+                                isDark ? "text-[#A1A1A1]" : "text-[#737373]"
                               }`}
-                              placeholder="300"
-                              errors={errors}
-                              touched={touched}
-                              onFieldTouched={() =>
-                                setFieldTouched("executionTimeout", true)
-                              }
-                              onFieldChange={(
-                                e: React.ChangeEvent<HTMLInputElement>
-                              ) => {
-                                setFieldValue(
-                                  "executionTimeout",
-                                  parseInt(e.target.value) || 0
-                                );
-                              }}
+                            >
+                              Seconds
+                            </span>
+                          </div>
+                          <div className="min-h-[20px]">
+                            <ErrorMessage
+                              name="executionTimeout"
+                              component="div"
+                              className="text-red-500 text-sm"
                             />
-                          )}
-                        </Field>
-                        <span
-                          className={`text-sm ${
-                            isDark ? "text-[#A1A1A1]" : "text-[#737373]"
-                          }`}
-                        >
-                          Seconds
-                        </span>
-                      </div>
-                      <div className="min-h-[20px]">
-                        <ErrorMessage
-                          name="executionTimeout"
-                          component="div"
-                          className="text-red-500 text-sm"
-                        />
+                          </div>
+                        </div>
+
+                        {/* Retry Attempts */}
+                        <div className="text-left flex-1">
+                          <label
+                            className={`block text-sm mb-1 ${
+                              isDark ? "text-[#FFFFFF]" : "text-[#162230]"
+                            }`}
+                          >
+                            Retry Attempts
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newValue = Math.max(
+                                  0,
+                                  values.retryAttempts - 1
+                                );
+                                setFieldValue("retryAttempts", newValue);
+                              }}
+                              className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
+                                isDark
+                                  ? "bg-[#1E293B] hover:bg-[#2B3643] text-white border border-[#2B3643]"
+                                  : "bg-white hover:bg-gray-50 text-[#162230] border border-[#E3E6EB] shadow-sm"
+                              }`}
+                            >
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M2 6H10"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            </button>
+                            <Field name="retryAttempts">
+                              {({ field }: any) => (
+                                <FormikInput
+                                  field={field}
+                                  type="number"
+                                  className={`!py-3 flex-1 text-center ${
+                                    !isDark
+                                      ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
+                                      : ""
+                                  }`}
+                                  placeholder="1"
+                                  errors={errors}
+                                  touched={touched}
+                                  onFieldTouched={() =>
+                                    setFieldTouched("retryAttempts", true)
+                                  }
+                                  onFieldChange={(
+                                    e: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setFieldValue(
+                                      "retryAttempts",
+                                      parseInt(e.target.value) || 0
+                                    );
+                                  }}
+                                />
+                              )}
+                            </Field>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newValue = values.retryAttempts + 1;
+                                setFieldValue("retryAttempts", newValue);
+                              }}
+                              className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
+                                isDark
+                                  ? "bg-[#1E293B] hover:bg-[#2B3643] text-white border border-[#2B3643]"
+                                  : "bg-white hover:bg-gray-50 text-[#162230] border border-[#E3E6EB] shadow-sm"
+                              }`}
+                            >
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M6 2V10M2 6H10"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                          <div className="min-h-[20px]">
+                            <ErrorMessage
+                              name="retryAttempts"
+                              component="div"
+                              className="text-red-500 text-sm"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
-
-                    {/* Retry Attempts */}
-                    <div className="text-left w-full">
-                      <label
-                        className={`block text-sm mb-1 ${
-                          isDark ? "text-[#FFFFFF]" : "text-[#162230]"
-                        }`}
-                      >
-                        Retry Attempts
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newValue = Math.max(
-                              0,
-                              values.retryAttempts - 1
-                            );
-                            setFieldValue("retryAttempts", newValue);
-                          }}
-                          className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
-                            isDark
-                              ? "bg-[#1E293B] hover:bg-[#2B3643] text-white border border-[#2B3643]"
-                              : "bg-white hover:bg-gray-50 text-[#162230] border border-[#E3E6EB] shadow-sm"
-                          }`}
-                        >
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M2 6H10"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </button>
-                        <Field name="retryAttempts">
-                          {({ field }: any) => (
-                            <FormikInput
-                              field={field}
-                              type="number"
-                              className={`!py-3 flex-1 text-center ${
-                                !isDark
-                                  ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                                  : ""
-                              }`}
-                              placeholder="1"
-                              errors={errors}
-                              touched={touched}
-                              onFieldTouched={() =>
-                                setFieldTouched("retryAttempts", true)
-                              }
-                              onFieldChange={(
-                                e: React.ChangeEvent<HTMLInputElement>
-                              ) => {
-                                setFieldValue(
-                                  "retryAttempts",
-                                  parseInt(e.target.value) || 0
-                                );
-                              }}
-                            />
-                          )}
-                        </Field>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newValue = values.retryAttempts + 1;
-                            setFieldValue("retryAttempts", newValue);
-                          }}
-                          className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
-                            isDark
-                              ? "bg-[#1E293B] hover:bg-[#2B3643] text-white border border-[#2B3643]"
-                              : "bg-white hover:bg-gray-50 text-[#162230] border border-[#E3E6EB] shadow-sm"
-                          }`}
-                        >
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M6 2V10M2 6H10"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="min-h-[20px]">
-                        <ErrorMessage
-                          name="retryAttempts"
-                          component="div"
-                          className="text-red-500 text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
 
                   {/* Concurrency Control Section */}
                   <div className="space-y-4">
