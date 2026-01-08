@@ -18,6 +18,7 @@ const AgentTabs = () => {
         tabs={agentTabs}
         activeTab={activeTab}
         onTabChange={handleTabChange}
+        tabClassName="py-2"
       />
     </div>
   );

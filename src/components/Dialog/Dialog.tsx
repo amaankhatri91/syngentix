@@ -18,6 +18,7 @@ export interface DialogProps {
   bodyClassName?: string;
   showCloseButton?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl";
+  disableOuterScroll?: boolean;
 }
 
 const Dialog: React.FC<DialogProps> = ({
@@ -30,6 +31,7 @@ const Dialog: React.FC<DialogProps> = ({
   className = "",
   bodyClassName = "",
   size = "md",
+  disableOuterScroll = false,
 }) => {
   const { isDark } = useTheme();
 
@@ -59,7 +61,7 @@ const Dialog: React.FC<DialogProps> = ({
           ${bgColor}
           rounded-[27px]
           max-h-[90dvh]
-          overflow-y-auto
+          ${disableOuterScroll ? "overflow-hidden" : "overflow-y-auto"}
           overflow-x-visible
         `}
       >

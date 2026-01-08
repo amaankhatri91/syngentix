@@ -60,7 +60,6 @@ const Tabs: React.FC<TabsProps> = ({
             className={`
               rounded-lg
               px-4
-              py-2
               transition-all
               duration-200
               ${activeStyles}

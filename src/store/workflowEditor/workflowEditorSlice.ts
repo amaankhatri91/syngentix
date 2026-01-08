@@ -14,6 +14,8 @@ export type WorkflowEditorState = {
   isLocked: boolean;
   edgeThickness: number;
   editingNotes: Record<string, boolean>; // Map of node ID to editing state
+  databaseDialogOpen: boolean;
+  selectedNode: any | null; // Store the filtered node object
 };
 
 const initialState: WorkflowEditorState = {
@@ -26,6 +28,8 @@ const initialState: WorkflowEditorState = {
   isLocked: false,
   edgeThickness: 0.3, // Default to Minimal (0.3px)
   editingNotes: {}, // Map of node ID to editing state
+  databaseDialogOpen: false,
+  selectedNode: null,
 };
 
 const workflowEditorSlice = createSlice({
@@ -94,6 +98,12 @@ const workflowEditorSlice = createSlice({
     clearEditingNotes: (state) => {
       state.editingNotes = {};
     },
+    setDatabaseDialogOpen: (state, action: PayloadAction<boolean>) => {
+      state.databaseDialogOpen = action.payload;
+    },
+    setSelectedNode: (state, action: PayloadAction<any | null>) => {
+      state.selectedNode = action.payload;
+    },
   },
 });
 
@@ -111,6 +121,8 @@ export const {
   setEdgeThickness,
   setNoteEditing,
   clearEditingNotes,
+  setDatabaseDialogOpen,
+  setSelectedNode,
 } = workflowEditorSlice.actions;
 
 export default workflowEditorSlice.reducer;

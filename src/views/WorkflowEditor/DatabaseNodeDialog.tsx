@@ -1,38 +1,41 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Dialog } from "@/components/Dialog";
 import { FormikInput } from "@/components/FormikInput";
 import { FormikSelect } from "@/components/FormikSelect";
+import { FormikTextarea } from "@/components/FormikTextarea";
 import { Button } from "@/components/Button";
 import Tabs from "@/components/Tabs";
 import { TabItem } from "@/components/Tabs";
 import CancelIcon from "@/assets/app-icons/CancelIcon";
+import PlusIcon from "@/assets/app-icons/PlusIcon";
+import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
+import { useAppSelector } from "@/store";
+import { Node } from "reactflow";
+import { CustomNodeData, NodePin } from "./type";
 
 interface DatabaseNodeDialogProps {
-  open: boolean;
-  handler: () => void;
+  open?: boolean;
+  handler?: () => void;
+  nodesData?: any;
+  nodesLoading?: boolean;
+  nodesError?: any;
+  selectedNode?: any | null;
 }
 
-interface DatabaseFormValues {
-  label: string;
-  databaseType: string;
-  host: string;
-  port: string;
-  username: string;
-  password: string;
-  caCertificate: string;
-  securitySSL: File | null;
+interface ConfigSchemaProperty {
+  type?: string;
+  title?: string;
+  description?: string;
+  default?: any;
+  enum?: string[];
+  minimum?: number;
+  maximum?: number;
+  items?: ConfigSchemaProperty;
+  properties?: Record<string, ConfigSchemaProperty>;
+  required?: string[];
 }
-
-const databaseTypeOptions = [
-  { value: "SQLite", label: "SQLite" },
-  { value: "PostgreSQL", label: "PostgreSQL" },
-  { value: "MySQL", label: "MySQL" },
-  { value: "MongoDB", label: "MongoDB" },
-  { value: "Oracle", label: "Oracle" },
-  { value: "SQL Server", label: "SQL Server" },
-];
 
 const tabs: TabItem[] = [
   { label: "Data", value: "data" },
@@ -41,16 +44,389 @@ const tabs: TabItem[] = [
   { label: "Out Pins", value: "outPins" },
 ];
 
-const DatabaseNodeDialog: React.FC<DatabaseNodeDialogProps> = ({
-  open,
+const DatabaseNodeDialog = ({
+  open = false,
   handler,
-}) => {
+  nodesData,
+  nodesLoading,
+  nodesError,
+  selectedNode,
+}: DatabaseNodeDialogProps) => {
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<string | number>("data");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  console.log(selectedNode, "Verify Selected Nodes");
+
+  // Get node data
+  const nodeData = useMemo(() => {
+    return selectedNode?.node;
+  }, [selectedNode]);
+
+  // Get config schema from selected node
+  const configSchema = useMemo(() => {
+    return nodeData?.config_schema;
+  }, [nodeData]);
+
+  // Get pins data
+  const inputs = useMemo(() => nodeData?.inputs || [], [nodeData]);
+  const outputs = useMemo(() => nodeData?.outputs || [], [nodeData]);
+  const nextPins = useMemo(() => nodeData?.next_pins || [], [nodeData]);
+  const triggerPins = useMemo(() => nodeData?.trigger_pins || [], [nodeData]);
+
+  // State for managing pins (for adding/removing)
+  const [localInputs, setLocalInputs] = useState<NodePin[]>(inputs);
+  const [localOutputs, setLocalOutputs] = useState<NodePin[]>(outputs);
+  const [localNextPins, setLocalNextPins] = useState<NodePin[]>(nextPins);
+
+  // Update local state when nodeData changes
+  React.useEffect(() => {
+    setLocalInputs(inputs);
+    setLocalOutputs(outputs);
+    setLocalNextPins(nextPins);
+  }, [inputs, outputs, nextPins]);
+
+  // Generate initial values from config schema
+  const initialValues = useMemo(() => {
+    const values: Record<string, any> = {};
+
+    if (configSchema?.properties) {
+      Object.entries(configSchema.properties).forEach(([key, prop]) => {
+        const property = prop as ConfigSchemaProperty;
+        if (property.default !== undefined) {
+          values[key] = property.default;
+        } else {
+          // Set default based on type
+          switch (property.type) {
+            case "string":
+              values[key] = "";
+              break;
+            case "number":
+              values[key] = property.minimum || 0;
+              break;
+            case "boolean":
+              values[key] = false;
+              break;
+            case "array":
+              values[key] = [];
+              break;
+            case "object":
+              values[key] = {};
+              break;
+            default:
+              values[key] = "";
+          }
+        }
+      });
+    }
+
+    return values;
+  }, [configSchema]);
+
+  // Render dynamic form field based on property type
+  const renderField = (
+    fieldName: string,
+    property: ConfigSchemaProperty,
+    errors: any,
+    touched: any,
+    setFieldValue: any,
+    setFieldTouched: any,
+    values: any
+  ) => {
+    const isRequired = configSchema?.required?.includes(fieldName);
+    const hasError = errors?.[fieldName] && touched?.[fieldName];
+
+    // Handle enum (dropdown)
+    if (property.enum && property.enum.length > 0) {
+      const options = property.enum.map((value) => ({
+        value,
+        label: value,
+      }));
+
+      return (
+        <div key={fieldName} className="text-left w-full">
+          <h5 className="block text-sm md:text-base mb-1">
+            {property.title || fieldName}
+            {isRequired && <span className="text-red-500">*</span>}
+          </h5>
+          {property.description && (
+            <p className="text-xs text-gray-500 mb-2">{property.description}</p>
+          )}
+          <Field name={fieldName}>
+            {({ field }: any) => (
+              <FormikSelect
+                field={field}
+                options={options}
+                placeholder={`Please select ${property.title || fieldName}`}
+                className="w-full"
+                errors={errors}
+                touched={touched}
+                onFieldTouched={() => setFieldTouched(fieldName, true)}
+                onFieldChange={(option: any) => {
+                  setFieldValue(fieldName, option?.value || "");
+                }}
+                menuPortalTarget={document.body}
+              />
+            )}
+          </Field>
+          <div className="min-h-[20px]">
+            <ErrorMessage
+              name={fieldName}
+              component="div"
+              className="text-red-500 text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Handle boolean (checkbox)
+    if (property.type === "boolean") {
+      return (
+        <div key={fieldName} className="text-left w-full">
+          <div className="flex items-center gap-2">
+            <Field name={fieldName} type="checkbox">
+              {({ field }: any) => (
+                <input
+                  {...field}
+                  type="checkbox"
+                  id={fieldName}
+                  checked={values[fieldName] || false}
+                  onChange={(e) => {
+                    setFieldValue(fieldName, e.target.checked);
+                  }}
+                  className={`
+                    w-4 h-4 rounded-[4px] border-2
+                    ${
+                      isDark
+                        ? "border-[#7E89AC] bg-[#0B1739] checked:bg-[#2962EB] checked:border-[#2962EB]"
+                        : "border-gray-300 bg-white checked:bg-white checked:border-[#2962EB]"
+                    }
+                    focus:ring-2 focus:ring-[#2962EB] focus:ring-offset-0
+                    cursor-pointer
+                    appearance-none
+                    relative
+                  `}
+                  style={{
+                    backgroundImage: values[fieldName]
+                      ? "url(\"data:image/svg+xml,%3Csvg width='12' height='9' viewBox='0 0 12 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4.5L4.5 8L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")"
+                      : "none",
+                    backgroundSize: "contain",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                />
+              )}
+            </Field>
+            <label
+              htmlFor={fieldName}
+              className={`text-sm md:text-base cursor-pointer ${
+                isDark ? "text-white" : "text-[#162230]"
+              }`}
+            >
+              {property.title || fieldName}
+              {isRequired && <span className="text-red-500">*</span>}
+            </label>
+          </div>
+          {property.description && (
+            <p className="text-xs text-gray-500 mt-1 ml-6">
+              {property.description}
+            </p>
+          )}
+          <div className="min-h-[20px]">
+            <ErrorMessage
+              name={fieldName}
+              component="div"
+              className="text-red-500 text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Handle number
+    if (property.type === "number") {
+      return (
+        <div key={fieldName} className="text-left w-full">
+          <h5 className="block text-sm md:text-base mb-1">
+            {property.title || fieldName}
+            {isRequired && <span className="text-red-500">*</span>}
+          </h5>
+          {property.description && (
+            <p className="text-xs text-gray-500 mb-2">{property.description}</p>
+          )}
+          <Field name={fieldName}>
+            {({ field }: any) => (
+              <FormikInput
+                field={field}
+                type="number"
+                min={property.minimum}
+                max={property.maximum}
+                className={`!py-5 ${
+                  !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                }`}
+                placeholder={`Please enter ${property.title || fieldName}`}
+                errors={errors}
+                touched={touched}
+                onFieldTouched={() => setFieldTouched(fieldName, true)}
+                onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setFieldValue(fieldName, e.target.value);
+                }}
+              />
+            )}
+          </Field>
+          <div className="min-h-[20px]">
+            <ErrorMessage
+              name={fieldName}
+              component="div"
+              className="text-red-500 text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Handle array (for now, render as JSON textarea)
+    if (property.type === "array") {
+      return (
+        <div key={fieldName} className="text-left w-full">
+          <h5 className="block text-sm md:text-base mb-1">
+            {property.title || fieldName}
+            {isRequired && <span className="text-red-500">*</span>}
+          </h5>
+          {property.description && (
+            <p className="text-xs text-gray-500 mb-2">{property.description}</p>
+          )}
+          <Field name={fieldName}>
+            {({ field }: any) => (
+              <FormikTextarea
+                field={field}
+                className={`!py-5 min-h-[100px] ${
+                  !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                }`}
+                placeholder={`Please enter ${
+                  property.title || fieldName
+                } (JSON array)`}
+                errors={errors}
+                touched={touched}
+                onFieldTouched={() => setFieldTouched(fieldName, true)}
+                onFieldChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                  try {
+                    const parsed = JSON.parse(e.target.value);
+                    setFieldValue(fieldName, parsed);
+                  } catch {
+                    setFieldValue(fieldName, e.target.value);
+                  }
+                }}
+              />
+            )}
+          </Field>
+          <div className="min-h-[20px]">
+            <ErrorMessage
+              name={fieldName}
+              component="div"
+              className="text-red-500 text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Handle object (render as JSON textarea for now)
+    if (property.type === "object") {
+      return (
+        <div key={fieldName} className="text-left w-full">
+          <h5 className="block text-sm md:text-base mb-1">
+            {property.title || fieldName}
+            {isRequired && <span className="text-red-500">*</span>}
+          </h5>
+          {property.description && (
+            <p className="text-xs text-gray-500 mb-2">{property.description}</p>
+          )}
+          <Field name={fieldName}>
+            {({ field }: any) => (
+              <FormikTextarea
+                field={{
+                  ...field,
+                  value:
+                    typeof field.value === "object"
+                      ? JSON.stringify(field.value, null, 2)
+                      : field.value || "",
+                }}
+                className={`!py-5 min-h-[100px] ${
+                  !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                }`}
+                placeholder={`Please enter ${
+                  property.title || fieldName
+                } (JSON object)`}
+                errors={errors}
+                touched={touched}
+                onFieldTouched={() => setFieldTouched(fieldName, true)}
+                onFieldChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                  try {
+                    const parsed = JSON.parse(e.target.value);
+                    setFieldValue(fieldName, parsed);
+                  } catch {
+                    setFieldValue(fieldName, e.target.value);
+                  }
+                }}
+              />
+            )}
+          </Field>
+          <div className="min-h-[20px]">
+            <ErrorMessage
+              name={fieldName}
+              component="div"
+              className="text-red-500 text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Default: string input
+    return (
+      <div key={fieldName} className="text-left w-full">
+        <h5 className="block text-sm md:text-base mb-1">
+          {property.title || fieldName}
+          {isRequired && <span className="text-red-500">*</span>}
+        </h5>
+        {property.description && (
+          <p className="text-xs text-gray-500 mb-2">{property.description}</p>
+        )}
+        <Field name={fieldName}>
+          {({ field }: any) => (
+            <FormikInput
+              field={field}
+              type="text"
+              className={`!py-5 ${
+                !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+              }`}
+              placeholder={`Please enter ${property.title || fieldName}`}
+              errors={errors}
+              touched={touched}
+              onFieldTouched={() => setFieldTouched(fieldName, true)}
+              onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setFieldValue(fieldName, e.target.value);
+              }}
+            />
+          )}
+        </Field>
+        <div className="min-h-[20px]">
+          <ErrorMessage
+            name={fieldName}
+            component="div"
+            className="text-red-500 text-sm"
+          />
+        </div>
+      </div>
+    );
+  };
+
   const handleCancel = (resetForm?: () => void) => {
-    handler();
+    if (handler) {
+      handler();
+    }
     if (resetForm) {
       resetForm();
     }
@@ -64,68 +440,28 @@ const DatabaseNodeDialog: React.FC<DatabaseNodeDialogProps> = ({
     handleCancel();
   };
 
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
     <Dialog
       open={open}
       handler={handleCancel}
-      size="lg"
-      bodyClassName="!px-8 !pb-5"
+      size="xs"
+      bodyClassName="!p-0"
+      disableOuterScroll={true}
     >
-      {/* Custom Header with Title and Close Button */}
-      <div className="flex items-center justify-between pt-8 px-8 pb-4">
-        <h2
-          className={`text-xl font-semibold ${
-            isDark ? "text-white" : "text-[#162230]"
-          }`}
-        >
-          Database Node
-        </h2>
-        <button
-          type="button"
-          onClick={handleCloseClick}
-          className="cursor-pointer hover:opacity-70 transition-opacity"
-        >
-          <CancelIcon theme={isDark ? "dark" : "light"} size={24} />
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="px-8 pb-4">
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          className="flex-wrap"
-        />
-      </div>
-
-      {/* Form Content */}
-      <Formik<DatabaseFormValues>
-        initialValues={{
-          label: "Database Connection",
-          databaseType: "SQLite",
-          host: "",
-          port: "0000",
-          username: "",
-          password: "",
-          caCertificate: "",
-          securitySSL: null,
-        }}
-        onSubmit={async (values: DatabaseFormValues) => {
+      <Formik
+        initialValues={initialValues}
+        onSubmit={async (values) => {
           try {
-            console.log("Database Node values:", values);
-            handler();
+            console.log("Node Configuration values:", values);
+            if (handler) {
+              handler();
+            }
           } catch (error: any) {
-            console.log(error, "Database Node Error");
+            console.log(error, "Node Configuration Error");
           }
         }}
       >
         {({
-          resetForm,
           isSubmitting,
           errors,
           touched,
@@ -133,307 +469,426 @@ const DatabaseNodeDialog: React.FC<DatabaseNodeDialogProps> = ({
           setFieldTouched,
           values,
         }) => (
-          <Form>
-            {/* Data Tab Content */}
-            {activeTab === "data" && (
-              <div className="space-y-4 px-8">
-                {/* Label */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">
-                    Label
-                  </h5>
-                  <Field name="label">
-                    {({ field }: any) => (
-                      <FormikInput
-                        field={field}
-                        type="text"
-                        className={`!py-5 ${
-                          !isDark
-                            ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                            : ""
-                        }`}
-                        placeholder="Please enter Label"
-                        errors={errors}
-                        touched={touched}
-                        onFieldTouched={() => setFieldTouched("label", true)}
-                        onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setFieldValue("label", e.target.value);
-                        }}
-                      />
-                    )}
-                  </Field>
-                  <div className="min-h-[20px]">
-                    <ErrorMessage
-                      name="label"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Database Type */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">
-                    Database Type
-                  </h5>
-                  <Field name="databaseType">
-                    {({ field }: any) => (
-                      <FormikSelect
-                        field={field}
-                        options={databaseTypeOptions}
-                        placeholder="Please select Database Type"
-                        className="w-full"
-                        errors={errors}
-                        touched={touched}
-                        onFieldTouched={() =>
-                          setFieldTouched("databaseType", true)
-                        }
-                        onFieldChange={(option: any) => {
-                          setFieldValue("databaseType", option?.value || "");
-                        }}
-                        menuPortalTarget={document.body}
-                      />
-                    )}
-                  </Field>
-                  <div className="min-h-[20px]">
-                    <ErrorMessage
-                      name="databaseType"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Host */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">Host</h5>
-                  <Field name="host">
-                    {({ field }: any) => (
-                      <FormikInput
-                        field={field}
-                        type="text"
-                        className={`!py-5 ${
-                          !isDark
-                            ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                            : ""
-                        }`}
-                        placeholder="Please enter Host name"
-                        errors={errors}
-                        touched={touched}
-                        onFieldTouched={() => setFieldTouched("host", true)}
-                        onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setFieldValue("host", e.target.value);
-                        }}
-                      />
-                    )}
-                  </Field>
-                  <div className="min-h-[20px]">
-                    <ErrorMessage
-                      name="host"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Port */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">Port</h5>
-                  <Field name="port">
-                    {({ field }: any) => (
-                      <FormikInput
-                        field={field}
-                        type="text"
-                        className={`!py-5 ${
-                          !isDark
-                            ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                            : ""
-                        }`}
-                        placeholder="0000"
-                        errors={errors}
-                        touched={touched}
-                        onFieldTouched={() => setFieldTouched("port", true)}
-                        onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setFieldValue("port", e.target.value);
-                        }}
-                      />
-                    )}
-                  </Field>
-                  <div className="min-h-[20px]">
-                    <ErrorMessage
-                      name="port"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Username */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">Username</h5>
-                  <Field name="username">
-                    {({ field }: any) => (
-                      <FormikInput
-                        field={field}
-                        type="text"
-                        className={`!py-5 ${
-                          !isDark
-                            ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                            : ""
-                        }`}
-                        placeholder="Please enter Username"
-                        errors={errors}
-                        touched={touched}
-                        onFieldTouched={() => setFieldTouched("username", true)}
-                        onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setFieldValue("username", e.target.value);
-                        }}
-                      />
-                    )}
-                  </Field>
-                  <div className="min-h-[20px]">
-                    <ErrorMessage
-                      name="username"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">Password</h5>
-                  <Field name="password">
-                    {({ field }: any) => (
-                      <FormikInput
-                        field={field}
-                        type="password"
-                        className={`!py-5 ${
-                          !isDark
-                            ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                            : ""
-                        }`}
-                        placeholder="Please enter Password"
-                        errors={errors}
-                        touched={touched}
-                        onFieldTouched={() => setFieldTouched("password", true)}
-                        onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setFieldValue("password", e.target.value);
-                        }}
-                      />
-                    )}
-                  </Field>
-                  <div className="min-h-[20px]">
-                    <ErrorMessage
-                      name="password"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* CA Certificate (Optional) */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">
-                    CA Certificate (Optional)
-                  </h5>
-                  <Field name="caCertificate">
-                    {({ field }: any) => (
-                      <FormikInput
-                        field={field}
-                        type="text"
-                        className={`!py-5 ${
-                          !isDark
-                            ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                            : ""
-                        }`}
-                        placeholder="Please enter CA Certificate"
-                        errors={errors}
-                        touched={touched}
-                        onFieldTouched={() =>
-                          setFieldTouched("caCertificate", true)
-                        }
-                        onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setFieldValue("caCertificate", e.target.value);
-                        }}
-                      />
-                    )}
-                  </Field>
-                  <div className="min-h-[20px]">
-                    <ErrorMessage
-                      name="caCertificate"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Security SSL */}
-                <div className="text-left w-full">
-                  <h5 className="block text-sm md:text-base mb-1">
-                    Security SSL
-                  </h5>
-                  <div className="relative">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".crt,.pem,.cer"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        setFieldValue("securitySSL", file);
-                      }}
-                    />
-                    <input
-                      type="text"
-                      readOnly
-                      value={values.securitySSL ? values.securitySSL.name : ""}
-                      className={`
-                        w-full !py-2 !pr-24 px-4 !rounded-xl !border
-                        ${
-                          isDark
-                            ? "!bg-[#0F141D] !border-[#2B3643] !text-white"
-                            : "!bg-white !border-[#E3E6EB] !text-[#162230] shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
-                        }
-                        cursor-pointer
-                        [&::placeholder]:opacity-100
-                        [&::placeholder]:text-[#737373]
-                      `}
-                      placeholder="Please upload CA certificate"
-                      onClick={handleBrowseClick}
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleBrowseClick}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
-                    >
-                      Browse
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Other Tabs Content (Placeholder) */}
-            {activeTab !== "data" && (
-              <div className="px-8 py-8 text-center">
-                <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-                  {activeTab === "dataInputs" && "Data Inputs content coming soon"}
-                  {activeTab === "dataOutputs" && "Data Outputs content coming soon"}
-                  {activeTab === "outPins" && "Out Pins content coming soon"}
+          <Form className="flex flex-col h-full max-h-[90dvh]">
+            {/* Custom Header with Title and Close Button */}
+            <div className="flex items-center justify-between pt-4 px-6 pb-4 flex-shrink-0">
+              <div>
+                <h2
+                  className={`text-xl font-semibold ${
+                    isDark ? "text-white" : "text-[#162230]"
+                  }`}
+                >
+                  {nodeData?.name || "Node Configuration"}
+                </h2>
+                <p
+                  className={`text-sm mt-1 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  Node Properties
                 </p>
               </div>
-            )}
+              <div className="flex items-center gap-3">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="!px-4 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
+                >
+                  Save
+                </Button>
+                <button
+                  type="button"
+                  onClick={handleCloseClick}
+                  className="cursor-pointer hover:opacity-70 transition-opacity"
+                >
+                  <CancelIcon theme={isDark ? "dark" : "light"} size={24} />
+                </button>
+              </div>
+            </div>
 
-            {/* Save Button */}
-            <div className="flex justify-center pt-6 pb-5 px-8">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="!px-8 !py-3 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-base font-medium"
-              >
-                Save
-              </Button>
+            {/* Tabs */}
+            <div className="flex justify-center">
+              <Tabs
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                className="flex-wrap"
+                tabClassName="py-1"
+              />
+            </div>
+
+            {/* Scrollable Form Content */}
+            <div className="flex-1 overflow-y-auto nodes-list-scrollbar min-h-0 px-6">
+              {/* Data Tab Content */}
+              {activeTab === "data" && configSchema?.properties && (
+                <div className="space-y-4 pb-4">
+                  {Object.entries(configSchema.properties).map(
+                    ([fieldName, property]) =>
+                      renderField(
+                        fieldName,
+                        property as ConfigSchemaProperty,
+                        errors,
+                        touched,
+                        setFieldValue,
+                        setFieldTouched,
+                        values
+                      )
+                  )}
+                </div>
+              )}
+
+              
+              {activeTab === "data" && !configSchema?.properties && (
+                <div className="py-8 text-center">
+                  <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+                    No configuration available for this node
+                  </p>
+                </div>
+              )}
+              
+              {activeTab === "dataInputs" && (
+                <div className="space-y-4 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3
+                      className={`text-base font-medium ${
+                        isDark ? "text-white" : "text-[#162230]"
+                      }`}
+                    >
+                      Input Pins
+                    </h3>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const newPin: NodePin = {
+                          id: `input-${Date.now()}`,
+                          name: "Connection",
+                          type: "any",
+                          required: false,
+                          custom: true,
+                        };
+                        setLocalInputs([...localInputs, newPin]);
+                      }}
+                      icon={<PlusIcon />}
+                      className="!px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
+                    >
+                      Add Input
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {localInputs.map((pin, index) => (
+                      <div
+                        key={pin.id || index}
+                        className={`flex items-center gap-3 p-3 rounded-lg border ${
+                          isDark
+                            ? "bg-[#0F141D] border-[#2B3643]"
+                            : "bg-white border-[#E3E6EB] shadow-sm"
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`text-sm font-medium ${
+                                isDark ? "text-white" : "text-[#162230]"
+                              }`}
+                            >
+                              {pin.name}
+                            </span>
+                            <span
+                              className={`text-xs ${
+                                isDark ? "text-gray-400" : "text-gray-500"
+                              }`}
+                            >
+                              Default
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className={`p-1.5 rounded hover:bg-opacity-10 ${
+                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
+                            } transition-colors`}
+                            title="Attach connection"
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8 2L6 4H4C3.44772 4 3 4.44772 3 5V11C3 11.5523 3.44772 12 4 12H12C12.5523 12 13 11.5523 13 11V5C13 4.44772 12.5523 4 12 4H10L8 2Z"
+                                stroke={isDark ? "#9CA3AF" : "#6B7280"}
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLocalInputs(
+                                localInputs.filter((_, i) => i !== index)
+                              );
+                            }}
+                            className={`p-1.5 rounded hover:bg-opacity-10 ${
+                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
+                            } transition-colors`}
+                            title="Delete"
+                          >
+                            <DeleteIcon
+                              height={16}
+                              color={isDark ? "#9CA3AF" : "#6B7280"}
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {localInputs?.length === 0 && (
+                      <p
+                        className={`text-sm text-center py-4 ${
+                          isDark ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        No input pins
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "dataOutputs" && (
+                <div className="space-y-4 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3
+                      className={`text-base font-medium ${
+                        isDark ? "text-white" : "text-[#162230]"
+                      }`}
+                    >
+                      Output Pins
+                    </h3>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const newPin: NodePin = {
+                          id: `output-${Date.now()}`,
+                          name: "Output",
+                          type: "any",
+                          required: false,
+                          custom: true,
+                        };
+                        setLocalOutputs([...localOutputs, newPin]);
+                      }}
+                      icon={<PlusIcon />}
+                      className="!px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
+                    >
+                      Add Output
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {localOutputs.map((pin, index) => (
+                      <div
+                        key={pin.id || index}
+                        className={`flex items-center gap-3 p-3 rounded-lg border ${
+                          isDark
+                            ? "bg-[#0F141D] border-[#2B3643]"
+                            : "bg-white border-[#E3E6EB] shadow-sm"
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`text-sm font-medium ${
+                                isDark ? "text-white" : "text-[#162230]"
+                              }`}
+                            >
+                              {pin.name}
+                            </span>
+                            <span
+                              className={`text-xs ${
+                                isDark ? "text-gray-400" : "text-gray-500"
+                              }`}
+                            >
+                              Default
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className={`p-1.5 rounded hover:bg-opacity-10 ${
+                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
+                            } transition-colors`}
+                            title="Attach connection"
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8 2L6 4H4C3.44772 4 3 4.44772 3 5V11C3 11.5523 3.44772 12 4 12H12C12.5523 12 13 11.5523 13 11V5C13 4.44772 12.5523 4 12 4H10L8 2Z"
+                                stroke={isDark ? "#9CA3AF" : "#6B7280"}
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLocalOutputs(
+                                localOutputs.filter((_, i) => i !== index)
+                              );
+                            }}
+                            className={`p-1.5 rounded hover:bg-opacity-10 ${
+                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
+                            } transition-colors`}
+                            title="Delete"
+                          >
+                            <DeleteIcon
+                              height={16}
+                              color={isDark ? "#9CA3AF" : "#6B7280"}
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {localOutputs.length === 0 && (
+                      <p
+                        className={`text-sm text-center py-4 ${
+                          isDark ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        No output pins
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "outPins" && (
+                <div className="space-y-4 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3
+                      className={`text-base font-medium ${
+                        isDark ? "text-white" : "text-[#162230]"
+                      }`}
+                    >
+                      Out Pins (Next)
+                    </h3>
+                    {configSchema?.metadata?.allow_custom_next_pins && (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          const newPin: NodePin = {
+                            id: `next-${Date.now()}`,
+                            name: "Next",
+                            type: "any",
+                            required: false,
+                            custom: true,
+                          };
+                          setLocalNextPins([...localNextPins, newPin]);
+                        }}
+                        icon={<PlusIcon />}
+                        className="!px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
+                      >
+                        Add Pin
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {localNextPins.map((pin, index) => (
+                      <div
+                        key={pin.id || index}
+                        className={`flex items-center gap-3 p-3 rounded-lg border ${
+                          isDark
+                            ? "bg-[#0F141D] border-[#2B3643]"
+                            : "bg-white border-[#E3E6EB] shadow-sm"
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`text-sm font-medium ${
+                                isDark ? "text-white" : "text-[#162230]"
+                              }`}
+                            >
+                              {pin.name}
+                            </span>
+                            <span
+                              className={`text-xs ${
+                                isDark ? "text-gray-400" : "text-gray-500"
+                              }`}
+                            >
+                              Default
+                            </span>
+                          </div>
+                        </div>
+                        {pin.custom && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              className={`p-1.5 rounded hover:bg-opacity-10 ${
+                                isDark ? "hover:bg-white" : "hover:bg-gray-200"
+                              } transition-colors`}
+                              title="Attach connection"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M8 2L6 4H4C3.44772 4 3 4.44772 3 5V11C3 11.5523 3.44772 12 4 12H12C12.5523 12 13 11.5523 13 11V5C13 4.44772 12.5523 4 12 4H10L8 2Z"
+                                  stroke={isDark ? "#9CA3AF" : "#6B7280"}
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLocalNextPins(
+                                  localNextPins.filter((_, i) => i !== index)
+                                );
+                              }}
+                              className={`p-1.5 rounded hover:bg-opacity-10 ${
+                                isDark ? "hover:bg-white" : "hover:bg-gray-200"
+                              } transition-colors`}
+                              title="Delete"
+                            >
+                              <DeleteIcon
+                                height={16}
+                                color={isDark ? "#9CA3AF" : "#6B7280"}
+                              />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {localNextPins.length === 0 && (
+                      <p
+                        className={`text-sm text-center py-4 ${
+                          isDark ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        No out pins
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </Form>
         )}
@@ -443,4 +898,3 @@ const DatabaseNodeDialog: React.FC<DatabaseNodeDialogProps> = ({
 };
 
 export default DatabaseNodeDialog;
-

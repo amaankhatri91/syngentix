@@ -33,9 +33,15 @@ import { useAppSelector, useAppDispatch } from "@/store";
 import {
   updateNodes,
   setEdges,
+  setDatabaseDialogOpen,
+  setSelectedNode,
 } from "@/store/workflowEditor/workflowEditorSlice";
 
-const WorkflowCanvas: React.FC = () => {
+interface WorkflowCanvasProps {
+  nodesData?: any;
+}
+
+const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const { isDark } = useTheme();
   const { emit } = useSocketConnection();
   const { workflowId } = useParams<{ workflowId: string }>();
@@ -171,6 +177,35 @@ const WorkflowCanvas: React.FC = () => {
     setContextMenu(null);
   }, []);
 
+  // Handle node double click to open database dialog
+  const onNodeDoubleClick = useCallback(
+    (_event: React.MouseEvent, node: Node<CustomNodeData>) => {
+      console.log("🖱️ Node double-clicked:", node);
+      // Filter and find the node from nodesData
+      let foundNode = null;
+      if (nodesData?.data && node?.data?.label) {
+        for (const category of nodesData.data) {
+          if (category.nodes && Array.isArray(category.nodes)) {
+            const matchedNode = category.nodes.find(
+              (n: any) =>
+                n.name === node.data.label ||
+                n.id === node.data.label ||
+                n.name?.toLowerCase() === node.data.label?.toLowerCase()
+            );
+            if (matchedNode) {
+              foundNode = { node: matchedNode, category: category.name || category.category };
+              break;
+            }
+          }
+        }
+      }
+      
+      dispatch(setSelectedNode(foundNode));
+      dispatch(setDatabaseDialogOpen(true));
+    },
+    [dispatch, nodesData]
+  );
+
   // Close context menu when clicking on the pane
   const onPaneClick = useCallback(() => {
     setContextMenu(null);
@@ -263,6 +298,7 @@ const WorkflowCanvas: React.FC = () => {
         onInit={setReactFlowInstance}
         onPaneContextMenu={onPaneContextMenu}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={onNodeDoubleClick}
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
         onDrop={(event) => {

@@ -4,7 +4,6 @@ import useTheme from "@/utils/hooks/useTheme";
 import { useMemo, useEffect } from "react";
 import DocumentIcon from "@/assets/app-icons/DocumentIcon";
 import { MenuIcon } from "@/assets/app-icons";
-import { useGetNodesQuery } from "@/services/RtkQueryService";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   setSearchQuery,
@@ -19,13 +18,21 @@ import {
 import ChevronRightIcon from "@/assets/app-icons/ChevronRightIcon";
 import WorkflowNodesListSkeleton from "./WorkflowNodesListSkeleton";
 
-const WorkflowNodesList = () => {
+interface WorkflowNodesListProps {
+  nodesData: any;
+  nodesLoading: boolean;
+  nodesError: any;
+}
+
+const WorkflowNodesList = ({ nodesData, nodesLoading, nodesError }: WorkflowNodesListProps) => {
   const { isDark } = useTheme();
   const dispatch = useAppDispatch();
   const { searchQuery, expandedCategories } = useAppSelector(
     (state) => state.workflowEditor
   );
-  const { data, isLoading, error } = useGetNodesQuery();
+  const data = nodesData;
+  const isLoading = nodesLoading;
+  const error = nodesError;
 
   // Expand all categories by default when data loads
   useEffect(() => {
