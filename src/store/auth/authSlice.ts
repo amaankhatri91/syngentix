@@ -52,7 +52,7 @@ const initialState: UserState = {
   token: null,
   refreshToken: null,
   persist: false,
-  theme: "light",
+  theme: "dark",
   sidebarOpen: true,
   can_register: false,
   register_email: "",

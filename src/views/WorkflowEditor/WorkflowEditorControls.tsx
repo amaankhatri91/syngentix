@@ -12,12 +12,12 @@ import { toggleLock } from "@/store/workflowEditor/workflowEditorSlice";
 const WorkflowEditorControls: React.FC = () => {
   const dispatch = useAppDispatch();
   const isLocked = useAppSelector((state) => state.workflowEditor.isLocked);
-  
+
   const handleToggleLock = () => {
     dispatch(toggleLock());
   };
   const { isDark } = useTheme();
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, getViewport, setViewport } = useReactFlow();
 
   const iconColor = isDark ? "#FFFFFF" : "#162230";
   const iconSize = 14;
@@ -40,7 +40,14 @@ const WorkflowEditorControls: React.FC = () => {
       </button>
       <button
         type="button"
-        onClick={() => zoomOut()}
+        onClick={() => {
+          const viewport = getViewport();
+          console.log(
+            "Minus sign clicked - Zoom Out",
+            `Current zoom: ${viewport.zoom}`
+          );
+          zoomOut();
+        }}
         className="flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-80 transition-opacity border cursor-pointer"
         style={{
           backgroundColor: "transparent",
@@ -52,7 +59,15 @@ const WorkflowEditorControls: React.FC = () => {
       </button>
       <button
         type="button"
-        onClick={() => fitView({ padding: 0.2 })}
+        onClick={() => {
+          const defaultViewport = { x: 0, y: 0, zoom: 1.0995899256440786 };
+          setViewport(defaultViewport);
+          // Use requestAnimationFrame to ensure viewport is updated before logging
+          requestAnimationFrame(() => {
+            const viewport = getViewport();
+            console.log("Fit View clicked - Viewport:", viewport);
+          });
+        }}
         className="flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-80 transition-opacity border cursor-pointer"
         style={{
           backgroundColor: "transparent",

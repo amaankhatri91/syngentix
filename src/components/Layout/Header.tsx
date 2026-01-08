@@ -39,7 +39,7 @@ const Header: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button
+          {/* <button
             onClick={handleThemeToggle}
             aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
             className="relative flex items-center justify-center"
@@ -54,7 +54,7 @@ const Header: React.FC = () => {
                 opacity-100 scale-100
               "
             />
-          </button>
+          </button> */}
           <SearchInput
             placeholder="Search for..."
             onSearch={(value) => {

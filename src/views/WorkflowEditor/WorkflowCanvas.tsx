@@ -293,15 +293,13 @@ const WorkflowCanvas: React.FC = () => {
           event.preventDefault();
           event.dataTransfer.dropEffect = "move";
         }}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
         nodesDraggable={!isLocked}
         nodesConnectable={!isLocked}
         elementsSelectable={true}
         panOnDrag={true}
         zoomOnScroll={true}
         zoomOnPinch={true}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+        defaultViewport={{ x: 0, y: 0, zoom: 1.0995899256440786 }}
         connectionLineStyle={{
           stroke: "#8E8E93",
           strokeWidth: 2,

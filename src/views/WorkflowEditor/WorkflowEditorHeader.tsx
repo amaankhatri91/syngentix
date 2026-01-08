@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import useTheme from "@/utils/hooks/useTheme";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { setEdgeThickness } from "@/store/workflowEditor/workflowEditorSlice";
+import { setEdgeThickness, setOpenSettings } from "@/store/workflowEditor/workflowEditorSlice";
 import {
   getIconColor,
   getButtonStyles,
@@ -25,6 +25,7 @@ import {
 } from "@/assets/app-icons";
 import TestRun from "@/assets/app-icons/TestRun";
 import DownloadIcon from "@/assets/app-icons/DownloadIcon";
+import SettingsIcon from "@/assets/app-icons/SettingsIcon";
 import { EdgeThicknessOptions } from "@/constants/workflow.constant";
 
 const WorkflowEditorHeader = () => {
@@ -257,11 +258,14 @@ const WorkflowEditorHeader = () => {
             <h5>Redo</h5>
           </button>
         </div>
-        <div>
-          <button className={getButtonStyles(isDark)}>
-            <CrownIcon color={getIconColor(isDark)} size={18} />
-          </button>
-        </div>
+        <button
+          onClick={() => dispatch(setOpenSettings(true))}
+          className={`${getButtonBaseStyles(
+            isDark
+          )}  bg-gradient-to-r from-[#9133EA] to-[#2962EB] text-white hover:opacity-90`}
+        >
+          <SettingsIcon theme="dark" height={16} />
+        </button>
       </div>
       <div className="flex gap-4">
         <button className={getButtonStyles(isDark)}>

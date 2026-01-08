@@ -6,6 +6,7 @@ const SLICE_NAME = "workflowEditor";
 
 export type WorkflowEditorState = {
   openNodeList: boolean;
+  openSettings: boolean;
   searchQuery: string;
   expandedCategories: string[];
   nodes: Node<CustomNodeData>[];
@@ -17,6 +18,7 @@ export type WorkflowEditorState = {
 
 const initialState: WorkflowEditorState = {
   openNodeList: false,
+  openSettings: false,
   searchQuery: "",
   expandedCategories: [],
   nodes: [],
@@ -32,6 +34,9 @@ const workflowEditorSlice = createSlice({
   reducers: {
     setOpenNodeList: (state, action) => {
       state.openNodeList = action.payload;
+    },
+    setOpenSettings: (state, action: PayloadAction<boolean>) => {
+      state.openSettings = action.payload;
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
@@ -94,6 +99,7 @@ const workflowEditorSlice = createSlice({
 
 export const {
   setOpenNodeList,
+  setOpenSettings,
   setSearchQuery,
   setExpandedCategories,
   toggleCategory,
