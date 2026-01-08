@@ -5,7 +5,6 @@ import { FormikInput } from "@/components/FormikInput";
 import { FormikTextarea } from "@/components/FormikTextarea";
 import { FooterButtons } from "@/components/FooterButtons";
 import useTheme from "@/utils/hooks/useTheme";
-import useIsSmallScreen from "@/utils/hooks/useIsSmallScreen";
 import { WorkflowFormValues } from "./types";
 import { WorkflowSchema } from "./WorkflowSchema";
 import { useAppDispatch, useAppSelector } from "@/store";
