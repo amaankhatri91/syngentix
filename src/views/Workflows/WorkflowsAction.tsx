@@ -57,7 +57,7 @@ const WorkflowsAction = () => {
         </Button>
       </div>
       <div className="flex items-center gap-3">
-        <div className="w-[600px]">
+        <div className="w-[460px]">
           <SearchInput
             placeholder="Search workflow or other..."
             width="w-full"
