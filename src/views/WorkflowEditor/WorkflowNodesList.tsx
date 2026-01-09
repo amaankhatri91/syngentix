@@ -24,7 +24,11 @@ interface WorkflowNodesListProps {
   nodesError: any;
 }
 
-const WorkflowNodesList = ({ nodesData, nodesLoading, nodesError }: WorkflowNodesListProps) => {
+const WorkflowNodesList = ({
+  nodesData,
+  nodesLoading,
+  nodesError,
+}: WorkflowNodesListProps) => {
   const { isDark } = useTheme();
   const dispatch = useAppDispatch();
   const { searchQuery, expandedCategories } = useAppSelector(

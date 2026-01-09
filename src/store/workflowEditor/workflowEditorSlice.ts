@@ -16,6 +16,8 @@ export type WorkflowEditorState = {
   editingNotes: Record<string, boolean>; // Map of node ID to editing state
   databaseDialogOpen: boolean;
   selectedNode: any | null; // Store the filtered node object
+  selectedNodeId?: string;
+  nodeList?: null | any;
 };
 
 const initialState: WorkflowEditorState = {
@@ -30,6 +32,8 @@ const initialState: WorkflowEditorState = {
   editingNotes: {}, // Map of node ID to editing state
   databaseDialogOpen: false,
   selectedNode: null,
+  selectedNodeId: "",
+  nodeList: [],
 };
 
 const workflowEditorSlice = createSlice({
@@ -60,8 +64,13 @@ const workflowEditorSlice = createSlice({
     setNodes: (state, action: PayloadAction<Node<CustomNodeData>[]>) => {
       state.nodes = action.payload;
     },
+    setNodeList: (state, action) => {
+      state.nodeList = action.payload;
+    },
     addNode: (state, action: PayloadAction<Node<CustomNodeData>>) => {
-      const nodeExists = state.nodes.some((node) => node.id === action.payload.id);
+      const nodeExists = state.nodes.some(
+        (node) => node.id === action.payload.id
+      );
       if (nodeExists) {
         // Update existing node
         state.nodes = state.nodes.map((node) =>
@@ -104,6 +113,9 @@ const workflowEditorSlice = createSlice({
     setSelectedNode: (state, action: PayloadAction<any | null>) => {
       state.selectedNode = action.payload;
     },
+    setSelectedNodeId: (state, action) => {
+      state.selectedNodeId = action.payload;
+    },
   },
 });
 
@@ -123,6 +135,8 @@ export const {
   clearEditingNotes,
   setDatabaseDialogOpen,
   setSelectedNode,
+  setSelectedNodeId,
+  setNodeList,
 } = workflowEditorSlice.actions;
 
 export default workflowEditorSlice.reducer;

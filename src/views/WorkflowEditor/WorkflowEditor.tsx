@@ -53,6 +53,7 @@ const WorkflowEditor = () => {
         nodesLoading={isLoading}
         nodesError={error}
         selectedNode={selectedNode}
+        workflowId={workflowId}
       />
       <div>
         <div className="flex flex-col h-[calc(100vh-174px)] overflow-hidden gap-8 lg:flex-row mt-4">

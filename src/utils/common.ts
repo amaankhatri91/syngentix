@@ -6,8 +6,17 @@ import { io, Socket } from "socket.io-client";
 import { Node, Edge } from "reactflow";
 import { CustomNodeData } from "@/views/WorkflowEditor/type";
 import { StylesConfig, GroupBase } from "react-select";
+import { NodePin } from "@/views/WorkflowEditor/type";
+
 
 let socket: Socket | null = null;
+
+interface CreatePinPayloadParams {
+  pin: NodePin;
+  workflowId: string;
+  nodeId: string;
+  pinType: "input" | "output" | "nextPin";
+}
 
 export const getActiveTabLabel = (
   tabs: TabItem[],
@@ -366,33 +375,21 @@ export const getReactSelectStyles = (
   return {
     control: (base: any, state: any) => {
       const isLightModeNoError = !isDark && !hasError;
-      const borderColor = hasError 
-        ? "#EF4444" 
-        : isDark 
-        ? "#2B3643" 
-        : "#D1D5DB";
-      const hoverBorderColor = hasError 
-        ? "#EF4444" 
-        : isDark 
-        ? "#2B3643" 
+      const borderColor = hasError ? "#EF4444" : isDark ? "#2B3643" : "#D1D5DB";
+      const hoverBorderColor = hasError
+        ? "#EF4444"
+        : isDark
+        ? "#2B3643"
         : "#9CA3AF";
 
       return {
         ...base,
         backgroundColor: isDark ? "#0F141D" : "#FFFFFF",
         borderColor: borderColor,
-        borderTopColor: isLightModeNoError
-          ? "#EAEAEA"
-          : borderColor,
-        borderBottomColor: isLightModeNoError
-          ? "transparent"
-          : borderColor,
-        borderLeftColor: isLightModeNoError
-          ? "transparent"
-          : borderColor,
-        borderRightColor: isLightModeNoError
-          ? "transparent"
-          : borderColor,
+        borderTopColor: isLightModeNoError ? "#EAEAEA" : borderColor,
+        borderBottomColor: isLightModeNoError ? "transparent" : borderColor,
+        borderLeftColor: isLightModeNoError ? "transparent" : borderColor,
+        borderRightColor: isLightModeNoError ? "transparent" : borderColor,
         borderTopWidth: "1px",
         borderBottomWidth: isLightModeNoError ? "0px" : "1px",
         borderLeftWidth: isLightModeNoError ? "0px" : "1px",
@@ -405,9 +402,7 @@ export const getReactSelectStyles = (
         boxShadow: isLightModeNoError ? "0 4px 8px 0 rgba(1,5,17,0.1)" : "none",
         "&:hover": {
           borderColor: hoverBorderColor,
-          borderTopColor: isLightModeNoError
-            ? "#EAEAEA"
-            : hoverBorderColor,
+          borderTopColor: isLightModeNoError ? "#EAEAEA" : hoverBorderColor,
           borderBottomColor: isLightModeNoError
             ? "transparent"
             : hoverBorderColor,
@@ -420,9 +415,7 @@ export const getReactSelectStyles = (
         },
         ...(state.isFocused && {
           borderColor: hoverBorderColor,
-          borderTopColor: isLightModeNoError
-            ? "#EAEAEA"
-            : hoverBorderColor,
+          borderTopColor: isLightModeNoError ? "#EAEAEA" : hoverBorderColor,
           borderBottomColor: isLightModeNoError
             ? "transparent"
             : hoverBorderColor,
@@ -1131,4 +1124,37 @@ export const modalSelect = <T>(
       },
     }),
   };
+};
+
+
+/**
+ * Creates a payload for pin operations (add, edit, delete)
+ * @param params - Object containing pin data, workflowId, nodeId, and pinType
+ * @returns Payload object matching the backend API specification
+ */
+export const createPinPayload = ({
+  pin,
+  workflowId,
+  nodeId,
+  pinType,
+}: CreatePinPayloadParams) => {
+  // Map pinType to pin_collection
+  const pinCollectionMap: Record<string, string> = {
+    input: "inputs",
+    output: "outputs",
+    nextPin: "next_pins",
+  };
+
+  const payload = {
+    workflow_id: workflowId || "",
+    node_id: nodeId || "",
+    pin_collection: pinCollectionMap[pinType] || "inputs",
+    pin: {
+      name: pin.name,
+      type: pin.type || "any",
+      required: pin.required || false,
+    },
+  };
+
+  return payload;
 };

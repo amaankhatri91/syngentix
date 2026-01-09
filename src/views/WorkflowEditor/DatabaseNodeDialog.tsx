@@ -8,12 +8,11 @@ import { Button } from "@/components/Button";
 import Tabs from "@/components/Tabs";
 import { TabItem } from "@/components/Tabs";
 import CancelIcon from "@/assets/app-icons/CancelIcon";
-import PlusIcon from "@/assets/app-icons/PlusIcon";
-import DeleteIcon from "@/assets/app-icons/DeleteIcon";
 import useTheme from "@/utils/hooks/useTheme";
+import { NodePin } from "./type";
+import WorkflowPinsManager from "./WorkflowPinsManager";
 import { useAppSelector } from "@/store";
-import { Node } from "reactflow";
-import { CustomNodeData, NodePin } from "./type";
+import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
 
 interface DatabaseNodeDialogProps {
   open?: boolean;
@@ -22,6 +21,7 @@ interface DatabaseNodeDialogProps {
   nodesLoading?: boolean;
   nodesError?: any;
   selectedNode?: any | null;
+  workflowId?: string;
 }
 
 interface ConfigSchemaProperty {
@@ -51,16 +51,15 @@ const DatabaseNodeDialog = ({
   nodesLoading,
   nodesError,
   selectedNode,
+  workflowId,
 }: DatabaseNodeDialogProps) => {
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<string | number>("data");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { emit } = useSocketConnection();
 
-  console.log(selectedNode, "Verify Selected Nodes");
-
-  // Get node data
   const nodeData = useMemo(() => {
-    return selectedNode?.node;
+    return selectedNode?.data || null;
   }, [selectedNode]);
 
   // Get config schema from selected node
@@ -72,12 +71,13 @@ const DatabaseNodeDialog = ({
   const inputs = useMemo(() => nodeData?.inputs || [], [nodeData]);
   const outputs = useMemo(() => nodeData?.outputs || [], [nodeData]);
   const nextPins = useMemo(() => nodeData?.next_pins || [], [nodeData]);
-  const triggerPins = useMemo(() => nodeData?.trigger_pins || [], [nodeData]);
 
   // State for managing pins (for adding/removing)
   const [localInputs, setLocalInputs] = useState<NodePin[]>(inputs);
   const [localOutputs, setLocalOutputs] = useState<NodePin[]>(outputs);
   const [localNextPins, setLocalNextPins] = useState<NodePin[]>(nextPins);
+
+  console.log(selectedNode , "verify Selected node")
 
   // Update local state when nodeData changes
   React.useEffect(() => {
@@ -86,14 +86,24 @@ const DatabaseNodeDialog = ({
     setLocalNextPins(nextPins);
   }, [inputs, outputs, nextPins]);
 
-  // Generate initial values from config schema
+  // Generate initial values from config schema and node data
   const initialValues = useMemo(() => {
     const values: Record<string, any> = {};
+
+    // Add label field (from selectedNode.label)
+    values.label = selectedNode?.label || "";
+
+    // Get existing config data from selectedNode.data if available
+    const existingConfig = selectedNode?.data?.config || {};
 
     if (configSchema?.properties) {
       Object.entries(configSchema.properties).forEach(([key, prop]) => {
         const property = prop as ConfigSchemaProperty;
-        if (property.default !== undefined) {
+        
+        // Use existing value from node data if available, otherwise use default
+        if (existingConfig[key] !== undefined) {
+          values[key] = existingConfig[key];
+        } else if (property.default !== undefined) {
           values[key] = property.default;
         } else {
           // Set default based on type
@@ -121,7 +131,7 @@ const DatabaseNodeDialog = ({
     }
 
     return values;
-  }, [configSchema]);
+  }, [configSchema, selectedNode]);
 
   // Render dynamic form field based on property type
   const renderField = (
@@ -134,7 +144,6 @@ const DatabaseNodeDialog = ({
     values: any
   ) => {
     const isRequired = configSchema?.required?.includes(fieldName);
-    const hasError = errors?.[fieldName] && touched?.[fieldName];
 
     // Handle enum (dropdown)
     if (property.enum && property.enum.length > 0) {
@@ -444,7 +453,7 @@ const DatabaseNodeDialog = ({
     <Dialog
       open={open}
       handler={handleCancel}
-      size="xs"
+      size="sm"
       bodyClassName="!p-0"
       disableOuterScroll={true}
     >
@@ -453,9 +462,31 @@ const DatabaseNodeDialog = ({
         onSubmit={async (values) => {
           try {
             console.log("Node Configuration values:", values);
-            if (handler) {
-              handler();
+            
+            if (!workflowId || !selectedNode?.id) {
+              console.error("Missing workflowId or nodeId");
+              return;
             }
+
+            // Extract label and config from values
+            const { label, ...config } = values;
+
+            // Prepare node:update payload
+            const updatePayload = {
+              workflow_id: workflowId,
+              id: selectedNode.id,
+              data: {
+                label: label || null,
+                ...config,
+              },
+              node_type: selectedNode.type, // Optional field
+            };
+
+            console.log("Node update payload:", updatePayload);
+            // emit("node:update", updatePayload);
+
+            // Optionally close the dialog after successful update
+            // The server will send node:updated event which we can listen to
           } catch (error: any) {
             console.log(error, "Node Configuration Error");
           }
@@ -480,22 +511,8 @@ const DatabaseNodeDialog = ({
                 >
                   {nodeData?.name || "Node Configuration"}
                 </h2>
-                <p
-                  className={`text-sm mt-1 ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Node Properties
-                </p>
               </div>
               <div className="flex items-center gap-3">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="!px-4 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
-                >
-                  Save
-                </Button>
                 <button
                   type="button"
                   onClick={handleCloseClick}
@@ -505,391 +522,145 @@ const DatabaseNodeDialog = ({
                 </button>
               </div>
             </div>
-
+            <div className="px-4 pb-2">
+              <hr
+                className={`border-t ${
+                  isDark ? "border-[#2B3643]" : "border-[#E3E6EB]"
+                }`}
+              />
+            </div>
             {/* Tabs */}
-            <div className="flex justify-center">
+            <div className="px-6">
               <Tabs
                 tabs={tabs}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
-                className="flex-wrap"
-                tabClassName="py-1"
+                className="gap-2"
+                tabClassName="!py-1 !px-3 flex-1"
               />
             </div>
 
             {/* Scrollable Form Content */}
-            <div className="flex-1 overflow-y-auto nodes-list-scrollbar min-h-0 px-6">
+            <div className="flex-1 mt-6 overflow-y-auto nodes-list-scrollbar min-h-0 pr-3 pl-7">
               {/* Data Tab Content */}
-              {activeTab === "data" && configSchema?.properties && (
-                <div className="space-y-4 pb-4">
-                  {Object.entries(configSchema.properties).map(
-                    ([fieldName, property]) =>
-                      renderField(
-                        fieldName,
-                        property as ConfigSchemaProperty,
-                        errors,
-                        touched,
-                        setFieldValue,
-                        setFieldTouched,
-                        values
-                      )
+              {activeTab === "data" && (
+                <div className="pb-4">
+                  {/* Label Field */}
+                  <div className="text-left w-full mb-4">
+                    <h5 className="block text-sm md:text-base mb-1">
+                      Label
+                    </h5>
+                    <Field name="label">
+                      {({ field }: any) => (
+                        <FormikInput
+                          field={field}
+                          type="text"
+                          className={`!py-5 ${
+                            !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                          }`}
+                          placeholder="Enter node label"
+                          errors={errors}
+                          touched={touched}
+                          onFieldTouched={() => setFieldTouched("label", true)}
+                          onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFieldValue("label", e.target.value);
+                          }}
+                        />
+                      )}
+                    </Field>
+                    <div className="min-h-[20px]">
+                      <ErrorMessage
+                        name="label"
+                        component="div"
+                        className="text-red-500 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Config Schema Properties */}
+                  {configSchema?.properties && 
+                    Object.entries(configSchema.properties).map(
+                      ([fieldName, property]) =>
+                        renderField(
+                          fieldName,
+                          property as ConfigSchemaProperty,
+                          errors,
+                          touched,
+                          setFieldValue,
+                          setFieldTouched,
+                          values
+                        )
+                    )
+                  }
+
+                  {/* Show message if no config properties */}
+                  {!configSchema?.properties && (
+                    <div className="py-4 text-center">
+                      <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+                        No additional configuration available for this node
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
 
-              
-              {activeTab === "data" && !configSchema?.properties && (
-                <div className="py-8 text-center">
-                  <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-                    No configuration available for this node
-                  </p>
-                </div>
-              )}
-              
               {activeTab === "dataInputs" && (
-                <div className="space-y-4 pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3
-                      className={`text-base font-medium ${
-                        isDark ? "text-white" : "text-[#162230]"
-                      }`}
-                    >
-                      Input Pins
-                    </h3>
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        const newPin: NodePin = {
-                          id: `input-${Date.now()}`,
-                          name: "Connection",
-                          type: "any",
-                          required: false,
-                          custom: true,
-                        };
-                        setLocalInputs([...localInputs, newPin]);
-                      }}
-                      icon={<PlusIcon />}
-                      className="!px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
-                    >
-                      Add Input
-                    </Button>
-                  </div>
-                  <div className="space-y-3">
-                    {localInputs.map((pin, index) => (
-                      <div
-                        key={pin.id || index}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${
-                          isDark
-                            ? "bg-[#0F141D] border-[#2B3643]"
-                            : "bg-white border-[#E3E6EB] shadow-sm"
-                        }`}
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span
-                              className={`text-sm font-medium ${
-                                isDark ? "text-white" : "text-[#162230]"
-                              }`}
-                            >
-                              {pin.name}
-                            </span>
-                            <span
-                              className={`text-xs ${
-                                isDark ? "text-gray-400" : "text-gray-500"
-                              }`}
-                            >
-                              Default
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className={`p-1.5 rounded hover:bg-opacity-10 ${
-                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
-                            } transition-colors`}
-                            title="Attach connection"
-                          >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M8 2L6 4H4C3.44772 4 3 4.44772 3 5V11C3 11.5523 3.44772 12 4 12H12C12.5523 12 13 11.5523 13 11V5C13 4.44772 12.5523 4 12 4H10L8 2Z"
-                                stroke={isDark ? "#9CA3AF" : "#6B7280"}
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLocalInputs(
-                                localInputs.filter((_, i) => i !== index)
-                              );
-                            }}
-                            className={`p-1.5 rounded hover:bg-opacity-10 ${
-                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
-                            } transition-colors`}
-                            title="Delete"
-                          >
-                            <DeleteIcon
-                              height={16}
-                              color={isDark ? "#9CA3AF" : "#6B7280"}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {localInputs?.length === 0 && (
-                      <p
-                        className={`text-sm text-center py-4 ${
-                          isDark ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
-                        No input pins
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <WorkflowPinsManager
+                  pins={localInputs}
+                  onPinsChange={setLocalInputs}
+                  title="Input Pins"
+                  pinType="input"
+                  allowAdd={
+                    configSchema?.metadata?.allow_custom_input_pins ?? true
+                  }
+                  defaultPinName="Input"
+                  workflowId={workflowId}
+                  nodeId={selectedNode?.id}
+                />
               )}
 
               {activeTab === "dataOutputs" && (
-                <div className="space-y-4 pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3
-                      className={`text-base font-medium ${
-                        isDark ? "text-white" : "text-[#162230]"
-                      }`}
-                    >
-                      Output Pins
-                    </h3>
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        const newPin: NodePin = {
-                          id: `output-${Date.now()}`,
-                          name: "Output",
-                          type: "any",
-                          required: false,
-                          custom: true,
-                        };
-                        setLocalOutputs([...localOutputs, newPin]);
-                      }}
-                      icon={<PlusIcon />}
-                      className="!px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
-                    >
-                      Add Output
-                    </Button>
-                  </div>
-                  <div className="space-y-3">
-                    {localOutputs.map((pin, index) => (
-                      <div
-                        key={pin.id || index}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${
-                          isDark
-                            ? "bg-[#0F141D] border-[#2B3643]"
-                            : "bg-white border-[#E3E6EB] shadow-sm"
-                        }`}
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span
-                              className={`text-sm font-medium ${
-                                isDark ? "text-white" : "text-[#162230]"
-                              }`}
-                            >
-                              {pin.name}
-                            </span>
-                            <span
-                              className={`text-xs ${
-                                isDark ? "text-gray-400" : "text-gray-500"
-                              }`}
-                            >
-                              Default
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className={`p-1.5 rounded hover:bg-opacity-10 ${
-                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
-                            } transition-colors`}
-                            title="Attach connection"
-                          >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M8 2L6 4H4C3.44772 4 3 4.44772 3 5V11C3 11.5523 3.44772 12 4 12H12C12.5523 12 13 11.5523 13 11V5C13 4.44772 12.5523 4 12 4H10L8 2Z"
-                                stroke={isDark ? "#9CA3AF" : "#6B7280"}
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLocalOutputs(
-                                localOutputs.filter((_, i) => i !== index)
-                              );
-                            }}
-                            className={`p-1.5 rounded hover:bg-opacity-10 ${
-                              isDark ? "hover:bg-white" : "hover:bg-gray-200"
-                            } transition-colors`}
-                            title="Delete"
-                          >
-                            <DeleteIcon
-                              height={16}
-                              color={isDark ? "#9CA3AF" : "#6B7280"}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {localOutputs.length === 0 && (
-                      <p
-                        className={`text-sm text-center py-4 ${
-                          isDark ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
-                        No output pins
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <WorkflowPinsManager
+                  pins={localOutputs}
+                  onPinsChange={setLocalOutputs}
+                  title="Output Pins"
+                  pinType="output"
+                  allowAdd={
+                    configSchema?.metadata?.allow_custom_output_pins ?? true
+                  }
+                  defaultPinName="Output"
+                  workflowId={workflowId}
+                  nodeId={selectedNode?.id}
+                />
               )}
 
               {activeTab === "outPins" && (
-                <div className="space-y-4 pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3
-                      className={`text-base font-medium ${
-                        isDark ? "text-white" : "text-[#162230]"
-                      }`}
-                    >
-                      Out Pins (Next)
-                    </h3>
-                    {configSchema?.metadata?.allow_custom_next_pins && (
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          const newPin: NodePin = {
-                            id: `next-${Date.now()}`,
-                            name: "Next",
-                            type: "any",
-                            required: false,
-                            custom: true,
-                          };
-                          setLocalNextPins([...localNextPins, newPin]);
-                        }}
-                        icon={<PlusIcon />}
-                        className="!px-3 !py-2 !rounded-lg !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
-                      >
-                        Add Pin
-                      </Button>
-                    )}
-                  </div>
-                  <div className="space-y-3">
-                    {localNextPins.map((pin, index) => (
-                      <div
-                        key={pin.id || index}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${
-                          isDark
-                            ? "bg-[#0F141D] border-[#2B3643]"
-                            : "bg-white border-[#E3E6EB] shadow-sm"
-                        }`}
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span
-                              className={`text-sm font-medium ${
-                                isDark ? "text-white" : "text-[#162230]"
-                              }`}
-                            >
-                              {pin.name}
-                            </span>
-                            <span
-                              className={`text-xs ${
-                                isDark ? "text-gray-400" : "text-gray-500"
-                              }`}
-                            >
-                              Default
-                            </span>
-                          </div>
-                        </div>
-                        {pin.custom && (
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              className={`p-1.5 rounded hover:bg-opacity-10 ${
-                                isDark ? "hover:bg-white" : "hover:bg-gray-200"
-                              } transition-colors`}
-                              title="Attach connection"
-                            >
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M8 2L6 4H4C3.44772 4 3 4.44772 3 5V11C3 11.5523 3.44772 12 4 12H12C12.5523 12 13 11.5523 13 11V5C13 4.44772 12.5523 4 12 4H10L8 2Z"
-                                  stroke={isDark ? "#9CA3AF" : "#6B7280"}
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setLocalNextPins(
-                                  localNextPins.filter((_, i) => i !== index)
-                                );
-                              }}
-                              className={`p-1.5 rounded hover:bg-opacity-10 ${
-                                isDark ? "hover:bg-white" : "hover:bg-gray-200"
-                              } transition-colors`}
-                              title="Delete"
-                            >
-                              <DeleteIcon
-                                height={16}
-                                color={isDark ? "#9CA3AF" : "#6B7280"}
-                              />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {localNextPins.length === 0 && (
-                      <p
-                        className={`text-sm text-center py-4 ${
-                          isDark ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
-                        No out pins
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <WorkflowPinsManager
+                  pins={localNextPins}
+                  onPinsChange={setLocalNextPins}
+                  title="Out Pins (Next)"
+                  pinType="nextPin"
+                  allowAdd={
+                    configSchema?.metadata?.allow_custom_next_pins ?? true
+                  }
+                  defaultPinName="Pin"
+                  workflowId={workflowId}
+                  nodeId={selectedNode?.id}
+                />
               )}
             </div>
+            {/* Footer with Save Button - Only show for data tab */}
+            {activeTab === "data" && (
+              <div className="flex items-center justify-center gap-3 pt-4 px-6 pb-4 flex-shrink-0  dark:border-gray-700">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="!px-6 !py-2 !rounded-md !text-white !bg-gradient-to-r from-[#9133ea] to-[#2962eb] text-sm font-medium"
+                >
+                  Save
+                </Button>
+              </div>
+            )}
           </Form>
         )}
       </Formik>

@@ -18,8 +18,6 @@ import useRefetchQueries from "@/utils/hooks/useRefetchQueries";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
 
 const WorkflowDialog = () => {
-  const { isDark } = useTheme();
-
   const { agentId } = useParams<{ agentId: string }>();
   const navigate = useNavigate();
   const { workflowDialog, workflowRow } = useAppSelector(
@@ -43,7 +41,7 @@ const WorkflowDialog = () => {
       open={workflowDialog}
       handler={handleCancel}
       title={`${workflowRow?.id ? "Edit" : "Create"} New Workflow`}
-      size='sm'
+      size="sm"
       bodyClassName="!px-8 !pb-5"
     >
       <div className="mb-4">
@@ -53,23 +51,31 @@ const WorkflowDialog = () => {
       </div>
       <Formik<WorkflowFormValues>
         initialValues={{
-          title: workflowRow?.title || workflowRow?.name || "",
-          description: workflowRow?.description || "",
+          title: (workflowRow?.title || workflowRow?.name || "").trim(),
+          description: (workflowRow?.description || "").trim(),
         }}
         validationSchema={WorkflowSchema}
+        validateOnChange={true}
+        validateOnBlur={true}
         onSubmit={async (values: WorkflowFormValues) => {
           try {
+            // Trim values before submission to ensure no leading/trailing spaces
+            const trimmedValues = {
+              title: values.title.trim(),
+              description: values.description.trim(),
+            };
+
             const response: any = workflowRow?.workflow_id
               ? await dispatch(
                   editWorkflow({
                     id: workflowRow?.workflow_id,
-                    title: values.title,
-                    description: values.description,
+                    title: trimmedValues.title,
+                    description: trimmedValues.description,
                   })
                 ).unwrap()
               : await dispatch(
                   createWorkflow({
-                    ...values,
+                    ...trimmedValues,
                     agentId: agentId,
                   })
                 ).unwrap();
@@ -88,7 +94,7 @@ const WorkflowDialog = () => {
               ) {
                 const newWorkflowId = response.data.data.workflow_id;
                 const newWorkflowTitle =
-                  response.data.data.title || values.title;
+                  response.data.data.title || trimmedValues.title;
                 dispatch(
                   setWorkflowDialog({
                     workflowDialog: false,
@@ -120,6 +126,7 @@ const WorkflowDialog = () => {
             }
             invalidateAllQueries();
           } catch (error: any) {
+            console.log(error , "Verify Error")
             // Show error toast with error message
             const errorMessage =
               error?.message ||
@@ -128,7 +135,7 @@ const WorkflowDialog = () => {
               `Failed to ${
                 workflowRow?.workflow_id ? "update" : "create"
               } workflow. Please try again.`;
-            showErrorToast(errorMessage);
+            showErrorToast('You’re offline. Check your internet connection.');
             console.error(error, "Verify Error");
           }
         }}
@@ -139,6 +146,7 @@ const WorkflowDialog = () => {
           isSubmitting,
           errors,
           touched,
+          values,
           setFieldValue,
           setFieldTouched,
           dirty,
@@ -150,32 +158,61 @@ const WorkflowDialog = () => {
                   Workflow Name <span className="text-red-500">*</span>
                 </h5>
                 <Field name="title">
-                  {({ field }: any) => (
-                    <FormikInput
-                      field={field}
-                      type="text"
-                      id="title"
-                      placeholder="Please enter workflow name"
-                      className={`
-                        !min-w-0
-                      `}
-                      errors={errors}
-                      touched={touched}
-                      onFieldTouched={() => setFieldTouched("title", true)}
-                      onFieldChange={(
-                        e: React.ChangeEvent<HTMLInputElement>
-                      ) => {
-                        setFieldValue("title", e.target.value);
-                      }}
-                    />
-                  )}
+                  {({ field }: any) => {
+                    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                      const newValue = e.target.value;
+                      
+                      // Remove any leading spaces
+                      const trimmedValue = newValue.trimStart();
+                      if (trimmedValue !== newValue) {
+                        // If leading spaces were removed, update with trimmed value
+                        setFieldValue("title", trimmedValue, false);
+                      } else {
+                        // No leading spaces, allow the change
+                        field.onChange(e);
+                      }
+                      setFieldTouched("title", true);
+                    };
+
+                    const handleTitleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+                      // Trim trailing spaces on blur
+                      const trimmedValue = e.target.value.trimEnd();
+                      if (trimmedValue !== e.target.value) {
+                        setFieldValue("title", trimmedValue, false);
+                      }
+                      field.onBlur(e);
+                      setFieldTouched("title", true);
+                    };
+
+                    return (
+                      <FormikInput
+                        field={{
+                          ...field,
+                          onChange: handleTitleChange,
+                          onBlur: handleTitleBlur,
+                        }}
+                        type="text"
+                        id="title"
+                        placeholder="Please enter workflow name"
+                        maxLength={100}
+                        className={`
+                          !min-w-0
+                        `}
+                        errors={errors}
+                        touched={touched}
+                        onFieldTouched={() => setFieldTouched("title", true)}
+                      />
+                    );
+                  }}
                 </Field>
-                <div className="min-h-[17px]">
-                  <ErrorMessage
-                    name="title"
-                    component="div"
-                    className="text-red-500 text-xs 2xl:text-sm mt-1"
-                  />
+                <div className="flex justify-between items-start min-h-[17px]">
+                  <div className="flex-1">
+                    <ErrorMessage
+                      name="title"
+                      component="div"
+                      className="text-red-500 text-xs 2xl:text-sm "
+                    />
+                  </div>
                 </div>
               </div>
               <div className="space-y-1">
@@ -183,33 +220,59 @@ const WorkflowDialog = () => {
                   Description
                 </h5>
                 <Field name="description">
-                  {({ field }: any) => (
-                    <FormikTextarea
-                      field={field}
-                      id="description"
-                      placeholder="Please provide a brief description of the workflow"
-                      rows={5}
-                      className={`
-                        !min-w-0 
-                      `}
-                      errors={errors}
-                      touched={touched}
-                      onFieldTouched={() =>
-                        setFieldTouched("description", true)
+                  {({ field }: any) => {
+                    const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                      const newValue = e.target.value;
+                      
+                      // Remove any leading spaces
+                      const trimmedValue = newValue.trimStart();
+                      if (trimmedValue !== newValue) {
+                        // If leading spaces were removed, update with trimmed value
+                        setFieldValue("description", trimmedValue, false);
+                      } else {
+                        // No leading spaces, allow the change
+                        field.onChange(e);
                       }
-                      onFieldChange={(
-                        e: React.ChangeEvent<HTMLTextAreaElement>
-                      ) => {
-                        setFieldValue("description", e.target.value);
-                      }}
-                    />
-                  )}
+                      setFieldTouched("description", true);
+                    };
+
+                    const handleDescriptionBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+                      // Trim trailing spaces on blur
+                      const trimmedValue = e.target.value.trimEnd();
+                      if (trimmedValue !== e.target.value) {
+                        setFieldValue("description", trimmedValue, false);
+                      }
+                      field.onBlur(e);
+                      setFieldTouched("description", true);
+                    };
+
+                    return (
+                      <FormikTextarea
+                        field={{
+                          ...field,
+                          onChange: handleDescriptionChange,
+                          onBlur: handleDescriptionBlur,
+                        }}
+                        id="description"
+                        placeholder="Please provide a brief description of the workflow"
+                        rows={5}
+                        className={`
+                          !min-w-0 
+                        `}
+                        errors={errors}
+                        touched={touched}
+                        onFieldTouched={() =>
+                          setFieldTouched("description", true)
+                        }
+                      />
+                    );
+                  }}
                 </Field>
                 <div className="min-h-[17px]">
                   <ErrorMessage
                     name="description"
                     component="div"
-                    className="text-red-500 text-xs mt-1"
+                    className="text-red-500 text-xs "
                   />
                 </div>
               </div>

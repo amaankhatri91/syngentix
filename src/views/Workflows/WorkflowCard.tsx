@@ -11,6 +11,7 @@ import {
   WorkflowActions,
 } from "@/constants/workflow.constant";
 import { useNavigate, useParams } from "react-router-dom";
+import TruncatedText from "@/components/TruncatedText";
 
 interface WorkflowCardProps {
   workflow: Workflow;
@@ -90,15 +91,24 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
     >
       {/* ========= INFO : 4/12 ========= */}
       <div className="flex items-center gap-4 min-w-0 basis-full xl:basis-4/12">
-        <div className="flex flex-col min-w-0">
-          <h3 className="font-medium text-base truncate">{workflow.title}</h3>
-          <p
-            className={`text-sm truncate ${
+        <div className="flex flex-col min-w-0 flex-1">
+          <TruncatedText
+            text={workflow.title || "-"}
+            maxLength={50}
+            className="font-medium text-base"
+            as="h3"
+            readMoreText="Read more"
+            readLessText="Read less"
+          />
+          <TruncatedText
+            text={workflow.description || "-"}
+            maxLength={80}
+            className={`text-sm ${
               isDark ? "text-[#BDC9F5]" : "text-[#646567]"
             }`}
-          >
-            {workflow.description}
-          </p>
+            readMoreText="Read more"
+            readLessText="Read less"
+          />
         </div>
       </div>
       {/* ========= METRICS : 4/12 (BIG) ========= */}

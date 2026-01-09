@@ -6,6 +6,8 @@ import {
   addNode,
   setEdges,
   updateNodes,
+  setNodeList,
+  setSelectedNode,
 } from "@/store/workflowEditor/workflowEditorSlice";
 import { useAppSelector } from "@/store";
 import { addEdge } from "reactflow";
@@ -47,9 +49,13 @@ const transformServerNoteToReactFlowNode = (
 export const useWorkflowSocketEvents = () => {
   const { on } = useSocketConnection();
   const dispatch = useAppDispatch();
-  const { edges, nodes } = useAppSelector((state) => state.workflowEditor);
+  const { edges, nodes, nodeList, selectedNode } = useAppSelector(
+    (state) => state.workflowEditor
+  );
   const edgesRef = useRef(edges);
   const nodesRef = useRef(nodes);
+  const nodeListRef = useRef(nodeList);
+  const selectedNodeRef = useRef(selectedNode);
 
   // Keep edgesRef in sync with edges
   useEffect(() => {
@@ -60,6 +66,21 @@ export const useWorkflowSocketEvents = () => {
   useEffect(() => {
     nodesRef.current = nodes;
   }, [nodes]);
+
+  // Keep nodeListRef in sync with nodeList
+  useEffect(() => {
+    nodeListRef.current = nodeList;
+  }, [nodeList]);
+
+  // Keep selectedNodeRef in sync with selectedNode
+  useEffect(() => {
+    selectedNodeRef.current = selectedNode;
+  }, [selectedNode]);
+
+  // Keep selectedNodeRef in sync with selectedNode
+  useEffect(() => {
+    selectedNodeRef.current = selectedNode;
+  }, [selectedNode]);
 
   // Track processed bulk deletions to prevent duplicate toasts
   const processedDeletionsRef = useRef<Set<string>>(new Set());
@@ -86,9 +107,9 @@ export const useWorkflowSocketEvents = () => {
         allNodes.push(...transformedNotes);
         console.log("📝 Notes transformed and added:", transformedNotes.length);
       }
-
       // Set all nodes together (regular nodes + notes)
       if (allNodes.length > 0) {
+        dispatch(setNodeList(data?.nodes));
         dispatch(setNodes(allNodes));
       }
 
@@ -103,11 +124,22 @@ export const useWorkflowSocketEvents = () => {
 
     // Handle node:created event - receives newly created node
     const unsubscribeNodeCreated = on("node:created", (data: any) => {
-      dispatch(addNode(transformServerNodeToReactFlowNode(data?.data)));
       console.log(data, "Node Created Response");
-      data?.status === "success"
-        ? toast.success(data?.message || "Node created successfully")
-        : toast.error(data?.message || "Failed to created node");
+      if (data?.status === "success" && data?.data) {
+        // Add node to nodeList
+        if (nodeListRef.current && Array.isArray(nodeListRef.current)) {
+          const updatedNodeList = [...nodeListRef.current, data.data];
+          dispatch(setNodeList(updatedNodeList));
+        } else {
+          // If nodeList is empty or undefined, initialize it with the new node
+          dispatch(setNodeList([data.data]));
+        }
+        // Add node to ReactFlow nodes
+        dispatch(addNode(transformServerNodeToReactFlowNode(data.data)));
+        toast.success(data?.message || "Node created successfully");
+      } else {
+        toast.error(data?.message || "Failed to create node");
+      }
     });
 
     // Handle note:created event - receives newly created sticky note
@@ -154,7 +186,7 @@ export const useWorkflowSocketEvents = () => {
       if (data && data.data) {
         // Transform the updated note data
         const updatedNoteNode = transformServerNoteToReactFlowNode(data.data);
-        
+
         // Update the note in Redux state
         const noteExists = nodesRef.current.some(
           (node) => node.id === updatedNoteNode.id
@@ -265,6 +297,249 @@ export const useWorkflowSocketEvents = () => {
       }
     });
 
+    // Handle pin:added event - receives pin added confirmation
+    const unsubscribePinAdded = on("pin:added", (data: any) => {
+      console.log("📌 pin:added response:", data);
+      if (data?.status === "success" && data?.data) {
+        const { node_id, pin_collection, pin } = data.data;
+        // Update nodeList - find the node and add the pin to the appropriate collection
+        if (nodeListRef.current && Array.isArray(nodeListRef.current)) {
+          const updatedNodeList = nodeListRef.current.map((node: any) => {
+            if (node.id === node_id) {
+              // Create a new node object with updated pin collection
+              const updatedNode = { ...node };
+              // Map pin_collection to the correct property name
+              let collectionKey = pin_collection;
+              if (pin_collection === "inputs") {
+                collectionKey = "inputs";
+              } else if (pin_collection === "outputs") {
+                collectionKey = "outputs";
+              } else if (pin_collection === "next_pins") {
+                collectionKey = "next_pins";
+              }
+
+              // Update the data property with the new pin
+              if (updatedNode.data && updatedNode.data[collectionKey]) {
+                updatedNode.data = {
+                  ...updatedNode.data,
+                  [collectionKey]: [...updatedNode.data[collectionKey], pin],
+                };
+              }
+
+              return updatedNode;
+            }
+            return node;
+          });
+          // Update nodeList in Redux
+          dispatch(setNodeList(updatedNodeList));
+          // Also update the ReactFlow nodes to reflect the change
+          // Transform the updated nodeList to ReactFlow nodes
+          const updatedReactFlowNodes =
+            transformServerNodesToReactFlowNodes(updatedNodeList);
+          // Preserve any notes that exist in the current nodes array
+          const currentNotes = nodesRef.current.filter(
+            (node) => node.type === "note"
+          );
+          // Combine updated nodes with existing notes
+          const allUpdatedNodes = [...updatedReactFlowNodes, ...currentNotes];
+          dispatch(setNodes(allUpdatedNodes));
+          
+          // Update selectedNode if it matches the updated node
+          if (selectedNodeRef.current?.id === node_id) {
+            const updatedSelectedNode = updatedNodeList.find(
+              (node: any) => node.id === node_id
+            );
+            if (updatedSelectedNode) {
+              dispatch(setSelectedNode(updatedSelectedNode));
+            }
+          }
+          
+          console.log(
+            "✅ Pin added to node:",
+            node_id,
+            "in collection:",
+            pin_collection
+          );
+        }
+        // Show success toast
+        toast.success(data?.message || "Pin added successfully");
+      } else if (data?.status === "error" || data?.status === "failed") {
+        toast.error(data?.message || "Failed to add pin");
+      }
+    });
+
+    // Handle pin:deleted event - receives pin deleted confirmation
+    const unsubscribePinDeleted = on("pin:deleted", (data: any) => {
+      console.log("🗑️ pin:deleted response:", data);
+
+      if (data?.status === "success" && data?.data) {
+        const { node_id, pin_collection, pin_id, deleted_connections } =
+          data.data;
+
+        // Update nodeList - find the node and remove the pin from the appropriate collection
+        if (nodeListRef.current && Array.isArray(nodeListRef.current)) {
+          const updatedNodeList = nodeListRef.current.map((node: any) => {
+            if (node.id === node_id) {
+              // Create a new node object with updated pin collection
+              const updatedNode = { ...node };
+
+              // Map pin_collection to the correct property name
+              let collectionKey = pin_collection;
+              if (pin_collection === "inputs") {
+                collectionKey = "inputs";
+              } else if (pin_collection === "outputs") {
+                collectionKey = "outputs";
+              } else if (pin_collection === "next_pins") {
+                collectionKey = "next_pins";
+              }
+
+              // Remove the pin from the collection
+              if (updatedNode.data && updatedNode.data[collectionKey]) {
+                updatedNode.data = {
+                  ...updatedNode.data,
+                  [collectionKey]: updatedNode.data[collectionKey].filter(
+                    (pin: any) => pin.id !== pin_id
+                  ),
+                };
+              }
+
+              return updatedNode;
+            }
+            return node;
+          });
+
+          // Update nodeList in Redux
+          dispatch(setNodeList(updatedNodeList));
+
+          // Also update the ReactFlow nodes to reflect the change
+          // Transform the updated nodeList to ReactFlow nodes
+          const updatedReactFlowNodes =
+            transformServerNodesToReactFlowNodes(updatedNodeList);
+
+          // Preserve any notes that exist in the current nodes array
+          const currentNotes = nodesRef.current.filter(
+            (node) => node.type === "note"
+          );
+
+          // Combine updated nodes with existing notes
+          const allUpdatedNodes = [...updatedReactFlowNodes, ...currentNotes];
+          dispatch(setNodes(allUpdatedNodes));
+
+          // Remove cascade-deleted connections if any
+          if (
+            deleted_connections &&
+            Array.isArray(deleted_connections) &&
+            deleted_connections.length > 0
+          ) {
+            const updatedEdges = edgesRef.current.filter(
+              (edge) => !deleted_connections.includes(edge.id)
+            );
+            dispatch(setEdges(updatedEdges));
+            console.log(
+              "✅ Cascade-deleted connections removed:",
+              deleted_connections
+            );
+          }
+
+          // Update selectedNode if it matches the updated node
+          if (selectedNodeRef.current?.id === node_id) {
+            const updatedSelectedNode = updatedNodeList.find(
+              (node: any) => node.id === node_id
+            );
+            if (updatedSelectedNode) {
+              dispatch(setSelectedNode(updatedSelectedNode));
+            }
+          }
+
+          console.log(
+            "✅ Pin removed from node:",
+            node_id,
+            "in collection:",
+            pin_collection
+          );
+        }
+        // Show success toast
+        toast.success(data?.message || "Pin deleted successfully");
+      } else if (data?.status === "error" || data?.status === "failed") {
+        toast.error(data?.message || "Failed to delete pin");
+      }
+    });
+
+    // Handle pin:updated event - receives pin updated confirmation
+    const unsubscribePinUpdated = on("pin:updated", (data: any) => {
+      console.log("✏️ pin:updated response:", data);
+      
+      if (data?.status === "success" && data?.data) {
+        const { node_id, pin_collection, pin } = data.data;
+        
+        // Update nodeList - find the node and update the pin in the appropriate collection
+        if (nodeListRef.current && Array.isArray(nodeListRef.current)) {
+          const updatedNodeList = nodeListRef.current.map((node: any) => {
+            if (node.id === node_id) {
+              // Create a new node object with updated pin collection
+              const updatedNode = { ...node };
+              
+              // Map pin_collection to the correct property name
+              let collectionKey = pin_collection;
+              if (pin_collection === "inputs") {
+                collectionKey = "inputs";
+              } else if (pin_collection === "outputs") {
+                collectionKey = "outputs";
+              } else if (pin_collection === "next_pins") {
+                collectionKey = "next_pins";
+              }
+              
+              // Update the pin in the collection
+              if (updatedNode.data && updatedNode.data[collectionKey]) {
+                updatedNode.data = {
+                  ...updatedNode.data,
+                  [collectionKey]: updatedNode.data[collectionKey].map(
+                    (existingPin: any) => existingPin.id === pin.id ? pin : existingPin
+                  ),
+                };
+              }
+              
+              return updatedNode;
+            }
+            return node;
+          });
+          
+          // Update nodeList in Redux
+          dispatch(setNodeList(updatedNodeList));
+          
+          // Also update the ReactFlow nodes to reflect the change
+          // Transform the updated nodeList to ReactFlow nodes
+          const updatedReactFlowNodes = transformServerNodesToReactFlowNodes(updatedNodeList);
+          
+          // Preserve any notes that exist in the current nodes array
+          const currentNotes = nodesRef.current.filter(
+            (node) => node.type === "note"
+          );
+          
+          // Combine updated nodes with existing notes
+          const allUpdatedNodes = [...updatedReactFlowNodes, ...currentNotes];
+          dispatch(setNodes(allUpdatedNodes));
+          
+          // Update selectedNode if it matches the updated node
+          if (selectedNodeRef.current?.id === node_id) {
+            const updatedSelectedNode = updatedNodeList.find(
+              (node: any) => node.id === node_id
+            );
+            if (updatedSelectedNode) {
+              dispatch(setSelectedNode(updatedSelectedNode));
+            }
+          }
+          
+          console.log("✅ Pin updated in node:", node_id, "in collection:", pin_collection);
+        }
+        
+        // Show success toast
+        toast.success(data?.message || "Pin updated successfully");
+      } else if (data?.status === "error" || data?.status === "failed") {
+        toast.error(data?.message || "Failed to update pin");
+      }
+    });
+
     // Cleanup: unsubscribe from all events
     return () => {
       unsubscribeWorkflowData();
@@ -275,6 +550,9 @@ export const useWorkflowSocketEvents = () => {
       unsubscribeConnectionCreated();
       unsubscribeConnectionDeleted();
       unsubscribeNodesDeletedBulk();
+      unsubscribePinAdded();
+      unsubscribePinDeleted();
+      unsubscribePinUpdated();
     };
   }, [on, dispatch]);
 };

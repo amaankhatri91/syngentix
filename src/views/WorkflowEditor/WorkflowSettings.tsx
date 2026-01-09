@@ -11,7 +11,7 @@ import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import * as Yup from "yup";
 import CancelIcon from "@/assets/app-icons/CancelIcon";
 import MinusIcon from "@/assets/app-icons/MinusIcon";
-import PlusIcon from "@/assets/app-icons/PlusIcon";
+import { Add } from "@/assets/app-icons";
 
 interface WorkflowSettingsFormValues {
   title: string;
@@ -285,7 +285,7 @@ const WorkflowSettings: React.FC = () => {
                           </Field>
 
                           <span
-                            className={`text-sm whitespace-nowrap -ml-6 ${
+                            className={`text-sm whitespace-nowrap -ml-12 ${
                               isDark ? "text-[#8E9BB0]" : "text-[#737373]"
                             }`}
                           >
@@ -294,7 +294,7 @@ const WorkflowSettings: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex-[1] min-w-0">
+                      <div className="flex-[18px] min-w-0">
                         <label
                           className={`block text-sm mb-2 ${
                             isDark ? "text-white" : "text-[#162230]"
@@ -367,7 +367,7 @@ const WorkflowSettings: React.FC = () => {
                             }
                             className={`flex items-center justify-center w-12 h-full transition`}
                           >
-                            <PlusIcon />
+                            <Add size={18} color={isDark ? "white" : ""} />
                           </button>
                         </div>
                       </div>

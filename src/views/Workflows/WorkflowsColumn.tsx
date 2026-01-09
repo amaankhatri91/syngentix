@@ -19,6 +19,7 @@ import { formatDate, formatRelativeTime } from "@/utils/common";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import { useRefetchQueries } from "@/utils/hooks/useRefetchQueries";
 import { Spinner } from "@material-tailwind/react";
+import TruncatedText from "@/components/TruncatedText";
 
 // Wrapper component for Status cell to handle click and API call
 const StatusCell: React.FC<{ row: Workflow }> = ({ row }) => {
@@ -225,11 +226,22 @@ export const columns: DataTableColumn<Workflow>[] = [
     size: 90,
     align: "left",
     cell: (value, row) => (
-      <div className="flex flex-col">
-        <h3 className="font-medium text-base">{row.title || "-"}</h3>
-        <p className="text-sm text-gray-500 dark:text-[#BDC9F5] truncate">
-          {row.description || "-"}
-        </p>
+      <div className="flex flex-col gap-1">
+        <TruncatedText
+          text={row.title || "-"}
+          maxLength={50}
+          className="font-medium text-base"
+          as="h3"
+          readMoreText="Read more"
+          readLessText="Read less"
+        />
+        <TruncatedText
+          text={row.description || "-"}
+          maxLength={80}
+          className="text-sm text-gray-500 dark:text-[#BDC9F5]"
+          readMoreText="Read more"
+          readLessText="Read less"
+        />
       </div>
     ),
   },

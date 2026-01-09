@@ -35,6 +35,7 @@ import {
   setEdges,
   setDatabaseDialogOpen,
   setSelectedNode,
+  setSelectedNodeId,
 } from "@/store/workflowEditor/workflowEditorSlice";
 
 interface WorkflowCanvasProps {
@@ -47,11 +48,11 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const { workflowId } = useParams<{ workflowId: string }>();
   const { userId } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-  const { nodes, edges, isLocked, edgeThickness } = useAppSelector(
+  const { nodes, edges, isLocked, edgeThickness, nodeList } = useAppSelector(
     (state) => state.workflowEditor
   );
 
-  console.log(nodes, "Verify Notes Data");
+  console.log(nodes, "Feature Added inside node Listing");
 
   // Handle edge deletion
   const handleEdgeDelete = useCallback(
@@ -181,29 +182,19 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const onNodeDoubleClick = useCallback(
     (_event: React.MouseEvent, node: Node<CustomNodeData>) => {
       console.log("🖱️ Node double-clicked:", node);
-      // Filter and find the node from nodesData
-      let foundNode = null;
-      if (nodesData?.data && node?.data?.label) {
-        for (const category of nodesData.data) {
-          if (category.nodes && Array.isArray(category.nodes)) {
-            const matchedNode = category.nodes.find(
-              (n: any) =>
-                n.name === node.data.label ||
-                n.id === node.data.label ||
-                n.name?.toLowerCase() === node.data.label?.toLowerCase()
-            );
-            if (matchedNode) {
-              foundNode = { node: matchedNode, category: category.name || category.category };
-              break;
-            }
-          }
-        }
+      if (!node?.id || !Array.isArray(nodeList)) {
+        console.warn("Invalid node or nodeList");
+        return;
       }
-      
+      const foundNode = nodeList.find(
+        (item) => String(item.id) === String(node.id)
+      );
+      // If you want full node data
       dispatch(setSelectedNode(foundNode));
+      dispatch(setSelectedNodeId(node.id));
       dispatch(setDatabaseDialogOpen(true));
     },
-    [dispatch, nodesData]
+    [dispatch, nodeList]
   );
 
   // Close context menu when clicking on the pane

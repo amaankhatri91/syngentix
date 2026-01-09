@@ -75,7 +75,7 @@ const WorkflowList: React.FC = () => {
           isDark ? "text-gray-400" : "text-gray-500"
         }`}
       >
-        <h3>No data found</h3>
+        <h3>No Workflow found</h3>
       </div>
     );
   }

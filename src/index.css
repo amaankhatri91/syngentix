@@ -132,6 +132,11 @@ nav button {
 }
 
 /* React Toastify Theme Styles */
+/* Toast Container Z-Index - Higher than Dialog */
+.Toastify__toast-container {
+  z-index: 10000 !important;
+}
+
 /* Dark Mode Toast Styles */
 .toast-dark {
   background-color: #0d131a !important;
