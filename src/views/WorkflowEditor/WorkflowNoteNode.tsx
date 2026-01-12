@@ -12,7 +12,6 @@ import { CustomNodeData } from "./type";
 const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   data,
   selected,
-  position,
 }) => {
   const { setNodes, getNode } = useReactFlow();
   const nodeId = useNodeId();
@@ -24,18 +23,29 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   const isEditing = nodeId ? editingNotes[nodeId] || false : false;
   const [editValue, setEditValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editButtonRef = useRef<HTMLButtonElement>(null);
+  const isUpdatingRef = useRef(false);
 
   // Focus textarea when entering edit mode and set cursor to end
   useEffect(() => {
+    console.log("🔄 Edit mode changed:", { isEditing, nodeId });
     if (isEditing && textareaRef.current) {
       textareaRef.current.focus();
       const length = textareaRef.current.value.length;
       textareaRef.current.setSelectionRange(length, length);
     }
+  }, [isEditing, nodeId]);
+
+  // Debug: Log when edit button ref is available
+  useEffect(() => {
+    if (isEditing && editButtonRef.current) {
+      console.log("✅ Edit button rendered and ref available");
+    }
   }, [isEditing]);
 
   // Handle double-click to enter edit mode
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the modal from opening
     if (nodeId) {
       dispatch(setNoteEditing({ nodeId, isEditing: true }));
       setEditValue(data.label || "");
@@ -43,7 +53,22 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
   };
 
   // Handle saving the edited text
-  const handleSave = () => {
+  const handleSave = (e?: React.FocusEvent<HTMLTextAreaElement>) => {
+    // Don't save if we're in the process of updating via the edit button
+    if (isUpdatingRef.current) {
+      console.log("⏸️ Save prevented - update in progress");
+      return;
+    }
+
+    // Don't save if the blur is caused by clicking the edit button
+    const relatedTarget = e?.relatedTarget as HTMLElement;
+    if (relatedTarget && editButtonRef.current?.contains(relatedTarget)) {
+      console.log("⏸️ Save prevented - edit button clicked");
+      return;
+    }
+
+    console.log("💾 handleSave called", { nodeId, editValue });
+
     if (nodeId) {
       setNodes((nds) =>
         nds.map((node) => {
@@ -98,42 +123,6 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
     }
   };
 
-  // Handle update button click - emit note:update event
-  const handleUpdate = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log(nodeId, workflowId, "Verify Notes Hitting");
-    if (nodeId && workflowId) {
-      const currentNode = getNode(nodeId);
-      const currentPosition = currentNode?.position ||
-        position || { x: 0, y: 0 };
-      // Emit note:update event
-      emit("note:update", {
-        workflow_id: workflowId,
-        id: nodeId,
-        title: editValue.trim() || data.label || "New Note",
-        content: editValue.trim() || data.label || "",
-        position: {
-          x: currentPosition.x,
-          y: currentPosition.y,
-        },
-        data: {
-          bgcolor: "#B3EFBD",
-          color: "#162230",
-          height: 160,
-          width: 200,
-        },
-      });
-      console.log("✏️ Note update event emitted:", {
-        workflow_id: workflowId,
-        id: nodeId,
-        title: editValue.trim() || data.label,
-        position: currentPosition,
-      });
-
-      // Save the changes locally and exit edit mode
-      handleSave();
-    }
-  };
 
   return (
     <div
@@ -148,11 +137,100 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
         <div className={`font-medium text-[#162230] text-[14px] flex-1`}>
           Note
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-2">
           {isEditing && (
-            <div className="cursor-pointer " onClick={handleUpdate}>
-              <EditIcon theme={"light"} height={18} />
-            </div>
+            <button
+              ref={editButtonRef}
+              type="button"
+              className="cursor-pointer bg-transparent border-none p-0 focus:outline-none relative z-10"
+              onMouseDown={(e) => {
+                console.log("🖱️ Button onMouseDown triggered FIRST", {
+                  nodeId,
+                  isEditing,
+                });
+                e.stopPropagation();
+                e.preventDefault(); // Prevent blur from textarea
+                // Set flag immediately to prevent blur save
+                isUpdatingRef.current = true;
+              }}
+              onClick={(e) => {
+                console.log("🔵 Button onClick triggered", {
+                  nodeId,
+                  isEditing,
+                });
+                e.stopPropagation();
+                e.preventDefault();
+
+                // Save and emit note:update event
+                if (nodeId && workflowId) {
+                  // Get the current node to access its position
+                  const currentNode = getNode(nodeId);
+                  const currentPosition = currentNode?.position || {
+                    x: 0,
+                    y: 0,
+                  };
+
+                  console.log("📝 Preparing to save note:", {
+                    workflow_id: workflowId,
+                    id: nodeId,
+                    currentValue: editValue,
+                    originalValue: data.label,
+                    position: currentPosition,
+                  });
+
+                  // Save the note
+                  setNodes((nds) =>
+                    nds.map((node) => {
+                      if (node.id === nodeId) {
+                        return {
+                          ...node,
+                          data: {
+                            ...node.data,
+                            label: editValue.trim() || data.label,
+                          },
+                        };
+                      }
+                      return node;
+                    })
+                  );
+
+                  // Emit note:update event with current position
+                  emit("note:update", {
+                    workflow_id: workflowId,
+                    id: nodeId,
+                    label: editValue.trim() || data.label,
+                    position: currentPosition,
+                  });
+                  console.log(
+                    "💾 Note update event emitted with position:",
+                    currentPosition
+                  );
+                  // Exit edit mode
+                  dispatch(setNoteEditing({ nodeId, isEditing: false }));
+                  // Reset flag after a short delay to allow state updates to complete
+                  setTimeout(() => {
+                    isUpdatingRef.current = false;
+                    console.log("🔄 isUpdatingRef reset to false");
+                  }, 200);
+                } else {
+                  console.warn(
+                    "⚠️ Cannot save note - missing nodeId or workflowId",
+                    {
+                      nodeId,
+                      workflowId,
+                    }
+                  );
+                }
+              }}
+              onMouseUp={(e) => {
+                console.log("🖱️ Button onMouseUp triggered");
+                e.stopPropagation();
+              }}
+            >
+              <div style={{ pointerEvents: "none" }}>
+                <EditIcon theme={"light"} height={18} />
+              </div>
+            </button>
           )}
           <div className="cursor-pointer" onClick={handleDelete}>
             <DeleteIcon color="#162230" height={18} />
@@ -164,7 +242,14 @@ const WorkflowNoteNode: React.FC<NodeProps<CustomNodeData>> = ({
           ref={textareaRef}
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleSave}
+          onBlur={(e) => {
+            console.log("📝 Textarea blur event", {
+              relatedTarget: e.relatedTarget,
+              isUpdating: isUpdatingRef.current,
+              editButtonRef: editButtonRef.current,
+            });
+            handleSave(e);
+          }}
           onKeyDown={handleKeyDown}
           className="w-full h-[115px] text-[14px] text-[#162230] bg-transparent resize-none focus:outline-none overflow-y-auto note-scrollbar"
           style={{

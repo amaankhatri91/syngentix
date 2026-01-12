@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import useTheme from "@/utils/hooks/useTheme";
+import useIsSmallScreen from "@/utils/hooks/useIsSmallScreen";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { setEdgeThickness, setOpenSettings } from "@/store/workflowEditor/workflowEditorSlice";
+import {
+  setEdgeThickness,
+  setOpenSettings,
+} from "@/store/workflowEditor/workflowEditorSlice";
 import {
   getIconColor,
   getButtonStyles,
@@ -27,9 +31,12 @@ import TestRun from "@/assets/app-icons/TestRun";
 import DownloadIcon from "@/assets/app-icons/DownloadIcon";
 import SettingsIcon from "@/assets/app-icons/SettingsIcon";
 import { EdgeThicknessOptions } from "@/constants/workflow.constant";
+import Tooltip from "@/components/Tooltip";
 
 const WorkflowEditorHeader = () => {
   const { isDark } = useTheme();
+  const isSmallScreen = useIsSmallScreen();
+  console.log(isSmallScreen, "Verify is Small Screen");
   const dispatch = useAppDispatch();
   const { edgeThickness } = useAppSelector((state) => state.workflowEditor);
   const [isCopyDropdownOpen, setIsCopyDropdownOpen] = useState(false);
@@ -93,7 +100,7 @@ const WorkflowEditorHeader = () => {
 
   return (
     <div
-      className={`flex items-center mt-6 justify-between gap-1 px-3 py-2 rounded-xl ${
+      className={`flex items-center mt-6 justify-between gap-1 px-2 sm:px-3 py-2 rounded-xl ${
         isDark ? "bg-[#0F1724]" : "bg-white"
       } border ${
         isDark
@@ -101,20 +108,22 @@ const WorkflowEditorHeader = () => {
           : "border-[#E6E6E6] shadow-[1px_4px_6px_0px_#2154EE1A]"
       }`}
     >
-      <div className={`flex gap-4`}>
+      <div className={`flex gap-2 md:gap-2`}>
         <div className="relative" ref={thicknessButtonRef}>
-          <button
-            className={`${getButtonStyles(isDark)}`}
-            onClick={handleThicknessClick}
-          >
-            <ThicknessIcon color={getIconColor(isDark)} size={14} />
-            <h5>Thickness</h5>
-            <ChevronDownIcon
-              color={getIconColor(isDark)}
-              size={12}
-              className="ml-1"
-            />
-          </button>
+          <Tooltip content="Thickness" position="bottom">
+            <button
+              className={`${getButtonStyles(isDark)}`}
+              onClick={handleThicknessClick}
+            >
+              <ThicknessIcon color={getIconColor(isDark)} size={14} />
+              <h5 className="hidden md:block">Thickness</h5>
+              <ChevronDownIcon
+                color={getIconColor(isDark)}
+                size={12}
+                className="ml-1 hidden md:block"
+              />
+            </button>
+          </Tooltip>
           {isThicknessDropdownOpen && (
             <div
               className={`
@@ -177,26 +186,30 @@ const WorkflowEditorHeader = () => {
             </div>
           )}
         </div>
-        <button className={getButtonStyles(isDark)}>
-          <SelectIcon color={getIconColor(isDark)} size={18} />
-          <h5>Select</h5>
-        </button>
+        <Tooltip content="Select" position="bottom">
+          <button className={getButtonStyles(isDark)}>
+            <SelectIcon color={getIconColor(isDark)} size={18} />
+            <h5 className="hidden md:block">Select</h5>
+          </button>
+        </Tooltip>
       </div>
-      <div className="flex gap-4">
+      <div className="flex gap-2 md:gap-2">
         <div className="flex">
           <div className="relative" ref={copyButtonRef}>
-            <button
-              className={`${getGroupedButtonStyles(isDark)} rounded-r-none`}
-              onClick={handleCopyClick}
-            >
-              <CopyIcon color={getIconColor(isDark)} size={18} />
-              <h5>Copy</h5>
-              {/* <ChevronDownIcon
+            <Tooltip content="Copy" position="bottom">
+              <button
+                className={`${getGroupedButtonStyles(isDark)} rounded-r-none`}
+                onClick={handleCopyClick}
+              >
+                <CopyIcon color={getIconColor(isDark)} size={18} />
+                <h5 className="hidden md:block">Copy</h5>
+                {/* <ChevronDownIcon
                 color={getIconColor(isDark)}
                 size={12}
                 className="ml-1"
               /> */}
-            </button>
+              </button>
+            </Tooltip>
             {isCopyDropdownOpen && (
               <div
                 className={`
@@ -233,73 +246,101 @@ const WorkflowEditorHeader = () => {
               </div>
             )}
           </div>
-          <button className={`${getGroupedButtonStyles(isDark)} rounded-none`}>
-            <CutIcon color={getIconColor(isDark)} size={18} />
-            <h5>Cut</h5>
-          </button>
-          <button
-            className={`${getGroupedButtonStyles(isDark)} rounded-l-none`}
-          >
-            <PasteIcon color={getIconColor(isDark)} size={18} />
-            <h5>Paste</h5>
-          </button>
+          <Tooltip content="Cut" position="bottom">
+            <button
+              className={`${getGroupedButtonStyles(isDark)} rounded-none`}
+            >
+              <CutIcon color={getIconColor(isDark)} size={18} />
+              <h5 className="hidden md:block">Cut</h5>
+            </button>
+          </Tooltip>
+          <Tooltip content="Paste" position="bottom">
+            <button
+              className={`${getGroupedButtonStyles(isDark)} rounded-l-none`}
+            >
+              <PasteIcon color={getIconColor(isDark)} size={18} />
+              <h5 className="hidden md:block">Paste</h5>
+            </button>
+          </Tooltip>
         </div>
         <div className="flex">
-          <button
-            className={`${getGroupedButtonStyles(isDark)} rounded-r-none `}
-          >
-            <UndoIcon color={getIconColor(isDark)} size={18} />
-            <h5>Undo</h5>
-          </button>
-          <button
-            className={`${getGroupedButtonStyles(isDark)} rounded-l-none`}
-          >
-            <RedoIcon color={getIconColor(isDark)} size={18} />
-            <h5>Redo</h5>
-          </button>
+          <Tooltip content="Undo" position="bottom">
+            <button
+              className={`${getGroupedButtonStyles(isDark)} rounded-r-none `}
+            >
+              <UndoIcon color={getIconColor(isDark)} size={18} />
+              <h5 className="hidden md:block">Undo</h5>
+            </button>
+          </Tooltip>
+          <Tooltip content="Redo" position="bottom">
+            <button
+              className={`${getGroupedButtonStyles(isDark)} rounded-l-none`}
+            >
+              <RedoIcon color={getIconColor(isDark)} size={18} />
+              <h5 className="hidden md:block">Redo</h5>
+            </button>
+          </Tooltip>
         </div>
-        <button
-          onClick={() => dispatch(setOpenSettings(true))}
-          className={`${getButtonBaseStyles(
-            isDark
-          )}  bg-gradient-to-r from-[#9133EA] to-[#2962EB] text-white hover:opacity-90`}
-        >
-          <SettingsIcon theme="dark" height={16} />
-        </button>
+        <Tooltip content="Settings" position="bottom">
+          <button
+            onClick={() => dispatch(setOpenSettings(true))}
+            className={`${getButtonBaseStyles(
+              isDark
+            )}  bg-gradient-to-r from-[#9133EA] to-[#2962EB] text-white hover:opacity-90`}
+          >
+            <SettingsIcon theme="dark" height={16} />
+          </button>
+        </Tooltip>
       </div>
-      <div className="flex gap-4">
-        <button className={getButtonStyles(isDark)}>
-          <EditIcon theme={isDark ? "dark" : "light"} height={18} />
-          <h5>Edit Details</h5>
-        </button>
-        <button className={`${getButtonStyles(isDark)} relative`}>
-          <LayoutIcon color={getIconColor(isDark)} size={18} />
-          <h5>Layout</h5>
-          <ChevronDownIcon
-            color={getIconColor(isDark)}
-            size={12}
-            className="ml-1"
-          />
-        </button>
-        <button
-          className={`${getButtonBaseStyles(
-            isDark
-          )} bg-gradient-to-r from-[#9133EA] to-[#2962EB] hover:opacity-90`}
-        >
-          <TestRun color={"white"} size={18} />
-          <h5 className="font-normal text-white">Test Run</h5>
-        </button>
-        <button
-          className={`${getButtonBaseStyles(
-            isDark
-          )} bg-gradient-to-r from-[#9133EA] to-[#2962EB] text-white hover:opacity-90`}
-        >
-          <DownloadIcon theme="dark" height={18} />
-        </button>
-        <button className={getButtonStyles(isDark)}>
-          <ChatIcon color={getIconColor(isDark)} size={18} />
-          <h5>Chat</h5>
-        </button>
+      <div className="flex gap-2 md:gap-2">
+        <Tooltip content="Edit Details" position="bottom">
+          <button className={getButtonStyles(isDark)}>
+            <EditIcon theme={isDark ? "dark" : "light"} height={18} />
+            {!isSmallScreen && <h5>Edit Details</h5>}
+          </button>
+        </Tooltip>
+        <Tooltip content="Layout" position="bottom">
+          <button className={`${getButtonStyles(isDark)} relative`}>
+            <LayoutIcon color={getIconColor(isDark)} size={18} />
+            {!isSmallScreen && (
+              <>
+                <h5>Layout</h5>
+                <ChevronDownIcon
+                  color={getIconColor(isDark)}
+                  size={12}
+                  className="ml-1"
+                />
+              </>
+            )}
+          </button>
+        </Tooltip>
+        <Tooltip content="Test Run" position="bottom">
+          <button
+            className={`${getButtonBaseStyles(
+              isDark
+            )} bg-gradient-to-r from-[#9133EA] to-[#2962EB] hover:opacity-90`}
+          >
+            <TestRun color={"white"} size={18} />
+            {!isSmallScreen && (
+              <h5 className="font-normal text-white">Test Run</h5>
+            )}
+          </button>
+        </Tooltip>
+        <Tooltip content="Download" position="bottom">
+          <button
+            className={`${getButtonBaseStyles(
+              isDark
+            )} bg-gradient-to-r from-[#9133EA] to-[#2962EB] text-white hover:opacity-90`}
+          >
+            <DownloadIcon theme="dark" height={18} />
+          </button>
+        </Tooltip>
+        <Tooltip content="Chat" position="bottom">
+          <button className={getButtonStyles(isDark)}>
+            <ChatIcon color={getIconColor(isDark)} size={18} />
+            <h5 className="hidden md:block">Chat</h5>
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

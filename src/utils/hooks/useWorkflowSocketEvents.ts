@@ -34,7 +34,7 @@ const transformServerNoteToReactFlowNode = (
     type: "note", // Use "note" type for WorkflowNoteNode
     position: noteData.position || { x: 0, y: 0 },
     data: {
-      label: noteData.content || noteData.title || "",
+      label: noteData.label || noteData.content || noteData.title || "",
       nodeType: "text",
       dotColor: "#94A3B8", // Default gray
       borderColor: "from-gray-500 to-gray-600", // Default
@@ -343,7 +343,7 @@ export const useWorkflowSocketEvents = () => {
           // Combine updated nodes with existing notes
           const allUpdatedNodes = [...updatedReactFlowNodes, ...currentNotes];
           dispatch(setNodes(allUpdatedNodes));
-          
+
           // Update selectedNode if it matches the updated node
           if (selectedNodeRef.current?.id === node_id) {
             const updatedSelectedNode = updatedNodeList.find(
@@ -353,7 +353,7 @@ export const useWorkflowSocketEvents = () => {
               dispatch(setSelectedNode(updatedSelectedNode));
             }
           }
-          
+
           console.log(
             "✅ Pin added to node:",
             node_id,
@@ -468,17 +468,17 @@ export const useWorkflowSocketEvents = () => {
     // Handle pin:updated event - receives pin updated confirmation
     const unsubscribePinUpdated = on("pin:updated", (data: any) => {
       console.log("✏️ pin:updated response:", data);
-      
+
       if (data?.status === "success" && data?.data) {
         const { node_id, pin_collection, pin } = data.data;
-        
+
         // Update nodeList - find the node and update the pin in the appropriate collection
         if (nodeListRef.current && Array.isArray(nodeListRef.current)) {
           const updatedNodeList = nodeListRef.current.map((node: any) => {
             if (node.id === node_id) {
               // Create a new node object with updated pin collection
               const updatedNode = { ...node };
-              
+
               // Map pin_collection to the correct property name
               let collectionKey = pin_collection;
               if (pin_collection === "inputs") {
@@ -488,38 +488,40 @@ export const useWorkflowSocketEvents = () => {
               } else if (pin_collection === "next_pins") {
                 collectionKey = "next_pins";
               }
-              
+
               // Update the pin in the collection
               if (updatedNode.data && updatedNode.data[collectionKey]) {
                 updatedNode.data = {
                   ...updatedNode.data,
                   [collectionKey]: updatedNode.data[collectionKey].map(
-                    (existingPin: any) => existingPin.id === pin.id ? pin : existingPin
+                    (existingPin: any) =>
+                      existingPin.id === pin.id ? pin : existingPin
                   ),
                 };
               }
-              
+
               return updatedNode;
             }
             return node;
           });
-          
+
           // Update nodeList in Redux
           dispatch(setNodeList(updatedNodeList));
-          
+
           // Also update the ReactFlow nodes to reflect the change
           // Transform the updated nodeList to ReactFlow nodes
-          const updatedReactFlowNodes = transformServerNodesToReactFlowNodes(updatedNodeList);
-          
+          const updatedReactFlowNodes =
+            transformServerNodesToReactFlowNodes(updatedNodeList);
+
           // Preserve any notes that exist in the current nodes array
           const currentNotes = nodesRef.current.filter(
             (node) => node.type === "note"
           );
-          
+
           // Combine updated nodes with existing notes
           const allUpdatedNodes = [...updatedReactFlowNodes, ...currentNotes];
           dispatch(setNodes(allUpdatedNodes));
-          
+
           // Update selectedNode if it matches the updated node
           if (selectedNodeRef.current?.id === node_id) {
             const updatedSelectedNode = updatedNodeList.find(
@@ -529,10 +531,15 @@ export const useWorkflowSocketEvents = () => {
               dispatch(setSelectedNode(updatedSelectedNode));
             }
           }
-          
-          console.log("✅ Pin updated in node:", node_id, "in collection:", pin_collection);
+
+          console.log(
+            "✅ Pin updated in node:",
+            node_id,
+            "in collection:",
+            pin_collection
+          );
         }
-        
+
         // Show success toast
         toast.success(data?.message || "Pin updated successfully");
       } else if (data?.status === "error" || data?.status === "failed") {

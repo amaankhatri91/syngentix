@@ -50,9 +50,8 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const { workflowId } = useParams<{ workflowId: string }>();
   const { userId } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-  const { nodes, edges, isLocked, edgeThickness, nodeList, minimapVisible } = useAppSelector(
-    (state) => state.workflowEditor
-  );
+  const { nodes, edges, isLocked, edgeThickness, nodeList, minimapVisible } =
+    useAppSelector((state) => state.workflowEditor);
 
   console.log(nodes, "Feature Added inside node Listing");
 
@@ -191,6 +190,10 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const onNodeDoubleClick = useCallback(
     (_event: React.MouseEvent, node: Node<CustomNodeData>) => {
       console.log("🖱️ Node double-clicked:", node);
+      // Don't open modal for sticky notes - they have their own double-click functionality
+      if (node.type === "note") {
+        return;
+      }
       if (!node?.id || !Array.isArray(nodeList)) {
         console.warn("Invalid node or nodeList");
         return;
@@ -221,12 +224,19 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
           x: node.position.x,
           y: node.position.y,
         };
-
-        emit("node:dragEnd", {
-          workflow_id: workflowId,
-          id: node.id,
-          position: dropPosition,
-        });
+        if (node?.type === "note") {
+          emit("note:dragEnd", {
+            workflow_id: workflowId,
+            id: node.id,
+            position: dropPosition,
+          });
+        } else {
+          emit("node:dragEnd", {
+            workflow_id: workflowId,
+            id: node.id,
+            position: dropPosition,
+          });
+        }
       }
     },
     [workflowId, emit, reactFlowInstance]
@@ -236,18 +246,21 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const handleMinimapClick = useCallback(
     (event: React.MouseEvent, position: Viewport) => {
       if (!reactFlowInstance || !position) return;
-      
+
       try {
         // Ensure we have valid position values
         const viewport = {
-          x: typeof position.x === 'number' ? position.x : 0,
-          y: typeof position.y === 'number' ? position.y : 0,
-          zoom: typeof position.zoom === 'number' ? position.zoom : reactFlowInstance.getViewport().zoom,
+          x: typeof position.x === "number" ? position.x : 0,
+          y: typeof position.y === "number" ? position.y : 0,
+          zoom:
+            typeof position.zoom === "number"
+              ? position.zoom
+              : reactFlowInstance.getViewport().zoom,
         };
-        
+
         reactFlowInstance.setViewport(viewport, { duration: 300 });
       } catch (error) {
-        console.error('Error navigating minimap:', error);
+        console.error("Error navigating minimap:", error);
       }
     },
     [reactFlowInstance]
@@ -382,7 +395,6 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
               }
               border rounded-lg cursor-grab
             `}
-           
             nodeColor={(node) => {
               const data = node.data as CustomNodeData;
               return data?.dotColor || "#94A3B8";

@@ -59,7 +59,11 @@ const WorkflowEditor = () => {
         <div className="flex flex-col h-[calc(100vh-174px)] overflow-hidden gap-8 lg:flex-row mt-4">
           {openNodeList && (
             <div className="w-[350px] min-w-0 flex-shrink-0">
-              <WorkflowNodesList nodesData={data} nodesLoading={isLoading} nodesError={error} />
+              <WorkflowNodesList
+                nodesData={data}
+                nodesLoading={isLoading}
+                nodesError={error}
+              />
             </div>
           )}
           <div className="transition-all duration-300 flex-1 min-w-0">

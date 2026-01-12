@@ -22,7 +22,7 @@ const useIsSmallScreen = (): boolean => {
     if (typeof window === "undefined") {
       return false;
     }
-    return window.innerWidth <= 1440;
+    return window.innerWidth <= 1550;
   });
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const useIsSmallScreen = (): boolean => {
     }
 
     const checkScreenSize = () => {
-      setIsSmallScreen(window.innerWidth <= 1522);
+      setIsSmallScreen(window.innerWidth <= 1550);
     };
 
     // Check initial screen size
