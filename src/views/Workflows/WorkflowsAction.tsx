@@ -85,7 +85,8 @@ const WorkflowsAction = () => {
             onChange={(option) => {
               const selected = option as SelectOption;
               setSelectedStatus(selected);
-              dispatch(setWorkflowStatus(selected.value as boolean));
+              // If "All" is selected (empty string), set status to undefined
+              dispatch(setWorkflowStatus(selected.value === "" ? undefined : (selected.value as boolean)));
             }}
             options={statusOptions}
             styles={getWorkflowSelectStyles<SelectOption>(isDark)}

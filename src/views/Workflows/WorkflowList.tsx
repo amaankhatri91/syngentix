@@ -14,7 +14,6 @@ import useTheme from "@/utils/hooks/useTheme";
 import Select from "react-select";
 import { getLimitSelectStyles, getPaginationValues } from "@/utils/common";
 import { limitOptions, LimitOption } from "@/constants/workflow.constant";
-import SelectDropdownIndicator from "@/components/SelectDropdownIndicator";
 import SelectDropDownLimit from "@/components/SelectDropDownLimit";
 
 const WorkflowList: React.FC = () => {

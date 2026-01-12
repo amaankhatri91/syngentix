@@ -102,7 +102,10 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
+      let newValue = e.target.value;
+
+      // Remove leading spaces
+      newValue = newValue.replace(/^\s+/, "");
 
       // Update internal state if not controlled
       if (controlledValue === undefined) {
@@ -114,8 +117,9 @@ const SearchInput: React.FC<SearchInputProps> = ({
         onChange(newValue);
       }
 
-      // Call debounced onSearch
-      debouncedSearch(newValue);
+      // Trim value before calling onSearch to prevent empty/whitespace-only searches
+      const trimmedValue = newValue.trim();
+      debouncedSearch(trimmedValue);
     },
     [controlledValue, onChange, debouncedSearch]
   );
