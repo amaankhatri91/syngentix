@@ -18,6 +18,7 @@ export type WorkflowEditorState = {
   selectedNode: any | null; // Store the filtered node object
   selectedNodeId?: string;
   nodeList?: null | any;
+  minimapVisible: boolean;
 };
 
 const initialState: WorkflowEditorState = {
@@ -34,6 +35,7 @@ const initialState: WorkflowEditorState = {
   selectedNode: null,
   selectedNodeId: "",
   nodeList: [],
+  minimapVisible: true, // Default to visible
 };
 
 const workflowEditorSlice = createSlice({
@@ -116,6 +118,12 @@ const workflowEditorSlice = createSlice({
     setSelectedNodeId: (state, action) => {
       state.selectedNodeId = action.payload;
     },
+    toggleMinimap: (state) => {
+      state.minimapVisible = !state.minimapVisible;
+    },
+    setMinimapVisible: (state, action: PayloadAction<boolean>) => {
+      state.minimapVisible = action.payload;
+    },
   },
 });
 
@@ -137,6 +145,8 @@ export const {
   setSelectedNode,
   setSelectedNodeId,
   setNodeList,
+  toggleMinimap,
+  setMinimapVisible,
 } = workflowEditorSlice.actions;
 
 export default workflowEditorSlice.reducer;

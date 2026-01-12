@@ -348,6 +348,22 @@ div[class*="backdrop"],
   background: linear-gradient(90deg, #9133ea 0%, #2962eb 100%);
 }
 
+/* ReactFlow Edge Interaction Improvements */
+.react-flow__edge-path {
+  pointer-events: stroke !important;
+}
+
+/* Ensure visible edge paths are always interactive and on top */
+.react-flow__edge-path:not([data-clickable="true"]) {
+  pointer-events: stroke !important;
+}
+
+/* Ensure clickable paths don't block other edges */
+.react-flow__edge-path[data-clickable="true"] {
+  pointer-events: stroke !important;
+  opacity: 0;
+}
+
 /* Remove Buttons */
 
 /* Chrome, Safari, Edge, Opera */

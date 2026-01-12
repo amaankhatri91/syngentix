@@ -33,6 +33,9 @@ const WorkflowEdge: React.FC<EdgeProps> = ({
   const dottedGradientId = `dotted-gradient-${id}`;
   const activeGradientId = `active-gradient-${id}`;
 
+  // Minimum clickable area width (in pixels)
+  const CLICKABLE_AREA_WIDTH = 20;
+
   return (
     <>
       <defs>
@@ -66,10 +69,28 @@ const WorkflowEdge: React.FC<EdgeProps> = ({
           </linearGradient>
         )}
       </defs>
+      {/* Invisible wider path for better clickability - only captures clicks on its own path */}
+      <path
+        id={`${id}-clickable`}
+        style={{
+          fill: "none",
+          stroke: "transparent",
+          strokeWidth: CLICKABLE_AREA_WIDTH,
+          cursor: "pointer",
+          pointerEvents: "stroke",
+        }}
+        className="react-flow__edge-path"
+        d={edgePath}
+        data-edge-id={id}
+        data-clickable="true"
+      />
+      {/* Visible edge path - rendered on top, handles visual and ensures proper selection */}
       <path
         id={id}
         style={{
           ...style,
+          cursor: "pointer",
+          pointerEvents: "stroke",
           ...(isDotted
             ? {
                 stroke: `url(#${dottedGradientId})`,
@@ -87,6 +108,7 @@ const WorkflowEdge: React.FC<EdgeProps> = ({
         }}
         className="react-flow__edge-path"
         d={edgePath}
+        data-edge-id={id}
       />
     </>
   );

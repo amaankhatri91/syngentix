@@ -37,6 +37,8 @@ import {
   setSelectedNode,
   setSelectedNodeId,
 } from "@/store/workflowEditor/workflowEditorSlice";
+import { Viewport } from "reactflow";
+import { showErrorToast } from "@/utils/toast";
 
 interface WorkflowCanvasProps {
   nodesData?: any;
@@ -48,7 +50,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const { workflowId } = useParams<{ workflowId: string }>();
   const { userId } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-  const { nodes, edges, isLocked, edgeThickness, nodeList } = useAppSelector(
+  const { nodes, edges, isLocked, edgeThickness, nodeList, minimapVisible } = useAppSelector(
     (state) => state.workflowEditor
   );
 
@@ -129,6 +131,13 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
       if (!connection.source || !connection.target || !workflowId) {
         return;
       }
+
+      // Validate: Prevent self-connections
+      if (connection.source === connection.target) {
+        showErrorToast("A node cannot be connected to itself.");
+        return;
+      }
+
       console.log(connection, "Verify The Connections");
       // Generate a unique ID for the connection
       const connectionId = `edge-${connection.source}-${
@@ -221,6 +230,27 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
       }
     },
     [workflowId, emit, reactFlowInstance]
+  );
+
+  // Handle minimap click for navigation
+  const handleMinimapClick = useCallback(
+    (event: React.MouseEvent, position: Viewport) => {
+      if (!reactFlowInstance || !position) return;
+      
+      try {
+        // Ensure we have valid position values
+        const viewport = {
+          x: typeof position.x === 'number' ? position.x : 0,
+          y: typeof position.y === 'number' ? position.y : 0,
+          zoom: typeof position.zoom === 'number' ? position.zoom : reactFlowInstance.getViewport().zoom,
+        };
+        
+        reactFlowInstance.setViewport(viewport, { duration: 300 });
+      } catch (error) {
+        console.error('Error navigating minimap:', error);
+      }
+    },
+    [reactFlowInstance]
   );
 
   // Memoize edge styles - use #8E8E93 for all regular edges
@@ -323,6 +353,8 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
         nodesDraggable={!isLocked}
         nodesConnectable={!isLocked}
         elementsSelectable={true}
+        edgesUpdatable={false}
+        edgesFocusable={true}
         panOnDrag={true}
         zoomOnScroll={true}
         zoomOnPinch={true}
@@ -340,21 +372,27 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
           variant={BackgroundVariant.Lines}
         />
         <WorkflowEditorControls />
-        <MiniMap
-          className={`
-            ${
-              isDark
-                ? "bg-[#0C1116] border-[#394757]"
-                : "bg-white border-[#E3E6EB]"
-            }
-            border rounded-lg
-          `}
-          nodeColor={(node) => {
-            const data = node.data as CustomNodeData;
-            return data?.dotColor || "#94A3B8";
-          }}
-          maskColor={isDark ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.1)"}
-        />
+        {minimapVisible && (
+          <MiniMap
+            className={`
+              ${
+                isDark
+                  ? "bg-[#0C1116] border-[#394757]"
+                  : "bg-white border-[#E3E6EB]"
+              }
+              border rounded-lg cursor-grab
+            `}
+           
+            nodeColor={(node) => {
+              const data = node.data as CustomNodeData;
+              return data?.dotColor || "#94A3B8";
+            }}
+            maskColor={isDark ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.1)"}
+            onClick={handleMinimapClick}
+            pannable={true}
+            zoomable={true}
+          />
+        )}
       </ReactFlow>
       {contextMenu && (
         <ContextMenu

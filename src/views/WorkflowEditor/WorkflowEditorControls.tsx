@@ -6,18 +6,25 @@ import ZoomOut from "@/assets/app-icons/ZoomOut";
 import FitView from "@/assets/app-icons/FitView";
 import Unlock from "@/assets/app-icons/Unlock";
 import Lock from "@/assets/app-icons/Lock";
+import MinimapIcon from "@/assets/app-icons/MinimapIcon";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { toggleLock } from "@/store/workflowEditor/workflowEditorSlice";
+import { toggleLock, toggleMinimap } from "@/store/workflowEditor/workflowEditorSlice";
 
 const WorkflowEditorControls: React.FC = () => {
   const dispatch = useAppDispatch();
   const isLocked = useAppSelector((state) => state.workflowEditor.isLocked);
+  const minimapVisible = useAppSelector((state) => state.workflowEditor.minimapVisible);
 
   const handleToggleLock = () => {
     dispatch(toggleLock());
   };
+
+  const handleToggleMinimap = () => {
+    dispatch(toggleMinimap());
+  };
+
   const { isDark } = useTheme();
-  const { zoomIn, zoomOut, fitView, getViewport, setViewport } = useReactFlow();
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   const iconColor = isDark ? "#FFFFFF" : "#162230";
   const iconSize = 14;
@@ -40,14 +47,7 @@ const WorkflowEditorControls: React.FC = () => {
       </button>
       <button
         type="button"
-        onClick={() => {
-          const viewport = getViewport();
-          console.log(
-            "Minus sign clicked - Zoom Out",
-            `Current zoom: ${viewport.zoom}`
-          );
-          zoomOut();
-        }}
+        onClick={() => zoomOut()}
         className="flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-80 transition-opacity border cursor-pointer"
         style={{
           backgroundColor: "transparent",
@@ -60,13 +60,7 @@ const WorkflowEditorControls: React.FC = () => {
       <button
         type="button"
         onClick={() => {
-          const defaultViewport = { x: 0, y: 0, zoom: 1.0995899256440786 };
-          setViewport(defaultViewport);
-          // Use requestAnimationFrame to ensure viewport is updated before logging
-          requestAnimationFrame(() => {
-            const viewport = getViewport();
-            console.log("Fit View clicked - Viewport:", viewport);
-          });
+          fitView({ padding: 0.2, duration: 300 });
         }}
         className="flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-80 transition-opacity border cursor-pointer"
         style={{
@@ -76,6 +70,18 @@ const WorkflowEditorControls: React.FC = () => {
         aria-label="Fit View"
       >
         <FitView color={iconColor} size={iconSize} />
+      </button>
+      <button
+        type="button"
+        onClick={handleToggleMinimap}
+        className="flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-80 transition-opacity border cursor-pointer"
+        style={{
+          backgroundColor: minimapVisible ? (isDark ? "rgba(57, 71, 87, 0.5)" : "rgba(227, 230, 235, 0.5)") : "transparent",
+          borderColor: borderColor,
+        }}
+        aria-label={minimapVisible ? "Hide Minimap" : "Show Minimap"}
+      >
+        <MinimapIcon color={iconColor} size={iconSize} />
       </button>
       <button
         type="button"
