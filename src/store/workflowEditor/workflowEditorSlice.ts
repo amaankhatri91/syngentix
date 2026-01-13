@@ -4,6 +4,34 @@ import { CustomNodeData } from "@/views/WorkflowEditor/type";
 
 const SLICE_NAME = "workflowEditor";
 
+/**
+ * History action types for undo/redo system
+ * Each action type corresponds to a socket event
+ */
+export type HistoryActionType =
+  | "NODE_CREATE"
+  | "NODE_UPDATE"
+  | "NODE_DELETE"
+  | "NODE_DELETE_BULK"
+  | "NOTE_CREATE"
+  | "NOTE_UPDATE"
+  | "NOTE_DELETE"
+  | "PIN_ADD"
+  | "PIN_UPDATE"
+  | "PIN_DELETE"
+  | "CONNECTION_CREATE"
+  | "CONNECTION_DELETE";
+
+/**
+ * History entry structure using Command Pattern
+ * Stores atomic actions with inverse operations for undo/redo
+ */
+export interface HistoryEntry {
+  actionType: HistoryActionType;
+  payload: any; // Data needed to redo the action
+  inversePayload: any; // Data needed to undo the action
+}
+
 export type WorkflowEditorState = {
   openNodeList: boolean;
   openSettings: boolean;
@@ -19,6 +47,8 @@ export type WorkflowEditorState = {
   selectedNodeId?: string;
   nodeList?: null | any;
   minimapVisible: boolean;
+  undoStack: HistoryEntry[]; // Stack of actions that can be undone
+  redoStack: HistoryEntry[]; // Stack of actions that can be redone
 };
 
 const initialState: WorkflowEditorState = {
@@ -36,6 +66,8 @@ const initialState: WorkflowEditorState = {
   selectedNodeId: "",
   nodeList: [],
   minimapVisible: true, // Default to visible
+  undoStack: [],
+  redoStack: [],
 };
 
 const workflowEditorSlice = createSlice({
@@ -124,6 +156,105 @@ const workflowEditorSlice = createSlice({
     setMinimapVisible: (state, action: PayloadAction<boolean>) => {
       state.minimapVisible = action.payload;
     },
+    /**
+     * Push a new history entry to the undo stack
+     * This is called ONLY when a socket event confirms a user action
+     * Clears redoStack when a new user action is recorded
+     */
+    pushHistoryAction: (state, action: PayloadAction<HistoryEntry>) => {
+      console.log("📝 [HISTORY] pushHistoryAction called:", {
+        actionType: action.payload.actionType,
+        payload: action.payload.payload,
+        inversePayload: action.payload.inversePayload,
+        currentUndoStackLength: state.undoStack.length,
+        currentRedoStackLength: state.redoStack.length,
+      });
+      state.undoStack.push(action.payload);
+      // Clear redo stack when a new user action is recorded
+      state.redoStack = [];
+      console.log("📝 [HISTORY] After pushHistoryAction:", {
+        newUndoStackLength: state.undoStack.length,
+        newRedoStackLength: state.redoStack.length,
+        canUndo: state.undoStack.length > 0,
+      });
+    },
+    /**
+     * Undo: Pop from undoStack and push to redoStack
+     * State updates IMMEDIATELY and SYNCHRONOUSLY
+     */
+    undo: (state) => {
+      console.log("↩️ [UNDO] undo called:", {
+        undoStackLength: state.undoStack.length,
+        redoStackLength: state.redoStack.length,
+      });
+      if (state.undoStack.length === 0) {
+        console.warn("⚠️ [UNDO] Cannot undo: undoStack is empty");
+        return;
+      }
+      const lastAction = state.undoStack.pop()!;
+      state.redoStack.push(lastAction);
+      console.log("↩️ [UNDO] After undo:", {
+        actionType: lastAction.actionType,
+        newUndoStackLength: state.undoStack.length,
+        newRedoStackLength: state.redoStack.length,
+        canUndo: state.undoStack.length > 0,
+        canRedo: state.redoStack.length > 0,
+      });
+    },
+    /**
+     * Redo: Pop from redoStack and push to undoStack
+     * State updates IMMEDIATELY and SYNCHRONOUSLY
+     */
+    redo: (state) => {
+      console.log("↪️ [REDO] redo called:", {
+        undoStackLength: state.undoStack.length,
+        redoStackLength: state.redoStack.length,
+      });
+      if (state.redoStack.length === 0) {
+        console.warn("⚠️ [REDO] Cannot redo: redoStack is empty");
+        return;
+      }
+      const lastAction = state.redoStack.pop()!;
+      state.undoStack.push(lastAction);
+      console.log("↪️ [REDO] After redo:", {
+        actionType: lastAction.actionType,
+        newUndoStackLength: state.undoStack.length,
+        newRedoStackLength: state.redoStack.length,
+        canUndo: state.undoStack.length > 0,
+        canRedo: state.redoStack.length > 0,
+      });
+    },
+    /**
+     * Clear redo stack (called when a new user action is recorded)
+     */
+    clearRedoStack: (state) => {
+      state.redoStack = [];
+    },
+    /**
+     * Update the last entry in redoStack (used when connection ID changes after undo)
+     */
+    updateLastRedoStackEntry: (state, action: PayloadAction<Partial<HistoryEntry>>) => {
+      if (state.redoStack.length > 0) {
+        const lastEntry = state.redoStack[state.redoStack.length - 1];
+        state.redoStack[state.redoStack.length - 1] = {
+          ...lastEntry,
+          ...action.payload,
+          payload: action.payload.payload ? { ...lastEntry.payload, ...action.payload.payload } : lastEntry.payload,
+        };
+      }
+    },
+    /**
+     * Clear all history (useful for workflow:data initial load)
+     */
+    clearHistory: (state) => {
+      console.log("🗑️ [HISTORY] clearHistory called:", {
+        undoStackLength: state.undoStack.length,
+        redoStackLength: state.redoStack.length,
+      });
+      state.undoStack = [];
+      state.redoStack = [];
+      console.log("🗑️ [HISTORY] History cleared");
+    },
   },
 });
 
@@ -147,6 +278,46 @@ export const {
   setNodeList,
   toggleMinimap,
   setMinimapVisible,
+  pushHistoryAction,
+  undo,
+  redo,
+  clearRedoStack,
+  clearHistory,
+  updateLastRedoStackEntry,
 } = workflowEditorSlice.actions;
+
+/**
+ * Selectors for undo/redo availability
+ * These are used to enable/disable undo/redo buttons
+ */
+export const selectCanUndo = (state: { workflowEditor: WorkflowEditorState }) => {
+  const canUndo = state.workflowEditor.undoStack.length > 0;
+  // Log selector calls occasionally to avoid spam
+  if (Math.random() < 0.1) {
+    console.log("🔍 [SELECTOR] selectCanUndo:", {
+      undoStackLength: state.workflowEditor.undoStack.length,
+      canUndo,
+    });
+  }
+  return canUndo;
+};
+
+export const selectCanRedo = (state: { workflowEditor: WorkflowEditorState }) => {
+  const canRedo = state.workflowEditor.redoStack.length > 0;
+  // Log selector calls occasionally to avoid spam
+  if (Math.random() < 0.1) {
+    console.log("🔍 [SELECTOR] selectCanRedo:", {
+      redoStackLength: state.workflowEditor.redoStack.length,
+      canRedo,
+    });
+  }
+  return canRedo;
+};
+
+export const selectUndoStack = (state: { workflowEditor: WorkflowEditorState }) =>
+  state.workflowEditor.undoStack;
+
+export const selectRedoStack = (state: { workflowEditor: WorkflowEditorState }) =>
+  state.workflowEditor.redoStack;
 
 export default workflowEditorSlice.reducer;

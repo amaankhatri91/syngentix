@@ -39,6 +39,7 @@ import {
 } from "@/store/workflowEditor/workflowEditorSlice";
 import { Viewport } from "reactflow";
 import { showErrorToast } from "@/utils/toast";
+import { storeConnectionSnapshot } from "@/utils/hooks/useConnectionDeletionTracking";
 
 interface WorkflowCanvasProps {
   nodesData?: any;
@@ -59,11 +60,33 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const handleEdgeDelete = useCallback(
     (edgeId: string, workflowIdParam: string) => {
       if (!workflowIdParam) return;
+      
+      // IMPORTANT: Capture connection snapshot BEFORE optimistic update
+      // This snapshot will be used by useWorkflowSocketEvents to record history
+      const edgeToDelete = edges.find((edge) => edge.id === edgeId);
+      
+      if (edgeToDelete) {
+        // Store the snapshot so socket handler can access it
+        storeConnectionSnapshot(edgeId, edgeToDelete);
+        console.log("📸 [CANVAS] Captured connection snapshot before delete:", {
+          edgeId,
+          edge: {
+            id: edgeToDelete.id,
+            source: edgeToDelete.source,
+            target: edgeToDelete.target,
+            sourceHandle: edgeToDelete.sourceHandle,
+            targetHandle: edgeToDelete.targetHandle,
+          },
+        });
+      }
+      
       // Emit connection:delete event
       emit("connection:delete", {
         workflow_id: workflowIdParam,
         id: edgeId,
       });
+      
+      // Optimistic update - remove edge immediately
       const updatedEdges = edges.filter((edge) => edge.id !== edgeId);
       dispatch(setEdges(updatedEdges));
     },

@@ -6,6 +6,7 @@ import {
   setEdgeThickness,
   setOpenSettings,
 } from "@/store/workflowEditor/workflowEditorSlice";
+import { useUndoRedo } from "@/utils/hooks/useUndoRedo";
 import {
   getIconColor,
   getButtonStyles,
@@ -39,6 +40,17 @@ const WorkflowEditorHeader = () => {
   console.log(isSmallScreen, "Verify is Small Screen");
   const dispatch = useAppDispatch();
   const { edgeThickness } = useAppSelector((state) => state.workflowEditor);
+  const { canUndo, canRedo, handleUndo, handleRedo } = useUndoRedo();
+
+  // Debug logging for button state
+  React.useEffect(() => {
+    console.log("🎨 [HEADER] Undo/Redo button state:", {
+      canUndo,
+      canRedo,
+      undoButtonDisabled: !canUndo,
+      redoButtonDisabled: !canRedo,
+    });
+  }, [canUndo, canRedo]);
   const [isCopyDropdownOpen, setIsCopyDropdownOpen] = useState(false);
   const [isThicknessDropdownOpen, setIsThicknessDropdownOpen] = useState(false);
   const copyButtonRef = useRef<HTMLDivElement>(null);
@@ -266,7 +278,11 @@ const WorkflowEditorHeader = () => {
         <div className="flex">
           <Tooltip content="Undo" position="bottom">
             <button
-              className={`${getGroupedButtonStyles(isDark)} rounded-r-none `}
+              onClick={handleUndo}
+              disabled={!canUndo}
+              className={`${getGroupedButtonStyles(isDark)} rounded-r-none ${
+                !canUndo ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               <UndoIcon color={getIconColor(isDark)} size={18} />
               <h5 className="hidden md:block">Undo</h5>
@@ -274,7 +290,11 @@ const WorkflowEditorHeader = () => {
           </Tooltip>
           <Tooltip content="Redo" position="bottom">
             <button
-              className={`${getGroupedButtonStyles(isDark)} rounded-l-none`}
+              onClick={handleRedo}
+              disabled={!canRedo}
+              className={`${getGroupedButtonStyles(isDark)} rounded-l-none ${
+                !canRedo ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               <RedoIcon color={getIconColor(isDark)} size={18} />
               <h5 className="hidden md:block">Redo</h5>
