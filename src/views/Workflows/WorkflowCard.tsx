@@ -36,6 +36,10 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
     navigate(`/agent/${agentId}/workflow/${workflow?.workflow_id}`, {
       state: {
         workflowTitle: workflow?.title,
+        workflowDescription: workflow?.description,
+        execution_timeout: workflow?.execution_timeout,
+        retry_attempts: workflow?.retry_attempts,
+        concurrency_limit: workflow?.concurrency_limit,
       },
     });
     onInfo?.(workflow.id);
@@ -48,6 +52,10 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
         navigate(`/agent/${agentId}/workflow/${workflow?.workflow_id}`, {
           state: {
             workflowTitle: workflow?.title,
+            workflowDescription: workflow?.description,
+            execution_timeout: workflow?.execution_timeout,
+            retry_attempts: workflow?.retry_attempts,
+            concurrency_limit: workflow?.concurrency_limit,
           },
         });
         onInfo?.(workflow.id);

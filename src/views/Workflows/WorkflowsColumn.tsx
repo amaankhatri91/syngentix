@@ -119,6 +119,10 @@ const FlowCell: React.FC<{ row: Workflow }> = ({ row }) => {
     navigate(`/agent/${agentId}/workflow/${row?.workflow_id}`, {
       state: {
         workflowTitle: row?.title,
+        workflowDescription: row?.description,
+        execution_timeout: row?.execution_timeout,
+        retry_attempts: row?.retry_attempts,
+        concurrency_limit: row?.concurrency_limit,
       },
     });
   };
@@ -146,6 +150,10 @@ const ActionsCell: React.FC<{ row: Workflow }> = ({ row }) => {
     navigate(`/agent/${agentId}/workflow/${row?.workflow_id}`, {
       state: {
         workflowTitle: row?.title,
+        workflowDescription: row?.description,
+        execution_timeout: row?.execution_timeout,
+        retry_attempts: row?.retry_attempts,
+        concurrency_limit: row?.concurrency_limit,
       },
     });
   };

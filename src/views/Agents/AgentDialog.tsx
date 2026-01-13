@@ -45,21 +45,29 @@ const AgentDialog = () => {
     >
       <Formik<AgentFormValues>
         initialValues={{
-          agentName: agentRow?.name || "",
-          description: agentRow?.description || "",
+          agentName: (agentRow?.name || "").trim(),
+          description: (agentRow?.description || "").trim(),
         }}
         validationSchema={AgentSchema}
+        validateOnChange={true}
+        validateOnBlur={true}
         onSubmit={async (values: AgentFormValues) => {
           try {
+            // Trim values before submission to ensure no leading/trailing spaces
+            const trimmedValues = {
+              agentName: values.agentName.trim(),
+              description: values.description.trim(),
+            };
+
             const response: any = agentRow?.id
               ? await dispatch(
                   editAgent({
                     id: agentRow?.agent_id,
-                    agentName: values.agentName,
-                    description: values.description,
+                    agentName: trimmedValues.agentName,
+                    description: trimmedValues.description,
                   })
                 ).unwrap()
-              : await dispatch(createAgent(values)).unwrap();
+              : await dispatch(createAgent(trimmedValues)).unwrap();
 
             if (response?.status === "success") {
               dispatch(
@@ -100,24 +108,54 @@ const AgentDialog = () => {
                   Agent Name <span className="text-red-500">*</span>
                 </h5>
                 <Field name="agentName">
-                  {({ field }: any) => (
-                    <FormikInput
-                      field={field}
-                      type="text"
-                      className={`!py-5 ${
-                        !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
-                      }`}
-                      placeholder="Please enter the agent name"
-                      errors={errors}
-                      touched={touched}
-                      onFieldTouched={() => setFieldTouched("agentName", true)}
-                      onFieldChange={(
-                        e: React.ChangeEvent<HTMLInputElement>
-                      ) => {
-                        setFieldValue("agentName", e.target.value);
-                      }}
-                    />
-                  )}
+                  {({ field }: any) => {
+                    const handleAgentNameChange = (
+                      e: React.ChangeEvent<HTMLInputElement>
+                    ) => {
+                      const newValue = e.target.value;
+
+                      // Remove any leading spaces
+                      const trimmedValue = newValue.trimStart();
+                      if (trimmedValue !== newValue) {
+                        // If leading spaces were removed, update with trimmed value
+                        setFieldValue("agentName", trimmedValue, false);
+                      } else {
+                        // No leading spaces, allow the change
+                        field.onChange(e);
+                      }
+                      setFieldTouched("agentName", true);
+                    };
+
+                    const handleAgentNameBlur = (
+                      e: React.FocusEvent<HTMLInputElement>
+                    ) => {
+                      // Trim trailing spaces on blur
+                      const trimmedValue = e.target.value.trimEnd();
+                      if (trimmedValue !== e.target.value) {
+                        setFieldValue("agentName", trimmedValue, false);
+                      }
+                      field.onBlur(e);
+                      setFieldTouched("agentName", true);
+                    };
+
+                    return (
+                      <FormikInput
+                        field={{
+                          ...field,
+                          onChange: handleAgentNameChange,
+                          onBlur: handleAgentNameBlur,
+                        }}
+                        type="text"
+                        className={`!py-5 ${
+                          !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                        }`}
+                        placeholder="Please enter the agent name"
+                        errors={errors}
+                        touched={touched}
+                        onFieldTouched={() => setFieldTouched("agentName", true)}
+                      />
+                    );
+                  }}
                 </Field>
                 <div className="min-h-[20px] ">
                   <ErrorMessage
@@ -130,26 +168,56 @@ const AgentDialog = () => {
               <div className="text-left w-full">
                 <h5 className="block text-sm md:text-base mb-1">Description</h5>
                 <Field name="description">
-                  {({ field }: any) => (
-                    <FormikTextarea
-                      field={field}
-                      rows={4}
-                      className={`${
-                        !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
-                      }`}
-                      placeholder="Write something about your agent"
-                      errors={errors}
-                      touched={touched}
-                      onFieldTouched={() =>
-                        setFieldTouched("description", true)
+                  {({ field }: any) => {
+                    const handleDescriptionChange = (
+                      e: React.ChangeEvent<HTMLTextAreaElement>
+                    ) => {
+                      const newValue = e.target.value;
+
+                      // Remove any leading spaces
+                      const trimmedValue = newValue.trimStart();
+                      if (trimmedValue !== newValue) {
+                        // If leading spaces were removed, update with trimmed value
+                        setFieldValue("description", trimmedValue, false);
+                      } else {
+                        // No leading spaces, allow the change
+                        field.onChange(e);
                       }
-                      onFieldChange={(
-                        e: React.ChangeEvent<HTMLTextAreaElement>
-                      ) => {
-                        setFieldValue("description", e.target.value);
-                      }}
-                    />
-                  )}
+                      setFieldTouched("description", true);
+                    };
+
+                    const handleDescriptionBlur = (
+                      e: React.FocusEvent<HTMLTextAreaElement>
+                    ) => {
+                      // Trim trailing spaces on blur
+                      const trimmedValue = e.target.value.trimEnd();
+                      if (trimmedValue !== e.target.value) {
+                        setFieldValue("description", trimmedValue, false);
+                      }
+                      field.onBlur(e);
+                      setFieldTouched("description", true);
+                    };
+
+                    return (
+                      <FormikTextarea
+                        field={{
+                          ...field,
+                          onChange: handleDescriptionChange,
+                          onBlur: handleDescriptionBlur,
+                        }}
+                        rows={4}
+                        className={`${
+                          !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                        }`}
+                        placeholder="Write something about your agent"
+                        errors={errors}
+                        touched={touched}
+                        onFieldTouched={() =>
+                          setFieldTouched("description", true)
+                        }
+                      />
+                    );
+                  }}
                 </Field>
                 <div className="min-h-[20px] ">
                   <ErrorMessage

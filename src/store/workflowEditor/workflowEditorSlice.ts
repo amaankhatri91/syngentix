@@ -32,6 +32,13 @@ export interface HistoryEntry {
   inversePayload: any; // Data needed to undo the action
 }
 
+export interface ClipboardData {
+  nodes: Node<CustomNodeData>[];
+  edges: Edge[];
+  copyType: "copy" | "cut";
+  includeConnections: boolean;
+}
+
 export type WorkflowEditorState = {
   openNodeList: boolean;
   openSettings: boolean;
@@ -49,6 +56,8 @@ export type WorkflowEditorState = {
   minimapVisible: boolean;
   undoStack: HistoryEntry[]; // Stack of actions that can be undone
   redoStack: HistoryEntry[]; // Stack of actions that can be redone
+  clipboard: ClipboardData | null; // Clipboard data for copy/cut/paste
+  isPasteMode: boolean; // Whether paste mode is active (showing "Click on canvas to paste")
 };
 
 const initialState: WorkflowEditorState = {
@@ -68,6 +77,8 @@ const initialState: WorkflowEditorState = {
   minimapVisible: true, // Default to visible
   undoStack: [],
   redoStack: [],
+  clipboard: null,
+  isPasteMode: false,
 };
 
 const workflowEditorSlice = createSlice({
@@ -255,6 +266,28 @@ const workflowEditorSlice = createSlice({
       state.redoStack = [];
       console.log("🗑️ [HISTORY] History cleared");
     },
+    /**
+     * Set clipboard data for copy/cut operations
+     * Note: This does NOT enable paste mode - user must click Paste button first
+     */
+    setClipboard: (state, action: PayloadAction<ClipboardData | null>) => {
+      state.clipboard = action.payload;
+      // Don't automatically enable paste mode - user must click Paste button
+      // state.isPasteMode = action.payload !== null;
+    },
+    /**
+     * Clear clipboard and exit paste mode
+     */
+    clearClipboard: (state) => {
+      state.clipboard = null;
+      state.isPasteMode = false;
+    },
+    /**
+     * Set paste mode (show "Click on canvas to paste" button)
+     */
+    setPasteMode: (state, action: PayloadAction<boolean>) => {
+      state.isPasteMode = action.payload;
+    },
   },
 });
 
@@ -284,6 +317,9 @@ export const {
   clearRedoStack,
   clearHistory,
   updateLastRedoStackEntry,
+  setClipboard,
+  clearClipboard,
+  setPasteMode,
 } = workflowEditorSlice.actions;
 
 /**

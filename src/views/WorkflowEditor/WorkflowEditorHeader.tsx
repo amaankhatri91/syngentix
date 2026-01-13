@@ -1,12 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import useTheme from "@/utils/hooks/useTheme";
 import useIsSmallScreen from "@/utils/hooks/useIsSmallScreen";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   setEdgeThickness,
   setOpenSettings,
+  setClipboard,
+  clearClipboard,
+  setPasteMode,
+  ClipboardData,
 } from "@/store/workflowEditor/workflowEditorSlice";
 import { useUndoRedo } from "@/utils/hooks/useUndoRedo";
+import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
+import { useParams } from "react-router-dom";
+import { Node, Edge } from "reactflow";
+import { CustomNodeData } from "./type";
+import { toast } from "react-toastify";
 import {
   getIconColor,
   getButtonStyles,
@@ -39,7 +48,11 @@ const WorkflowEditorHeader = () => {
   const isSmallScreen = useIsSmallScreen();
   console.log(isSmallScreen, "Verify is Small Screen");
   const dispatch = useAppDispatch();
-  const { edgeThickness } = useAppSelector((state) => state.workflowEditor);
+  const { workflowId } = useParams<{ workflowId: string }>();
+  const { emit } = useSocketConnection();
+  const { edgeThickness, nodes, edges, clipboard, isPasteMode, nodeList } = useAppSelector(
+    (state) => state.workflowEditor
+  );
   const { canUndo, canRedo, handleUndo, handleRedo } = useUndoRedo();
 
   // Debug logging for button state
@@ -85,18 +98,171 @@ const WorkflowEditorHeader = () => {
     setIsCopyDropdownOpen(!isCopyDropdownOpen);
   };
 
+  // Helper function to check if a node is an entry node
+  const isEntryNode = useCallback(
+    (nodeId: string): boolean => {
+      // Check in nodeList first (server data)
+      const nodeInList = nodeList?.find((n: any) => n.id === nodeId);
+      if (nodeInList) {
+        const category = nodeInList.data?.category || nodeInList.category || nodeInList.type;
+        if (category?.toLowerCase() === "entry") {
+          return true;
+        }
+      }
+      
+      // Also check in ReactFlow nodes
+      const reactFlowNode = nodes.find((n) => n.id === nodeId);
+      if (reactFlowNode) {
+        // Check if node has entry-related properties
+        const nodeData = reactFlowNode.data;
+        if (nodeData?.label?.toLowerCase().includes("entry")) {
+          return true;
+        }
+      }
+      
+      return false;
+    },
+    [nodeList, nodes]
+  );
+
+  // Get selected nodes
+  const selectedNodes = nodes.filter((node) => node.selected);
+  const hasSelectedNodes = selectedNodes.length > 0;
+
+  // Get connections between selected nodes
+  const getConnectionsBetweenNodes = (
+    selectedNodeIds: string[],
+    allEdges: Edge[]
+  ): Edge[] => {
+    return allEdges.filter(
+      (edge) =>
+        selectedNodeIds.includes(edge.source) &&
+        selectedNodeIds.includes(edge.target)
+    );
+  };
+
   const handleCopyNodesWithConnections = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsCopyDropdownOpen(false);
-    // TODO: Implement copy nodes + connections logic
-    console.log("Copy nodes + connections");
+
+    if (!hasSelectedNodes || !workflowId) {
+      toast.warning("Please select nodes to copy");
+      return;
+    }
+
+    const selectedNodeIds = selectedNodes.map((node) => node.id);
+    const connections = getConnectionsBetweenNodes(selectedNodeIds, edges);
+
+    // Store in clipboard (but don't enable paste mode yet)
+    const clipboardData: ClipboardData = {
+      nodes: selectedNodes,
+      edges: connections,
+      copyType: "copy",
+      includeConnections: true,
+    };
+    dispatch(setClipboard(clipboardData));
+    // Don't set paste mode - user must click Paste button first
+
+    // Emit workflow:nodes_copy event
+    emit("workflow:nodes_copy", {
+      source_workflow_id: workflowId,
+      destination_workflow_id: workflowId,
+      type: "copy",
+      node_ids: selectedNodeIds,
+      include_connections: true,
+    });
+
+    const nodeCount = selectedNodes.length;
+    const connectionCount = connections.length;
+    toast.success(
+      `Copied ${nodeCount} node${nodeCount !== 1 ? "s" : ""} and ${connectionCount} connection${connectionCount !== 1 ? "s" : ""}`
+    );
   };
 
   const handleCopyNodesOnly = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsCopyDropdownOpen(false);
-    // TODO: Implement copy nodes only logic
-    console.log("Copy nodes only");
+
+    if (!hasSelectedNodes || !workflowId) {
+      toast.warning("Please select nodes to copy");
+      return;
+    }
+
+    const selectedNodeIds = selectedNodes.map((node) => node.id);
+
+    // Store in clipboard (but don't enable paste mode yet)
+    const clipboardData: ClipboardData = {
+      nodes: selectedNodes,
+      edges: [],
+      copyType: "copy",
+      includeConnections: false,
+    };
+    dispatch(setClipboard(clipboardData));
+    // Don't set paste mode - user must click Paste button first
+
+    // Emit workflow:nodes_copy event
+    emit("workflow:nodes_copy", {
+      source_workflow_id: workflowId,
+      destination_workflow_id: workflowId,
+      type: "copy",
+      node_ids: selectedNodeIds,
+      include_connections: false,
+    });
+
+    toast.success(`Copied ${selectedNodes.length} node(s)`);
+  };
+
+  const handleCut = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!hasSelectedNodes || !workflowId) {
+      toast.warning("Please select nodes to cut");
+      return;
+    }
+
+    const selectedNodeIds = selectedNodes.map((node) => node.id);
+    
+    // Check for entry nodes - they cannot be cut
+    const entryNodeIds = selectedNodeIds.filter((nodeId) => isEntryNode(nodeId));
+    if (entryNodeIds.length > 0) {
+      toast.warning("Entry nodes cannot be cut");
+      return;
+    }
+    
+    const connections = getConnectionsBetweenNodes(selectedNodeIds, edges);
+
+    // Store in clipboard with cut type
+    const clipboardData: ClipboardData = {
+      nodes: selectedNodes,
+      edges: connections,
+      copyType: "cut",
+      includeConnections: true,
+    };
+    dispatch(setClipboard(clipboardData));
+
+    // Emit workflow:nodes_copy event with type "cut"
+    emit("workflow:nodes_copy", {
+      source_workflow_id: workflowId,
+      destination_workflow_id: workflowId,
+      type: "cut",
+      node_ids: selectedNodeIds,
+      include_connections: true,
+    });
+
+    toast.success(`Cut ${selectedNodes.length} node(s)`);
+  };
+
+  const handlePaste = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!clipboard || !workflowId) {
+      toast.warning("Nothing to paste");
+      return;
+    }
+
+    // Enable paste mode - user needs to click on canvas
+    dispatch(setPasteMode(true));
+    toast.info("Click on canvas to paste");
   };
 
   const handleThicknessClick = (e: React.MouseEvent) => {
@@ -210,16 +376,16 @@ const WorkflowEditorHeader = () => {
           <div className="relative" ref={copyButtonRef}>
             <Tooltip content="Copy" position="bottom">
               <button
-                className={`${getGroupedButtonStyles(isDark)} rounded-r-none`}
+                className={`${getGroupedButtonStyles(isDark)} rounded-r-none ${
+                  !hasSelectedNodes || clipboard?.copyType === "cut"
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
                 onClick={handleCopyClick}
+                disabled={!hasSelectedNodes || clipboard?.copyType === "cut"}
               >
                 <CopyIcon color={getIconColor(isDark)} size={18} />
                 <h5 className="hidden md:block">Copy</h5>
-                {/* <ChevronDownIcon
-                color={getIconColor(isDark)}
-                size={12}
-                className="ml-1"
-              /> */}
               </button>
             </Tooltip>
             {isCopyDropdownOpen && (
@@ -260,7 +426,11 @@ const WorkflowEditorHeader = () => {
           </div>
           <Tooltip content="Cut" position="bottom">
             <button
-              className={`${getGroupedButtonStyles(isDark)} rounded-none`}
+              className={`${getGroupedButtonStyles(isDark)} rounded-none ${
+                !hasSelectedNodes ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={handleCut}
+              disabled={!hasSelectedNodes}
             >
               <CutIcon color={getIconColor(isDark)} size={18} />
               <h5 className="hidden md:block">Cut</h5>
@@ -268,7 +438,11 @@ const WorkflowEditorHeader = () => {
           </Tooltip>
           <Tooltip content="Paste" position="bottom">
             <button
-              className={`${getGroupedButtonStyles(isDark)} rounded-l-none`}
+              className={`${getGroupedButtonStyles(isDark)} rounded-l-none ${
+                !clipboard ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={handlePaste}
+              disabled={!clipboard}
             >
               <PasteIcon color={getIconColor(isDark)} size={18} />
               <h5 className="hidden md:block">Paste</h5>

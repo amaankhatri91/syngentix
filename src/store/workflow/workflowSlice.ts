@@ -1,4 +1,11 @@
-import { apiCreateWorkflow, apiEditWorkflow, apiDeleteWorkflow, apiUpdateWorkflowStatus, apiDuplicateWorkflow, apiUpdateWorkflowSettings } from "@/services/WorkflowService";
+import {
+  apiCreateWorkflow,
+  apiEditWorkflow,
+  apiDeleteWorkflow,
+  apiUpdateWorkflowStatus,
+  apiDuplicateWorkflow,
+  apiUpdateWorkflowSettings,
+} from "@/services/WorkflowService";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "@/store";
 
@@ -46,11 +53,11 @@ export const createWorkflow = createAsyncThunk(
     try {
       const state = getState() as RootState;
       const workspaceId = state.auth.workspace?.id;
-      
+
       if (!workspaceId) {
         return rejectWithValue({ message: "Workspace ID is required" });
       }
-      
+
       const response = await apiCreateWorkflow(data, workspaceId);
       return response;
     } catch (error: any) {
@@ -63,15 +70,18 @@ export const createWorkflow = createAsyncThunk(
 
 export const editWorkflow = createAsyncThunk(
   `${SLICE_NAME}/editWorkflow`,
-  async (data: { id: string; title: string; description: string }, { rejectWithValue, getState }) => {
+  async (
+    data: { id: string; title: string; description: string },
+    { rejectWithValue, getState }
+  ) => {
     try {
       const state = getState() as RootState;
       const workspaceId = state.auth.workspace?.id;
-      
+
       if (!workspaceId) {
         return rejectWithValue({ message: "Workspace ID is required" });
       }
-      
+
       const response = await apiEditWorkflow(data, workspaceId);
       return response;
     } catch (error: any) {
@@ -88,11 +98,11 @@ export const deleteWorkflow = createAsyncThunk(
     try {
       const state = getState() as RootState;
       const workspaceId = state.auth.workspace?.id;
-      
+
       if (!workspaceId) {
         return rejectWithValue({ message: "Workspace ID is required" });
       }
-      
+
       const response = await apiDeleteWorkflow(workflowId, workspaceId);
       return response;
     } catch (error: any) {
@@ -105,16 +115,23 @@ export const deleteWorkflow = createAsyncThunk(
 
 export const updateWorkflowStatus = createAsyncThunk(
   `${SLICE_NAME}/updateWorkflowStatus`,
-  async (data: { workflowId: string; status: boolean }, { rejectWithValue, getState }) => {
+  async (
+    data: { workflowId: string; status: boolean },
+    { rejectWithValue, getState }
+  ) => {
     try {
       const state = getState() as RootState;
       const workspaceId = state.auth.workspace?.id;
-      
+
       if (!workspaceId) {
         return rejectWithValue({ message: "Workspace ID is required" });
       }
-      
-      const response = await apiUpdateWorkflowStatus(data.workflowId, data.status, workspaceId);
+
+      const response = await apiUpdateWorkflowStatus(
+        data.workflowId,
+        data.status,
+        workspaceId
+      );
       return response;
     } catch (error: any) {
       return rejectWithValue(
@@ -126,15 +143,23 @@ export const updateWorkflowStatus = createAsyncThunk(
 
 export const duplicateWorkflow = createAsyncThunk(
   `${SLICE_NAME}/duplicateWorkflow`,
-  async (data: { sourceAgentId: string; workflowId: string; targetAgentId: string; workflowTitle: string }, { rejectWithValue, getState }) => {
+  async (
+    data: {
+      sourceAgentId: string;
+      workflowId: string;
+      targetAgentId: string;
+      workflowTitle: string;
+    },
+    { rejectWithValue, getState }
+  ) => {
     try {
       const state = getState() as RootState;
       const workspaceId = state.auth.workspace?.id;
-      
+
       if (!workspaceId) {
         return rejectWithValue({ message: "Workspace ID is required" });
       }
-      
+
       const response = await apiDuplicateWorkflow(
         data.sourceAgentId,
         data.workflowId,
@@ -153,15 +178,23 @@ export const duplicateWorkflow = createAsyncThunk(
 
 export const updateWorkflowSettings = createAsyncThunk(
   `${SLICE_NAME}/updateWorkflowSettings`,
-  async (data: { workflowId: string; title: string; description: string; execution_timeout: number; retry_attempts: number; concurrency_limit: boolean }, { rejectWithValue, getState }) => {
+  async (
+    data: {
+      workflowId: string;
+      title: string;
+      description: string;
+      execution_timeout: number;
+      retry_attempts: number;
+      concurrency_limit: boolean;
+    },
+    { rejectWithValue, getState }
+  ) => {
     try {
       const state = getState() as RootState;
       const workspaceId = state.auth.workspace?.id;
-      
       if (!workspaceId) {
         return rejectWithValue({ message: "Workspace ID is required" });
       }
-      
       const response = await apiUpdateWorkflowSettings(
         data.workflowId,
         {
@@ -250,6 +283,14 @@ const workflowSlice = createSlice({
   },
 });
 
-export const { setWorkflowDialog, setDeleteDialog, setDuplicateWorkflowDialog, setWorkflowSearch, setWorkflowStatus, setWorkflowSort, setWorkflowLimit, setWorkflowPage } = workflowSlice.actions;
+export const {
+  setWorkflowDialog,
+  setDeleteDialog,
+  setDuplicateWorkflowDialog,
+  setWorkflowSearch,
+  setWorkflowStatus,
+  setWorkflowSort,
+  setWorkflowLimit,
+  setWorkflowPage,
+} = workflowSlice.actions;
 export default workflowSlice.reducer;
-

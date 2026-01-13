@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ReactFlow, {
   Node,
@@ -36,10 +36,14 @@ import {
   setDatabaseDialogOpen,
   setSelectedNode,
   setSelectedNodeId,
+  setPasteMode,
+  clearClipboard,
 } from "@/store/workflowEditor/workflowEditorSlice";
 import { Viewport } from "reactflow";
 import { showErrorToast } from "@/utils/toast";
 import { storeConnectionSnapshot } from "@/utils/hooks/useConnectionDeletionTracking";
+import { toast } from "react-toastify";
+import { setPendingPasteInfo, PasteInfo } from "@/utils/hooks/usePasteTracking";
 
 interface WorkflowCanvasProps {
   nodesData?: any;
@@ -51,8 +55,16 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const { workflowId } = useParams<{ workflowId: string }>();
   const { userId } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-  const { nodes, edges, isLocked, edgeThickness, nodeList, minimapVisible } =
-    useAppSelector((state) => state.workflowEditor);
+  const {
+    nodes,
+    edges,
+    isLocked,
+    edgeThickness,
+    nodeList,
+    minimapVisible,
+    clipboard,
+    isPasteMode,
+  } = useAppSelector((state) => state.workflowEditor);
 
   console.log(nodes, "Feature Added inside node Listing");
 
@@ -93,21 +105,62 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
     [edges, dispatch, emit]
   );
 
+  // Helper function to check if a node is an entry node
+  const isEntryNode = useCallback(
+    (nodeId: string): boolean => {
+      // Check in nodeList first (server data)
+      const nodeInList = nodeList?.find((n: any) => n.id === nodeId);
+      if (nodeInList) {
+        const category = nodeInList.data?.category || nodeInList.category || nodeInList.type;
+        if (category?.toLowerCase() === "entry") {
+          return true;
+        }
+      }
+      
+      // Also check in ReactFlow nodes
+      const reactFlowNode = nodes.find((n) => n.id === nodeId);
+      if (reactFlowNode) {
+        // Check if node has entry-related properties
+        const nodeData = reactFlowNode.data;
+        if (nodeData?.label?.toLowerCase().includes("entry")) {
+          return true;
+        }
+      }
+      
+      return false;
+    },
+    [nodeList, nodes]
+  );
+
   // Handle node deletion (bulk)
   const handleNodeDelete = useCallback(
     (nodeIds: string[], workflowIdParam: string) => {
       if (!workflowIdParam || nodeIds.length === 0) return;
-      // Emit node:delete_bulk event
+      
+      // Filter out entry nodes - they cannot be deleted
+      const entryNodeIds = nodeIds.filter((nodeId) => isEntryNode(nodeId));
+      const deletableNodeIds = nodeIds.filter((nodeId) => !isEntryNode(nodeId));
+      
+      if (entryNodeIds.length > 0) {
+        toast.warning("Entry nodes cannot be deleted");
+        console.warn("⚠️ Attempted to delete entry nodes:", entryNodeIds);
+      }
+      
+      if (deletableNodeIds.length === 0) {
+        return; // No nodes to delete after filtering
+      }
+      
+      // Emit node:delete_bulk event only for non-entry nodes
       emit("node:delete_bulk", {
         workflow_id: workflowIdParam,
-        ids: nodeIds,
+        ids: deletableNodeIds,
       });
       // Remove nodes from Redux store (optimistic update)
-      const updatedNodes = nodes.filter((node) => !nodeIds.includes(node.id));
+      const updatedNodes = nodes.filter((node) => !deletableNodeIds.includes(node.id));
       dispatch(updateNodes(updatedNodes));
-      console.log("🗑️ Nodes deleted:", nodeIds);
+      console.log("🗑️ Nodes deleted:", deletableNodeIds);
     },
-    [nodes, dispatch, emit]
+    [nodes, dispatch, emit, isEntryNode]
   );
 
   // Handle Delete key for selected edges and nodes
@@ -120,6 +173,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   });
 
   // Use custom hook for socket events to get on listing
+  // Connection creation for paste is now handled in useWorkflowSocketEvents via usePasteTracking
   useWorkflowSocketEvents();
 
   const [contextMenu, setContextMenu] = useState<{
@@ -233,9 +287,112 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   );
 
   // Close context menu when clicking on the pane
-  const onPaneClick = useCallback(() => {
-    setContextMenu(null);
-  }, []);
+  const onPaneClick = useCallback(
+    (event: React.MouseEvent) => {
+      setContextMenu(null);
+
+      // Handle paste on canvas click
+      if (isPasteMode && clipboard && reactFlowInstance && workflowId) {
+        const position = reactFlowInstance.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+
+        // Calculate offset from original positions
+        const originalPositions = clipboard.nodes.map((node) => node.position);
+        const minX = Math.min(...originalPositions.map((p) => p.x));
+        const minY = Math.min(...originalPositions.map((p) => p.y));
+
+        // Store paste operation info for tracking node creation
+        const pasteInfo: PasteInfo = {
+          oldToNewIdMap: new Map<string, string>(),
+          edgesToCreate: clipboard.includeConnections ? clipboard.edges : [],
+          originalNodeIds: clipboard.nodes.map((node) => node.id),
+          isCut: clipboard.copyType === "cut",
+          expectedNodeCount: clipboard.nodes.length,
+          createdNodeCount: 0,
+          nodePositions: new Map<string, { x: number; y: number; type: string }>(),
+          connectionsCreated: false,
+          workflowId: workflowId,
+        };
+
+        // Store node positions and types for mapping
+        clipboard.nodes.forEach((node) => {
+          const offsetX = node.position.x - minX;
+          const offsetY = node.position.y - minY;
+          const newPosition = {
+            x: position.x + offsetX,
+            y: position.y + offsetY,
+          };
+          const originalNode = nodeList?.find((n: any) => n.id === node.id);
+          const nodeType = originalNode?.type || node.type || "unknown";
+          pasteInfo.nodePositions.set(node.id, {
+            ...newPosition,
+            type: nodeType,
+          });
+        });
+        
+        // Store counts for summary toast
+        const nodeCount = clipboard.nodes.length;
+        const connectionCount = clipboard.includeConnections ? clipboard.edges.length : 0;
+        
+        // Set callback to show summary toast when paste completes
+        pasteInfo.onComplete = () => {
+          // Show summary toast only once when all operations complete
+          if (connectionCount > 0) {
+            toast.success(
+              `Pasted ${nodeCount} node${nodeCount !== 1 ? "s" : ""} and ${connectionCount} connection${connectionCount !== 1 ? "s" : ""}`
+            );
+          } else {
+            toast.success(`Pasted ${nodeCount} node${nodeCount !== 1 ? "s" : ""}`);
+          }
+          // Clear clipboard after showing toast
+          dispatch(clearClipboard());
+        };
+        
+        // Store paste info in shared module for node:created handler
+        setPendingPasteInfo(pasteInfo);
+        
+        // Create nodes first
+        clipboard.nodes.forEach((node) => {
+          const nodeInfo = pasteInfo.nodePositions.get(node.id);
+          if (!nodeInfo) return;
+          const originalNode = nodeList?.find((n: any) => n.id === node.id);
+          const nodeType = originalNode?.type || node.type || "unknown";
+          // Emit node:create event
+          emit("node:create", {
+            workflow_id: workflowId,
+            type: nodeType,
+            position: { x: nodeInfo.x, y: nodeInfo.y },
+            data: originalNode?.data || node.data,
+            user_id: userId || undefined,
+          });
+        });
+        // If cut, delete original nodes
+        if (clipboard.copyType === "cut") {
+          const originalNodeIds = clipboard.nodes.map((node) => node.id);
+          emit("node:delete_bulk", {
+            workflow_id: workflowId,
+            ids: originalNodeIds,
+          });
+        }
+        
+        // Exit paste mode (but keep clipboard until connections are created)
+        dispatch(setPasteMode(false));
+        
+        // If no connections to create, show toast after a short delay
+        if (connectionCount === 0) {
+          setTimeout(() => {
+            if (pasteInfo.onComplete) {
+              pasteInfo.onComplete();
+            }
+          }, 1000); // Delay to ensure all nodes are created
+        }
+        // If connections exist, onComplete will be called after connections are created
+      }
+    },
+    [isPasteMode, clipboard, reactFlowInstance, workflowId, nodeList, userId, emit, dispatch]
+  );
 
   // Handle node drag stop event (when node is dropped after dragging)
   const onNodeDragStop = useCallback(
@@ -289,11 +446,41 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
     [reactFlowInstance]
   );
 
+  // Memoize nodes with blur effect for cut nodes
+  const nodesWithCutEffect = useMemo(() => {
+    if (!clipboard || clipboard.copyType !== "cut") {
+      return nodes;
+    }
+
+    const cutNodeIds = new Set(clipboard.nodes.map((node) => node.id));
+
+    return nodes.map((node) => {
+      const isCut = cutNodeIds.has(node.id);
+      if (isCut) {
+        return {
+          ...node,
+          style: {
+            ...node.style,
+            opacity: 0.5,
+            filter: "blur(2px)",
+            transition: "opacity 0.2s, filter 0.2s",
+          },
+        };
+      }
+      return node;
+    });
+  }, [nodes, clipboard]);
+
   // Memoize edge styles - use #8E8E93 for all regular edges
   // Use active node colors (#48D8D1 to #096DBF) for edges connected to active/selected nodes
   // Also apply gradient to edges that are directly selected
   // Preserve existing dotted edges (for future debug mode)
+  // Also blur edges connected to cut nodes
   const edgesWithTheme = useMemo(() => {
+    const cutNodeIds = clipboard && clipboard.copyType === "cut" 
+      ? new Set(clipboard.nodes.map((node) => node.id))
+      : new Set<string>();
+
     return edges.map((edge) => {
       // Check if source or target node is selected
       const sourceNode = nodes.find((node) => node.id === edge.source);
@@ -308,6 +495,9 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
       // Edge is active if connected to selected node OR if edge itself is selected
       const isActive = isNodeActive || isEdgeSelected;
 
+      // Check if edge is connected to a cut node
+      const isConnectedToCutNode = cutNodeIds.has(edge.source) || cutNodeIds.has(edge.target);
+
       // If edge already has strokeDasharray (dotted), keep its existing style
       const isDotted = edge.style?.strokeDasharray;
       return {
@@ -318,6 +508,14 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
         },
         style: {
           ...edge.style,
+          // Apply blur and opacity if connected to cut node
+          ...(isConnectedToCutNode
+            ? {
+                opacity: 0.5,
+                filter: "blur(2px)",
+                transition: "opacity 0.2s, filter 0.2s",
+              }
+            : {}),
           // Preserve dotted style if it exists, otherwise use solid line
           ...(isDotted
             ? {
@@ -333,7 +531,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
         },
       };
     });
-  }, [edges, nodes, edgeThickness]);
+  }, [edges, nodes, edgeThickness, clipboard]);
 
   return (
     <div
@@ -345,7 +543,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
       }}
     >
       <ReactFlow
-        nodes={nodes}
+        nodes={nodesWithCutEffect}
         edges={edgesWithTheme}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -408,6 +606,25 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
           variant={BackgroundVariant.Lines}
         />
         <WorkflowEditorControls />
+        {isPasteMode && clipboard && (
+          <div className="absolute top-2 left-2 z-50">
+            <button
+              className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg ${
+                isDark
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-blue-500 hover:bg-blue-600"
+              } transition-colors`}
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(setPasteMode(false));
+                dispatch(clearClipboard());
+                toast.info("Paste cancelled");
+              }}
+            >
+              Click on canvas to paste
+            </button>
+          </div>
+        )}
         {minimapVisible && (
           <MiniMap
             className={`

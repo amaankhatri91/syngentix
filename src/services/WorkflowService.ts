@@ -96,6 +96,19 @@ export async function apiDuplicateWorkflow(
   });
 }
 
+export async function apiGetWorkflowDetails(
+  workflowId: string,
+  workspaceId: string
+) {
+  return ApiService.fetchData({
+    url: `/v1/workflow/${workflowId}`,
+    method: "get",
+    params: {
+      workspace_id: workspaceId,
+    },
+  });
+}
+
 export async function apiUpdateWorkflowSettings(
   workflowId: string,
   data: {

@@ -105,6 +105,7 @@ const WorkflowDialog = () => {
                 navigate(`/agent/${agentId}/workflow/${newWorkflowId}`, {
                   state: {
                     workflowTitle: newWorkflowTitle,
+                    workflowDescription: trimmedValues.description,
                   },
                 });
               } else {

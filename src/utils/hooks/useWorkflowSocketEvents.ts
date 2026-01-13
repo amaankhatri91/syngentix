@@ -25,6 +25,7 @@ import { toast } from "react-toastify";
 import { CustomNodeData } from "@/views/WorkflowEditor/type";
 import { isUndoRedoAction } from "./useUndoRedoTracking";
 import { getConnectionSnapshot } from "./useConnectionDeletionTracking";
+import { matchNodeToPaste, checkAndCreateConnections, isPasteOperation, isConnectionPartOfPaste } from "./usePasteTracking";
 
 const transformServerNoteToReactFlowNode = (
   noteData: any
@@ -41,7 +42,7 @@ const transformServerNoteToReactFlowNode = (
 });
 
 export const useWorkflowSocketEvents = () => {
-  const { on } = useSocketConnection();
+  const { on, emit } = useSocketConnection();
   const dispatch = useAppDispatch();
 
   const { edges, nodes, nodeList, selectedNode, redoStack } = useAppSelector(
@@ -153,9 +154,17 @@ export const useWorkflowSocketEvents = () => {
           : [data.data];
 
         dispatch(setNodeList(updatedNodeList));
-        dispatch(
-          addNode(transformServerNodeToReactFlowNode(data.data))
-        );
+        const reactFlowNode = transformServerNodeToReactFlowNode(data.data);
+        dispatch(addNode(reactFlowNode));
+
+        // Check if this node is part of a paste operation
+        const matchedOldId = matchNodeToPaste(reactFlowNode, data.data);
+        const isPaste = matchedOldId !== null || isPasteOperation();
+        
+        if (matchedOldId) {
+          // Check and create connections if all nodes are created
+          checkAndCreateConnections(emit);
+        }
 
         if (isUndoRedo && data?.status === "success" && redoStackRef.current.length > 0) {
           const lastRedoEntry = redoStackRef.current[redoStackRef.current.length - 1];
@@ -224,9 +233,15 @@ export const useWorkflowSocketEvents = () => {
           dispatch(pushHistoryAction(historyEntry));
         }
 
-        toast.success(data.message || "Node created successfully");
+        // Suppress toast if this is part of a paste operation (summary toast will be shown instead)
+        if (!isPaste) {
+          toast.success(data.message || "Node created successfully");
+        }
       } else {
-        toast.error(data?.message || "Failed to create node");
+        // Only show error toast if not part of paste (paste errors will be handled separately)
+        if (!isPasteOperation()) {
+          toast.error(data?.message || "Failed to create node");
+        }
       }
     });
 
@@ -497,9 +512,15 @@ export const useWorkflowSocketEvents = () => {
           dispatch(pushHistoryAction(historyEntry));
         }
 
-        status === "success"
-          ? toast.success(message || "Connection created")
-          : toast.error(message || "Failed to create connection");
+        // Check if this connection is part of a paste operation
+        const isPasteConnection = isConnectionPartOfPaste(connectionData.source, connectionData.target);
+        
+        // Suppress toast if this is part of a paste operation (summary toast will be shown instead)
+        if (!isPasteConnection) {
+          status === "success"
+            ? toast.success(message || "Connection created")
+            : toast.error(message || "Failed to create connection");
+        }
       }
     );
 
@@ -835,6 +856,17 @@ export const useWorkflowSocketEvents = () => {
       toast.success(data?.message || "Pin updated successfully");
     });
 
+    const unsubscribeNodesCopy = on("workflow:nodes_copy", (data: any) => {
+      console.log("📋 [SOCKET] workflow:nodes_copy received:", data);
+      // The backend confirms the copy/cut operation
+      // The clipboard is already set in the header component
+      if (data?.status === "success") {
+        toast.success(data?.message || "Nodes copied successfully");
+      } else {
+        toast.error(data?.message || "Failed to copy nodes");
+      }
+    });
+
     return () => {
       unsubscribeWorkflowData();
       unsubscribeNodeCreated();
@@ -848,6 +880,7 @@ export const useWorkflowSocketEvents = () => {
       unsubscribePinAdded();
       unsubscribePinDeleted();
       unsubscribePinUpdated();
+      unsubscribeNodesCopy();
     };
   }, [on, dispatch]);
 };
