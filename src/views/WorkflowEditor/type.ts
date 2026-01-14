@@ -46,6 +46,8 @@ export interface CustomNodeData {
   borderColor: string;
   inputs?: string[];
   outputs?: string[];
+  width?: number;
+  height?: number;
 }
 
 // Workflow Canvas Node Props
