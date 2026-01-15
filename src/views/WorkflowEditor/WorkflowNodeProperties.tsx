@@ -11,7 +11,6 @@ import CancelIcon from "@/assets/app-icons/CancelIcon";
 import useTheme from "@/utils/hooks/useTheme";
 import { NodePin } from "./type";
 import WorkflowPinsManager from "./WorkflowPinsManager";
-import { useAppSelector } from "@/store";
 import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
 
 interface DatabaseNodeDialogProps {
@@ -44,7 +43,7 @@ const tabs: TabItem[] = [
   { label: "Out Pins", value: "outPins" },
 ];
 
-const DatabaseNodeDialog = ({
+const WorkflowNodeProperties = ({
   open = false,
   handler,
   nodesData,
@@ -501,7 +500,6 @@ const DatabaseNodeDialog = ({
           values,
         }) => (
           <Form className="flex flex-col h-full max-h-[90dvh]">
-            {console.log(errors, "Verify Form Error")}
             {/* Custom Header with Title and Close Button */}
             <div className="flex items-center justify-between pt-4 px-6 pb-4 flex-shrink-0">
               <div>
@@ -670,4 +668,4 @@ const DatabaseNodeDialog = ({
   );
 };
 
-export default DatabaseNodeDialog;
+export default WorkflowNodeProperties;

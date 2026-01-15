@@ -8,12 +8,17 @@ import Unlock from "@/assets/app-icons/Unlock";
 import Lock from "@/assets/app-icons/Lock";
 import MinimapIcon from "@/assets/app-icons/MinimapIcon";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { toggleLock, toggleMinimap } from "@/store/workflowEditor/workflowEditorSlice";
+import {
+  toggleLock,
+  toggleMinimap,
+} from "@/store/workflowEditor/workflowEditorSlice";
 
 const WorkflowEditorControls: React.FC = () => {
   const dispatch = useAppDispatch();
   const isLocked = useAppSelector((state) => state.workflowEditor.isLocked);
-  const minimapVisible = useAppSelector((state) => state.workflowEditor.minimapVisible);
+  const minimapVisible = useAppSelector(
+    (state) => state.workflowEditor.minimapVisible
+  );
 
   const handleToggleLock = () => {
     dispatch(toggleLock());
@@ -76,7 +81,11 @@ const WorkflowEditorControls: React.FC = () => {
         onClick={handleToggleMinimap}
         className="flex items-center justify-center w-8 h-8 rounded-lg hover:opacity-80 transition-opacity border cursor-pointer"
         style={{
-          backgroundColor: minimapVisible ? (isDark ? "rgba(57, 71, 87, 0.5)" : "rgba(227, 230, 235, 0.5)") : "transparent",
+          backgroundColor: minimapVisible
+            ? isDark
+              ? "rgba(57, 71, 87, 0.5)"
+              : "rgba(227, 230, 235, 0.5)"
+            : "transparent",
           borderColor: borderColor,
         }}
         aria-label={minimapVisible ? "Hide Minimap" : "Show Minimap"}

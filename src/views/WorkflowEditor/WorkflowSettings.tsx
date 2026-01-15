@@ -52,14 +52,13 @@ const WorkflowSettings: React.FC = () => {
     execution_timeout: executionTimeoutFromState,
     retry_attempts: retryAttemptsFromState,
     concurrency_limit: concurrencyLimitFromState,
-  } =
-    (location.state as {
-      workflowTitle?: string;
-      workflowDescription?: string;
-      execution_timeout?: number;
-      retry_attempts?: number;
-      concurrency_limit?: boolean;
-    }) || {};
+  } = (location.state as {
+    workflowTitle?: string;
+    workflowDescription?: string;
+    execution_timeout?: number;
+    retry_attempts?: number;
+    concurrency_limit?: boolean;
+  }) || {};
 
   const handleClose = () => {
     dispatch(setOpenSettings(false));
@@ -350,7 +349,6 @@ const WorkflowSettings: React.FC = () => {
                         >
                           Execution Timeout
                         </label>
-
                         <div
                           className={`flex items-center py-2.5 rounded-lg border px-4 ${
                             isDark
@@ -362,14 +360,13 @@ const WorkflowSettings: React.FC = () => {
                             {({ field }: any) => (
                               <input
                                 {...field}
-                                type="number"
+                                type="text"
                                 inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={5} 
                                 placeholder="300"
                                 onChange={(e) => {
-                                  setFieldValue(
-                                    "execution_timeout",
-                                    Number(e.target.value) || 0
-                                  );
+                                  setFieldValue("execution_timeout", e.target.value);
                                   setFieldTouched("execution_timeout", true);
                                 }}
                                 onBlur={(e) => {
@@ -377,15 +374,12 @@ const WorkflowSettings: React.FC = () => {
                                   setFieldTouched("execution_timeout", true);
                                 }}
                                 className={`flex-1 bg-transparent outline-none border-0 text-sm font-medium
-                                  ${isDark ? "text-white" : "text-[#162230]"}
-                                  [appearance:textfield]
-                                  [&::-webkit-outer-spin-button]:appearance-none
-                                  [&::-webkit-inner-spin-button]:appearance-none
-                                `}
+                                   ${isDark ? "text-white" : "text-[#162230]"}
+                                   [appearance:textfield]
+                                 `}
                               />
                             )}
                           </Field>
-
                           <span
                             className={`text-sm whitespace-nowrap -ml-12 ${
                               isDark ? "text-[#8E9BB0]" : "text-[#737373]"

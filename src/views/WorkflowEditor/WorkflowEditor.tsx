@@ -11,7 +11,7 @@ import WorkflowSettings from "./WorkflowSettings";
 import { useSocketConnection } from "@/utils/hooks/useSocketConnection";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import DatabaseNodeDialog from "./DatabaseNodeDialog";
+import WorkflowNodeProperties from "./WorkflowNodeProperties";
 import { useGetNodesQuery } from "@/services/RtkQueryService";
 
 const WorkflowEditor = () => {
@@ -46,7 +46,7 @@ const WorkflowEditor = () => {
     <>
       <WorkflowEditorAction />
       <WorkflowEditorHeader />
-      <DatabaseNodeDialog
+      <WorkflowNodeProperties
         open={databaseDialogOpen}
         handler={handleCloseDatabaseDialog}
         nodesData={data}

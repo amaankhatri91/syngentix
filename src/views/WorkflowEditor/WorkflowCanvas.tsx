@@ -212,6 +212,23 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   } | null>(null);
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
+  const hasInitialFitView = useRef(false);
+
+  // Reset initial fit view when workflow changes
+  useEffect(() => {
+    hasInitialFitView.current = false;
+  }, [workflowId]);
+
+  // Fit view on initial load
+  useEffect(() => {
+    if (reactFlowInstance && nodes.length > 0 && !hasInitialFitView.current) {
+      // Use setTimeout to ensure the canvas is fully rendered
+      setTimeout(() => {
+        reactFlowInstance.fitView({ padding: 0.35, duration: 300 });
+        hasInitialFitView.current = true;
+      }, 100);
+    }
+  }, [reactFlowInstance, nodes, workflowId]);
 
   // Handle node changes (drag, select, etc.)
   const onNodesChange = useCallback(
