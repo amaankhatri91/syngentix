@@ -6,8 +6,8 @@ import {
   setEdgeThickness,
   setOpenSettings,
   setClipboard,
-  clearClipboard,
   setPasteMode,
+  toggleNotesVisibility,
   ClipboardData,
 } from "@/store/workflowEditor/workflowEditorSlice";
 import { useUndoRedo } from "@/utils/hooks/useUndoRedo";
@@ -31,7 +31,6 @@ import {
   PasteIcon,
   UndoIcon,
   RedoIcon,
-  CrownIcon,
   EditIcon,
   LayoutIcon,
   ChatIcon,
@@ -42,28 +41,26 @@ import DownloadIcon from "@/assets/app-icons/DownloadIcon";
 import SettingsIcon from "@/assets/app-icons/SettingsIcon";
 import { EdgeThicknessOptions } from "@/constants/workflow.constant";
 import Tooltip from "@/components/Tooltip";
+import StickyNote from "@/assets/app-icons/stickyNote";
+import StickyNoteOff from "@/assets/app-icons/StickyNoteOff";
 
 const WorkflowEditorHeader = () => {
   const { isDark } = useTheme();
   const isSmallScreen = useIsSmallScreen();
-  console.log(isSmallScreen, "Verify is Small Screen");
   const dispatch = useAppDispatch();
   const { workflowId } = useParams<{ workflowId: string }>();
   const { emit } = useSocketConnection();
-  const { edgeThickness, nodes, edges, clipboard, isPasteMode, nodeList } = useAppSelector(
-    (state) => state.workflowEditor
-  );
+  const {
+    edgeThickness,
+    nodes,
+    edges,
+    clipboard,
+    isPasteMode,
+    nodeList,
+    notesVisible,
+  } = useAppSelector((state) => state.workflowEditor);
   const { canUndo, canRedo, handleUndo, handleRedo } = useUndoRedo();
 
-  // Debug logging for button state
-  React.useEffect(() => {
-    console.log("🎨 [HEADER] Undo/Redo button state:", {
-      canUndo,
-      canRedo,
-      undoButtonDisabled: !canUndo,
-      redoButtonDisabled: !canRedo,
-    });
-  }, [canUndo, canRedo]);
   const [isCopyDropdownOpen, setIsCopyDropdownOpen] = useState(false);
   const [isThicknessDropdownOpen, setIsThicknessDropdownOpen] = useState(false);
   const copyButtonRef = useRef<HTMLDivElement>(null);
@@ -104,12 +101,13 @@ const WorkflowEditorHeader = () => {
       // Check in nodeList first (server data)
       const nodeInList = nodeList?.find((n: any) => n.id === nodeId);
       if (nodeInList) {
-        const category = nodeInList.data?.category || nodeInList.category || nodeInList.type;
+        const category =
+          nodeInList.data?.category || nodeInList.category || nodeInList.type;
         if (category?.toLowerCase() === "entry") {
           return true;
         }
       }
-      
+
       // Also check in ReactFlow nodes
       const reactFlowNode = nodes.find((n) => n.id === nodeId);
       if (reactFlowNode) {
@@ -119,7 +117,7 @@ const WorkflowEditorHeader = () => {
           return true;
         }
       }
-      
+
       return false;
     },
     [nodeList, nodes]
@@ -175,7 +173,9 @@ const WorkflowEditorHeader = () => {
     const nodeCount = selectedNodes.length;
     const connectionCount = connections.length;
     toast.success(
-      `Copied ${nodeCount} node${nodeCount !== 1 ? "s" : ""} and ${connectionCount} connection${connectionCount !== 1 ? "s" : ""}`
+      `Copied ${nodeCount} node${
+        nodeCount !== 1 ? "s" : ""
+      } and ${connectionCount} connection${connectionCount !== 1 ? "s" : ""}`
     );
   };
 
@@ -221,14 +221,16 @@ const WorkflowEditorHeader = () => {
     }
 
     const selectedNodeIds = selectedNodes.map((node) => node.id);
-    
+
     // Check for entry nodes - they cannot be cut
-    const entryNodeIds = selectedNodeIds.filter((nodeId) => isEntryNode(nodeId));
+    const entryNodeIds = selectedNodeIds.filter((nodeId) =>
+      isEntryNode(nodeId)
+    );
     if (entryNodeIds.length > 0) {
       toast.warning("Entry nodes cannot be cut");
       return;
     }
-    
+
     const connections = getConnectionsBetweenNodes(selectedNodeIds, edges);
 
     // Store in clipboard with cut type
@@ -478,11 +480,28 @@ const WorkflowEditorHeader = () => {
         <Tooltip content="Settings" position="bottom">
           <button
             onClick={() => dispatch(setOpenSettings(true))}
-            className={`${getButtonBaseStyles(
+            className={`${getButtonBaseStyles(isDark)} ${getGroupedButtonStyles(
               isDark
-            )}  bg-gradient-to-r from-[#9133EA] to-[#2962EB] text-white hover:opacity-90`}
+            )}`}
           >
             <SettingsIcon theme="dark" height={16} />
+          </button>
+        </Tooltip>
+        <Tooltip
+          content={notesVisible ? "Hide Notes" : "Show Notes"}
+          position="bottom"
+        >
+          <button
+            onClick={() => dispatch(toggleNotesVisibility())}
+            className={`${getButtonBaseStyles(isDark)} ${getGroupedButtonStyles(
+              isDark
+            )} relative`}
+          >
+            {notesVisible ? (
+              <StickyNote theme="dark" height={16} />
+            ) : (
+              <StickyNoteOff theme="dark" height={17} />
+            )}
           </button>
         </Tooltip>
       </div>

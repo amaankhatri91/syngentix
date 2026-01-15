@@ -49,6 +49,7 @@ export type WorkflowEditorState = {
   isLocked: boolean;
   edgeThickness: number;
   editingNotes: Record<string, boolean>; // Map of node ID to editing state
+  resizingNotes: Record<string, boolean>; // Map of node ID to resizing state
   databaseDialogOpen: boolean;
   selectedNode: any | null; // Store the filtered node object
   selectedNodeId?: string;
@@ -58,6 +59,7 @@ export type WorkflowEditorState = {
   redoStack: HistoryEntry[]; // Stack of actions that can be redone
   clipboard: ClipboardData | null; // Clipboard data for copy/cut/paste
   isPasteMode: boolean; // Whether paste mode is active (showing "Click on canvas to paste")
+  notesVisible: boolean; // Whether sticky notes are visible on canvas
 };
 
 const initialState: WorkflowEditorState = {
@@ -70,6 +72,7 @@ const initialState: WorkflowEditorState = {
   isLocked: false,
   edgeThickness: 0.3, // Default to Minimal (0.3px)
   editingNotes: {}, // Map of node ID to editing state
+  resizingNotes: {}, // Map of node ID to resizing state
   databaseDialogOpen: false,
   selectedNode: null,
   selectedNodeId: "",
@@ -79,6 +82,7 @@ const initialState: WorkflowEditorState = {
   redoStack: [],
   clipboard: null,
   isPasteMode: false,
+  notesVisible: true, // Default to visible
 };
 
 const workflowEditorSlice = createSlice({
@@ -151,6 +155,20 @@ const workflowEditorSlice = createSlice({
     },
     clearEditingNotes: (state) => {
       state.editingNotes = {};
+    },
+    setNoteResizing: (
+      state,
+      action: PayloadAction<{ nodeId: string; isResizing: boolean }>
+    ) => {
+      const { nodeId, isResizing } = action.payload;
+      if (isResizing) {
+        state.resizingNotes[nodeId] = true;
+      } else {
+        delete state.resizingNotes[nodeId];
+      }
+    },
+    clearResizingNotes: (state) => {
+      state.resizingNotes = {};
     },
     setDatabaseDialogOpen: (state, action: PayloadAction<boolean>) => {
       state.databaseDialogOpen = action.payload;
@@ -288,6 +306,12 @@ const workflowEditorSlice = createSlice({
     setPasteMode: (state, action: PayloadAction<boolean>) => {
       state.isPasteMode = action.payload;
     },
+    toggleNotesVisibility: (state) => {
+      state.notesVisible = !state.notesVisible;
+    },
+    setNotesVisibility: (state, action: PayloadAction<boolean>) => {
+      state.notesVisible = action.payload;
+    },
   },
 });
 
@@ -305,6 +329,8 @@ export const {
   setEdgeThickness,
   setNoteEditing,
   clearEditingNotes,
+  setNoteResizing,
+  clearResizingNotes,
   setDatabaseDialogOpen,
   setSelectedNode,
   setSelectedNodeId,
@@ -320,6 +346,8 @@ export const {
   setClipboard,
   clearClipboard,
   setPasteMode,
+  toggleNotesVisibility,
+  setNotesVisibility,
 } = workflowEditorSlice.actions;
 
 /**

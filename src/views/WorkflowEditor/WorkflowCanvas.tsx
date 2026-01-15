@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import { useParams } from "react-router-dom";
 import ReactFlow, {
   Node,
@@ -64,19 +70,40 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
     minimapVisible,
     clipboard,
     isPasteMode,
+    editingNotes,
+    resizingNotes,
+    notesVisible,
   } = useAppSelector((state) => state.workflowEditor);
 
-  console.log(nodes, "Feature Added inside node Listing");
+  // Calculate panOnDrag based on editing and resizing states
+  const panOnDragEnabled = useMemo(() => {
+    const hasEditingNotes = Object.keys(editingNotes).length > 0;
+    const hasResizingNotes = Object.keys(resizingNotes).length > 0;
+    const shouldDisablePan = hasEditingNotes || hasResizingNotes;
+    
+    console.log("🖱️ [CANVAS PAN] panOnDrag calculation", {
+      editingNotes,
+      resizingNotes,
+      hasEditingNotes,
+      hasResizingNotes,
+      shouldDisablePan,
+      panOnDragEnabled: !shouldDisablePan,
+    });
+    
+    return !shouldDisablePan;
+  }, [editingNotes, resizingNotes]);
+
+  console.log(resizingNotes, "Verify Resiing");
 
   // Handle edge deletion
   const handleEdgeDelete = useCallback(
     (edgeId: string, workflowIdParam: string) => {
       if (!workflowIdParam) return;
-      
+
       // IMPORTANT: Capture connection snapshot BEFORE optimistic update
       // This snapshot will be used by useWorkflowSocketEvents to record history
       const edgeToDelete = edges.find((edge) => edge.id === edgeId);
-      
+
       if (edgeToDelete) {
         // Store the snapshot so socket handler can access it
         storeConnectionSnapshot(edgeId, edgeToDelete);
@@ -91,13 +118,13 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
           },
         });
       }
-      
+
       // Emit connection:delete event
       emit("connection:delete", {
         workflow_id: workflowIdParam,
         id: edgeId,
       });
-      
+
       // Optimistic update - remove edge immediately
       const updatedEdges = edges.filter((edge) => edge.id !== edgeId);
       dispatch(setEdges(updatedEdges));
@@ -111,12 +138,13 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
       // Check in nodeList first (server data)
       const nodeInList = nodeList?.find((n: any) => n.id === nodeId);
       if (nodeInList) {
-        const category = nodeInList.data?.category || nodeInList.category || nodeInList.type;
+        const category =
+          nodeInList.data?.category || nodeInList.category || nodeInList.type;
         if (category?.toLowerCase() === "entry") {
           return true;
         }
       }
-      
+
       // Also check in ReactFlow nodes
       const reactFlowNode = nodes.find((n) => n.id === nodeId);
       if (reactFlowNode) {
@@ -126,7 +154,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
           return true;
         }
       }
-      
+
       return false;
     },
     [nodeList, nodes]
@@ -136,27 +164,29 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   const handleNodeDelete = useCallback(
     (nodeIds: string[], workflowIdParam: string) => {
       if (!workflowIdParam || nodeIds.length === 0) return;
-      
+
       // Filter out entry nodes - they cannot be deleted
       const entryNodeIds = nodeIds.filter((nodeId) => isEntryNode(nodeId));
       const deletableNodeIds = nodeIds.filter((nodeId) => !isEntryNode(nodeId));
-      
+
       if (entryNodeIds.length > 0) {
         toast.warning("Entry nodes cannot be deleted");
         console.warn("⚠️ Attempted to delete entry nodes:", entryNodeIds);
       }
-      
+
       if (deletableNodeIds.length === 0) {
         return; // No nodes to delete after filtering
       }
-      
+
       // Emit node:delete_bulk event only for non-entry nodes
       emit("node:delete_bulk", {
         workflow_id: workflowIdParam,
         ids: deletableNodeIds,
       });
       // Remove nodes from Redux store (optimistic update)
-      const updatedNodes = nodes.filter((node) => !deletableNodeIds.includes(node.id));
+      const updatedNodes = nodes.filter(
+        (node) => !deletableNodeIds.includes(node.id)
+      );
       dispatch(updateNodes(updatedNodes));
       console.log("🗑️ Nodes deleted:", deletableNodeIds);
     },
@@ -311,7 +341,10 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
           isCut: clipboard.copyType === "cut",
           expectedNodeCount: clipboard.nodes.length,
           createdNodeCount: 0,
-          nodePositions: new Map<string, { x: number; y: number; type: string }>(),
+          nodePositions: new Map<
+            string,
+            { x: number; y: number; type: string }
+          >(),
           connectionsCreated: false,
           workflowId: workflowId,
         };
@@ -331,28 +364,36 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
             type: nodeType,
           });
         });
-        
+
         // Store counts for summary toast
         const nodeCount = clipboard.nodes.length;
-        const connectionCount = clipboard.includeConnections ? clipboard.edges.length : 0;
-        
+        const connectionCount = clipboard.includeConnections
+          ? clipboard.edges.length
+          : 0;
+
         // Set callback to show summary toast when paste completes
         pasteInfo.onComplete = () => {
           // Show summary toast only once when all operations complete
           if (connectionCount > 0) {
             toast.success(
-              `Pasted ${nodeCount} node${nodeCount !== 1 ? "s" : ""} and ${connectionCount} connection${connectionCount !== 1 ? "s" : ""}`
+              `Pasted ${nodeCount} node${
+                nodeCount !== 1 ? "s" : ""
+              } and ${connectionCount} connection${
+                connectionCount !== 1 ? "s" : ""
+              }`
             );
           } else {
-            toast.success(`Pasted ${nodeCount} node${nodeCount !== 1 ? "s" : ""}`);
+            toast.success(
+              `Pasted ${nodeCount} node${nodeCount !== 1 ? "s" : ""}`
+            );
           }
           // Clear clipboard after showing toast
           dispatch(clearClipboard());
         };
-        
+
         // Store paste info in shared module for node:created handler
         setPendingPasteInfo(pasteInfo);
-        
+
         // Create nodes first
         clipboard.nodes.forEach((node) => {
           const nodeInfo = pasteInfo.nodePositions.get(node.id);
@@ -376,10 +417,10 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
             ids: originalNodeIds,
           });
         }
-        
+
         // Exit paste mode (but keep clipboard until connections are created)
         dispatch(setPasteMode(false));
-        
+
         // If no connections to create, show toast after a short delay
         if (connectionCount === 0) {
           setTimeout(() => {
@@ -391,7 +432,16 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
         // If connections exist, onComplete will be called after connections are created
       }
     },
-    [isPasteMode, clipboard, reactFlowInstance, workflowId, nodeList, userId, emit, dispatch]
+    [
+      isPasteMode,
+      clipboard,
+      reactFlowInstance,
+      workflowId,
+      nodeList,
+      userId,
+      emit,
+      dispatch,
+    ]
   );
 
   // Handle node drag stop event (when node is dropped after dragging)
@@ -446,15 +496,21 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
     [reactFlowInstance]
   );
 
-  // Memoize nodes with blur effect for cut nodes
+  // Memoize nodes with blur effect for cut nodes and filter notes based on visibility
   const nodesWithCutEffect = useMemo(() => {
+    // First filter out note nodes if notes are hidden
+    let filteredNodes = nodes;
+    if (!notesVisible) {
+      filteredNodes = nodes.filter((node) => node.type !== "note");
+    }
+
     if (!clipboard || clipboard.copyType !== "cut") {
-      return nodes;
+      return filteredNodes;
     }
 
     const cutNodeIds = new Set(clipboard.nodes.map((node) => node.id));
 
-    return nodes.map((node) => {
+    return filteredNodes.map((node) => {
       const isCut = cutNodeIds.has(node.id);
       if (isCut) {
         return {
@@ -469,7 +525,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
       }
       return node;
     });
-  }, [nodes, clipboard]);
+  }, [nodes, clipboard, notesVisible]);
 
   // Memoize edge styles - use #8E8E93 for all regular edges
   // Use active node colors (#48D8D1 to #096DBF) for edges connected to active/selected nodes
@@ -477,9 +533,10 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
   // Preserve existing dotted edges (for future debug mode)
   // Also blur edges connected to cut nodes
   const edgesWithTheme = useMemo(() => {
-    const cutNodeIds = clipboard && clipboard.copyType === "cut" 
-      ? new Set(clipboard.nodes.map((node) => node.id))
-      : new Set<string>();
+    const cutNodeIds =
+      clipboard && clipboard.copyType === "cut"
+        ? new Set(clipboard.nodes.map((node) => node.id))
+        : new Set<string>();
 
     return edges.map((edge) => {
       // Check if source or target node is selected
@@ -496,7 +553,8 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
       const isActive = isNodeActive || isEdgeSelected;
 
       // Check if edge is connected to a cut node
-      const isConnectedToCutNode = cutNodeIds.has(edge.source) || cutNodeIds.has(edge.target);
+      const isConnectedToCutNode =
+        cutNodeIds.has(edge.source) || cutNodeIds.has(edge.target);
 
       // If edge already has strokeDasharray (dotted), keep its existing style
       const isDotted = edge.style?.strokeDasharray;
@@ -589,7 +647,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodesData }) => {
         elementsSelectable={true}
         edgesUpdatable={false}
         edgesFocusable={true}
-        panOnDrag={true}
+        panOnDrag={panOnDragEnabled}
         zoomOnScroll={true}
         zoomOnPinch={true}
         defaultViewport={{ x: 0, y: 0, zoom: 1.0995899256440786 }}

@@ -25,21 +25,45 @@ import { toast } from "react-toastify";
 import { CustomNodeData } from "@/views/WorkflowEditor/type";
 import { isUndoRedoAction } from "./useUndoRedoTracking";
 import { getConnectionSnapshot } from "./useConnectionDeletionTracking";
-import { matchNodeToPaste, checkAndCreateConnections, isPasteOperation, isConnectionPartOfPaste } from "./usePasteTracking";
+import {
+  matchNodeToPaste,
+  checkAndCreateConnections,
+  isPasteOperation,
+  isConnectionPartOfPaste,
+} from "./usePasteTracking";
 
 const transformServerNoteToReactFlowNode = (
   noteData: any
-): Node<CustomNodeData> => ({
-  id: noteData.id,
-  type: "note",
-  position: noteData.position || { x: 0, y: 0 },
-  data: {
-    label: noteData.label || noteData.content || noteData.title || "",
-    nodeType: "text",
-    dotColor: "#94A3B8",
-    borderColor: "from-gray-500 to-gray-600",
-  } as CustomNodeData,
-});
+): Node<CustomNodeData> => {
+  console.log("🔄 [TRANSFORM NOTE] Transforming server note data:", {
+    id: noteData.id,
+    label: noteData.label,
+    width: noteData.width,
+    height: noteData.height,
+    fullData: noteData,
+  });
+
+  const transformed = {
+    id: noteData.id,
+    type: "note",
+    position: noteData.position || { x: 0, y: 0 },
+    data: {
+      label: noteData.label || noteData.content || noteData.title || "",
+      nodeType: "text",
+      dotColor: "#94A3B8",
+      borderColor: "from-gray-500 to-gray-600",
+      width: noteData.width,
+      height: noteData.height,
+    } as CustomNodeData,
+  };
+
+  console.log("✅ [TRANSFORM NOTE] Transformed node data:", {
+    id: transformed.id,
+    data: transformed.data,
+  });
+
+  return transformed;
+};
 
 export const useWorkflowSocketEvents = () => {
   const { on, emit } = useSocketConnection();
@@ -54,8 +78,6 @@ export const useWorkflowSocketEvents = () => {
   const nodeListRef = useRef(nodeList);
   const selectedNodeRef = useRef(selectedNode);
   const redoStackRef = useRef(redoStack);
-
-  const pendingConnectionDeletionsRef = useRef<Map<string, Edge>>(new Map());
 
   useEffect(() => {
     edgesRef.current = edges;
@@ -78,22 +100,14 @@ export const useWorkflowSocketEvents = () => {
   }, [redoStack]);
 
   const syncReactFlowNodesFromNodeList = (updatedNodeList: any[]) => {
-    const rfNodes =
-      transformServerNodesToReactFlowNodes(updatedNodeList);
-    const notes = nodesRef.current.filter(
-      (node) => node.type === "note"
-    );
+    const rfNodes = transformServerNodesToReactFlowNodes(updatedNodeList);
+    const notes = nodesRef.current.filter((node) => node.type === "note");
     dispatch(setNodes([...rfNodes, ...notes]));
   };
 
-  const syncSelectedNodeIfNeeded = (
-    updatedNodeList: any[],
-    nodeId: string
-  ) => {
+  const syncSelectedNodeIfNeeded = (updatedNodeList: any[], nodeId: string) => {
     if (selectedNodeRef.current?.id === nodeId) {
-      const updated = updatedNodeList.find(
-        (n) => n.id === nodeId
-      );
+      const updated = updatedNodeList.find((n) => n.id === nodeId);
       if (updated) {
         dispatch(setSelectedNode(updated));
       }
@@ -104,19 +118,26 @@ export const useWorkflowSocketEvents = () => {
 
   useEffect(() => {
     const unsubscribeWorkflowData = on("workflow:data", (data: any) => {
+      console.log("📥 [WORKFLOW DATA] Initial load data received:", {
+        nodesCount: data?.nodes?.length || 0,
+        notesCount: data?.notes?.length || 0,
+        notes: data?.notes,
+      });
+
       const allNodes: Node<CustomNodeData>[] = [];
 
       if (Array.isArray(data?.nodes)) {
-        allNodes.push(
-          ...transformServerNodesToReactFlowNodes(data.nodes)
-        );
+        allNodes.push(...transformServerNodesToReactFlowNodes(data.nodes));
         dispatch(setNodeList(data.nodes));
       }
 
       if (Array.isArray(data?.notes)) {
-        allNodes.push(
-          ...data.notes.map(transformServerNoteToReactFlowNode)
+        console.log("📝 [WORKFLOW DATA] Processing notes:", data.notes);
+        const transformedNotes = data.notes.map(
+          transformServerNoteToReactFlowNode
         );
+        console.log("✅ [WORKFLOW DATA] Transformed notes:", transformedNotes);
+        allNodes.push(...transformedNotes);
       }
 
       if (allNodes.length) {
@@ -125,11 +146,7 @@ export const useWorkflowSocketEvents = () => {
 
       if (Array.isArray(data?.connections)) {
         dispatch(
-          setEdges(
-            transformServerConnectionsToReactFlowEdges(
-              data.connections
-            )
-          )
+          setEdges(transformServerConnectionsToReactFlowEdges(data.connections))
         );
       }
 
@@ -146,7 +163,10 @@ export const useWorkflowSocketEvents = () => {
           nodeId,
           isUndoRedo,
           redoStackLength: redoStackRef.current.length,
-          lastRedoEntry: redoStackRef.current.length > 0 ? redoStackRef.current[redoStackRef.current.length - 1] : null,
+          lastRedoEntry:
+            redoStackRef.current.length > 0
+              ? redoStackRef.current[redoStackRef.current.length - 1]
+              : null,
         });
 
         const updatedNodeList = nodeListRef.current
@@ -160,63 +180,89 @@ export const useWorkflowSocketEvents = () => {
         // Check if this node is part of a paste operation
         const matchedOldId = matchNodeToPaste(reactFlowNode, data.data);
         const isPaste = matchedOldId !== null || isPasteOperation();
-        
+
         if (matchedOldId) {
           // Check and create connections if all nodes are created
           checkAndCreateConnections(emit);
         }
 
-        if (isUndoRedo && data?.status === "success" && redoStackRef.current.length > 0) {
-          const lastRedoEntry = redoStackRef.current[redoStackRef.current.length - 1];
-          console.log("🔍 [SOCKET] Checking if we need to update redoStack for node:", {
-            lastRedoEntryActionType: lastRedoEntry.actionType,
-            isNodeDelete: lastRedoEntry.actionType === "NODE_DELETE",
-            isNodeDeleteBulk: lastRedoEntry.actionType === "NODE_DELETE_BULK",
-            oldId: lastRedoEntry.actionType === "NODE_DELETE" ? lastRedoEntry.payload.id : null,
-            newId: nodeId,
-          });
+        if (
+          isUndoRedo &&
+          data?.status === "success" &&
+          redoStackRef.current.length > 0
+        ) {
+          const lastRedoEntry =
+            redoStackRef.current[redoStackRef.current.length - 1];
+          console.log(
+            "🔍 [SOCKET] Checking if we need to update redoStack for node:",
+            {
+              lastRedoEntryActionType: lastRedoEntry.actionType,
+              isNodeDelete: lastRedoEntry.actionType === "NODE_DELETE",
+              isNodeDeleteBulk: lastRedoEntry.actionType === "NODE_DELETE_BULK",
+              oldId:
+                lastRedoEntry.actionType === "NODE_DELETE"
+                  ? lastRedoEntry.payload.id
+                  : null,
+              newId: nodeId,
+            }
+          );
 
           if (lastRedoEntry.actionType === "NODE_DELETE") {
-            console.log("🔄 [SOCKET] Updating redoStack entry with new node ID:", {
-              oldId: lastRedoEntry.payload.id,
-              newId: nodeId,
-              fullEntry: lastRedoEntry,
-            });
-            dispatch(updateLastRedoStackEntry({
-              payload: {
-                id: nodeId,
-              },
-            }));
-            console.log("✅ [SOCKET] RedoStack entry updated successfully for NODE_DELETE");
+            console.log(
+              "🔄 [SOCKET] Updating redoStack entry with new node ID:",
+              {
+                oldId: lastRedoEntry.payload.id,
+                newId: nodeId,
+                fullEntry: lastRedoEntry,
+              }
+            );
+            dispatch(
+              updateLastRedoStackEntry({
+                payload: {
+                  id: nodeId,
+                },
+              })
+            );
+            console.log(
+              "✅ [SOCKET] RedoStack entry updated successfully for NODE_DELETE"
+            );
           } else if (lastRedoEntry.actionType === "NODE_DELETE_BULK") {
             const oldIds = lastRedoEntry.payload.ids || [];
             const nodeSnapshots = lastRedoEntry.inversePayload.nodes || [];
-            
-            const nodeIndex = nodeSnapshots.findIndex((node: any) => 
-              node.position?.x === data.data.position?.x && 
-              node.position?.y === data.data.position?.y &&
-              node.type === data.data.type
+
+            const nodeIndex = nodeSnapshots.findIndex(
+              (node: any) =>
+                node.position?.x === data.data.position?.x &&
+                node.position?.y === data.data.position?.y &&
+                node.type === data.data.type
             );
 
             if (nodeIndex >= 0 && nodeIndex < oldIds.length) {
               const oldId = oldIds[nodeIndex];
               const updatedIds = [...oldIds];
               updatedIds[nodeIndex] = nodeId;
-              
-              console.log("🔄 [SOCKET] Updating redoStack entry for NODE_DELETE_BULK:", {
-                nodeIndex,
-                oldId,
-                newId: nodeId,
-                oldIds,
-                updatedIds,
-              });
-              
-              dispatch(updateLastRedoStackEntry({
-                payload: {
-                  ids: updatedIds,
-                },
-              }));
-              console.log("✅ [SOCKET] RedoStack entry updated successfully for NODE_DELETE_BULK");
+
+              console.log(
+                "🔄 [SOCKET] Updating redoStack entry for NODE_DELETE_BULK:",
+                {
+                  nodeIndex,
+                  oldId,
+                  newId: nodeId,
+                  oldIds,
+                  updatedIds,
+                }
+              );
+
+              dispatch(
+                updateLastRedoStackEntry({
+                  payload: {
+                    ids: updatedIds,
+                  },
+                })
+              );
+              console.log(
+                "✅ [SOCKET] RedoStack entry updated successfully for NODE_DELETE_BULK"
+              );
             }
           }
         } else if (!isUndoRedo) {
@@ -290,9 +336,7 @@ export const useWorkflowSocketEvents = () => {
         const noteId = data.data.id;
         const isUndoRedo = isUndoRedoAction("note:created", noteId);
 
-        dispatch(
-          addNode(transformServerNoteToReactFlowNode(data.data))
-        );
+        dispatch(addNode(transformServerNoteToReactFlowNode(data.data)));
 
         if (!isUndoRedo && data?.status === "success") {
           const historyEntry: HistoryEntry = {
@@ -325,11 +369,7 @@ export const useWorkflowSocketEvents = () => {
         );
 
         dispatch(
-          updateNodes(
-            nodesRef.current.filter(
-              (node) => node.id !== data.id
-            )
-          )
+          updateNodes(nodesRef.current.filter((node) => node.id !== data.id))
         );
 
         if (!isUndoRedo && data?.status === "success" && noteSnapshot) {
@@ -361,27 +401,36 @@ export const useWorkflowSocketEvents = () => {
     });
 
     const unsubscribeNoteUpdated = on("note:updated", (data: any) => {
+      console.log(data, "Verify note Data");
       if (data?.data) {
         const noteId = data.data.id;
         const isUndoRedo = isUndoRedoAction("note:updated", noteId);
 
-        const oldNoteSnapshot = nodesRef.current.find(
-          (n) => n.id === noteId
-        );
+        const oldNoteSnapshot = nodesRef.current.find((n) => n.id === noteId);
 
-        const updatedNote =
-          transformServerNoteToReactFlowNode(data.data);
+        const updatedNote = transformServerNoteToReactFlowNode(data.data);
 
-        const exists = nodesRef.current.some(
-          (n) => n.id === updatedNote.id
-        );
+        const exists = nodesRef.current.some((n) => n.id === updatedNote.id);
 
         dispatch(
           exists
             ? updateNodes(
-                nodesRef.current.map((n) =>
-                  n.id === updatedNote.id ? updatedNote : n
-                )
+                nodesRef.current.map((n) => {
+                  if (n.id === updatedNote.id) {
+                    // Merge existing data with updated data to preserve any local state
+                    return {
+                      ...updatedNote,
+                      data: {
+                        ...n.data,
+                        ...updatedNote.data,
+                        // Ensure width and height are updated from server
+                        width: updatedNote.data.width ?? n.data.width,
+                        height: updatedNote.data.height ?? n.data.height,
+                      },
+                    };
+                  }
+                  return n;
+                })
               )
             : addNode(updatedNote)
         );
@@ -393,6 +442,8 @@ export const useWorkflowSocketEvents = () => {
             label: oldNoteSnapshot.data?.label || "",
             content: oldNoteSnapshot.data?.label || "",
             title: oldNoteSnapshot.data?.label || "",
+            width: oldNoteSnapshot.data?.width,
+            height: oldNoteSnapshot.data?.height,
           };
 
           const historyEntry: HistoryEntry = {
@@ -427,8 +478,14 @@ export const useWorkflowSocketEvents = () => {
         }
 
         const connectionSignature = `${connectionData.source}-${connectionData.sourceHandle}-${connectionData.target}-${connectionData.targetHandle}`;
-        const isUndoRedoById = isUndoRedoAction("connection:created", connectionId);
-        const isUndoRedoBySignature = isUndoRedoAction("connection:created", connectionSignature);
+        const isUndoRedoById = isUndoRedoAction(
+          "connection:created",
+          connectionId
+        );
+        const isUndoRedoBySignature = isUndoRedoAction(
+          "connection:created",
+          connectionSignature
+        );
         const isUndoRedo = isUndoRedoById || isUndoRedoBySignature;
 
         console.log("🔍 [SOCKET] connection:created received:", {
@@ -438,17 +495,22 @@ export const useWorkflowSocketEvents = () => {
           isUndoRedoBySignature,
           isUndoRedo,
           redoStackLength: redoStackRef.current.length,
-          lastRedoEntry: redoStackRef.current.length > 0 ? redoStackRef.current[redoStackRef.current.length - 1] : null,
+          lastRedoEntry:
+            redoStackRef.current.length > 0
+              ? redoStackRef.current[redoStackRef.current.length - 1]
+              : null,
         });
 
-        const newEdge = transformServerConnectionToReactFlowEdge(connectionData);
-        
+        const newEdge =
+          transformServerConnectionToReactFlowEdge(connectionData);
+
         const existingEdgeIndex = edgesRef.current.findIndex(
-          (e) => e.id === newEdge.id || 
-                 (e.source === newEdge.source && 
-                  e.target === newEdge.target && 
-                  e.sourceHandle === newEdge.sourceHandle && 
-                  e.targetHandle === newEdge.targetHandle)
+          (e) =>
+            e.id === newEdge.id ||
+            (e.source === newEdge.source &&
+              e.target === newEdge.target &&
+              e.sourceHandle === newEdge.sourceHandle &&
+              e.targetHandle === newEdge.targetHandle)
         );
 
         let updatedEdges: Edge[];
@@ -461,25 +523,36 @@ export const useWorkflowSocketEvents = () => {
 
         dispatch(setEdges(updatedEdges));
 
-        if (isUndoRedoBySignature && status === "success" && redoStackRef.current.length > 0) {
-          const lastRedoEntry = redoStackRef.current[redoStackRef.current.length - 1];
+        if (
+          isUndoRedoBySignature &&
+          status === "success" &&
+          redoStackRef.current.length > 0
+        ) {
+          const lastRedoEntry =
+            redoStackRef.current[redoStackRef.current.length - 1];
           console.log("🔍 [SOCKET] Checking if we need to update redoStack:", {
             lastRedoEntryActionType: lastRedoEntry.actionType,
-            isConnectionDelete: lastRedoEntry.actionType === "CONNECTION_DELETE",
+            isConnectionDelete:
+              lastRedoEntry.actionType === "CONNECTION_DELETE",
             oldId: lastRedoEntry.payload.id,
             newId: connectionId,
           });
           if (lastRedoEntry.actionType === "CONNECTION_DELETE") {
-            console.log("🔄 [SOCKET] Updating redoStack entry with new connection ID:", {
-              oldId: lastRedoEntry.payload.id,
-              newId: connectionId,
-              fullEntry: lastRedoEntry,
-            });
-            dispatch(updateLastRedoStackEntry({
-              payload: {
-                id: connectionId,
-              },
-            }));
+            console.log(
+              "🔄 [SOCKET] Updating redoStack entry with new connection ID:",
+              {
+                oldId: lastRedoEntry.payload.id,
+                newId: connectionId,
+                fullEntry: lastRedoEntry,
+              }
+            );
+            dispatch(
+              updateLastRedoStackEntry({
+                payload: {
+                  id: connectionId,
+                },
+              })
+            );
             console.log("✅ [SOCKET] RedoStack entry updated successfully");
           }
         } else {
@@ -487,7 +560,13 @@ export const useWorkflowSocketEvents = () => {
             isUndoRedoBySignature,
             status,
             redoStackLength: redoStackRef.current.length,
-            reason: !isUndoRedoBySignature ? "not undo/redo by signature" : status !== "success" ? "status not success" : redoStackRef.current.length === 0 ? "redoStack empty" : "unknown",
+            reason: !isUndoRedoBySignature
+              ? "not undo/redo by signature"
+              : status !== "success"
+              ? "status not success"
+              : redoStackRef.current.length === 0
+              ? "redoStack empty"
+              : "unknown",
           });
         }
 
@@ -513,8 +592,11 @@ export const useWorkflowSocketEvents = () => {
         }
 
         // Check if this connection is part of a paste operation
-        const isPasteConnection = isConnectionPartOfPaste(connectionData.source, connectionData.target);
-        
+        const isPasteConnection = isConnectionPartOfPaste(
+          connectionData.source,
+          connectionData.target
+        );
+
         // Suppress toast if this is part of a paste operation (summary toast will be shown instead)
         if (!isPasteConnection) {
           status === "success"
@@ -552,11 +634,11 @@ export const useWorkflowSocketEvents = () => {
         }
 
         const edgeToRemove = currentEdges.find((e) => e.id === connectionId);
-        
+
         const updatedEdges = currentEdges.filter(
           (edge) => edge.id !== connectionId
         );
-        
+
         const removedCount = currentEdges.length - updatedEdges.length;
 
         if (removedCount > 1) {
@@ -566,7 +648,7 @@ export const useWorkflowSocketEvents = () => {
         if (updatedEdges.length === 0 && currentEdges.length > 1) {
           return;
         }
-        
+
         dispatch(setEdges(updatedEdges));
 
         const condition1 = !isUndoRedo;
@@ -574,9 +656,9 @@ export const useWorkflowSocketEvents = () => {
         const condition3 = !!connectionSnapshot;
 
         if (condition1 && condition2 && condition3) {
-          const snapshotForHistory = connectionSnapshot || currentEdges.find(
-            (edge) => edge.id === connectionId
-          );
+          const snapshotForHistory =
+            connectionSnapshot ||
+            currentEdges.find((edge) => edge.id === connectionId);
 
           if (snapshotForHistory) {
             const historyEntry: HistoryEntry = {
@@ -647,8 +729,8 @@ export const useWorkflowSocketEvents = () => {
       );
       dispatch(updateNodes(updatedNodes));
 
-      const updatedNodeList = nodeListRef.current.filter((node: any) =>
-        !nodeIds.includes(node.id)
+      const updatedNodeList = nodeListRef.current.filter(
+        (node: any) => !nodeIds.includes(node.id)
       );
       dispatch(setNodeList(updatedNodeList));
 
@@ -676,10 +758,7 @@ export const useWorkflowSocketEvents = () => {
         dispatch(pushHistoryAction(historyEntry));
       }
 
-      setTimeout(
-        () => processedDeletionsRef.current.delete(key),
-        5000
-      );
+      setTimeout(() => processedDeletionsRef.current.delete(key), 5000);
     });
 
     const unsubscribePinAdded = on("pin:added", (data: any) => {
@@ -698,10 +777,7 @@ export const useWorkflowSocketEvents = () => {
               ...node,
               data: {
                 ...node.data,
-                [pin_collection]: [
-                  ...(node.data?.[pin_collection] || []),
-                  pin,
-                ],
+                [pin_collection]: [...(node.data?.[pin_collection] || []), pin],
               },
             }
           : node
@@ -738,14 +814,13 @@ export const useWorkflowSocketEvents = () => {
         return;
       }
 
-      const {
-        node_id,
-        pin_collection,
-        pin_id,
-        deleted_connections,
-      } = data.data;
+      const { node_id, pin_collection, pin_id, deleted_connections } =
+        data.data;
 
-      const isUndoRedo = isUndoRedoAction("pin:deleted", `${node_id}:${pin_id}`);
+      const isUndoRedo = isUndoRedoAction(
+        "pin:deleted",
+        `${node_id}:${pin_id}`
+      );
 
       const node = nodeListRef.current.find((n: any) => n.id === node_id);
       const pinSnapshot = node?.data?.[pin_collection]?.find(
@@ -758,9 +833,9 @@ export const useWorkflowSocketEvents = () => {
               ...node,
               data: {
                 ...node.data,
-                [pin_collection]: node.data?.[
-                  pin_collection
-                ]?.filter((p: any) => p.id !== pin_id),
+                [pin_collection]: node.data?.[pin_collection]?.filter(
+                  (p: any) => p.id !== pin_id
+                ),
               },
             }
           : node
@@ -773,9 +848,7 @@ export const useWorkflowSocketEvents = () => {
       if (Array.isArray(deleted_connections)) {
         dispatch(
           setEdges(
-            edgesRef.current.filter(
-              (e) => !deleted_connections.includes(e.id)
-            )
+            edgesRef.current.filter((e) => !deleted_connections.includes(e.id))
           )
         );
       }
@@ -822,9 +895,7 @@ export const useWorkflowSocketEvents = () => {
               ...node,
               data: {
                 ...node.data,
-                [pin_collection]: node.data?.[
-                  pin_collection
-                ]?.map((p: any) =>
+                [pin_collection]: node.data?.[pin_collection]?.map((p: any) =>
                   p.id === pin.id ? pin : p
                 ),
               },
