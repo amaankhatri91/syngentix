@@ -8,7 +8,6 @@ import { CustomNodeData } from "@/views/WorkflowEditor/type";
 import { StylesConfig, GroupBase } from "react-select";
 import { NodePin } from "@/views/WorkflowEditor/type";
 
-
 let socket: Socket | null = null;
 
 interface CreatePinPayloadParams {
@@ -658,7 +657,7 @@ export const transformServerNodeToReactFlowNode = (
     type: "custom", // Use "custom" type for ReactFlow
     position: serverNode.position || { x: 0, y: 0 },
     data: {
-      label: nodeData.name || serverNode.type || "Node",
+      label: nodeData?.label || nodeData?.name || serverNode?.type || "Node",
       nodeType: mapNodeType(category),
       dotColor,
       borderColor,
@@ -1125,7 +1124,6 @@ export const modalSelect = <T>(
     }),
   };
 };
-
 
 /**
  * Creates a payload for pin operations (add, edit, delete)

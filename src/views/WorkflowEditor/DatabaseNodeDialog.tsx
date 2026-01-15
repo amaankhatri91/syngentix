@@ -91,7 +91,7 @@ const DatabaseNodeDialog = ({
     const values: Record<string, any> = {};
 
     // Add label field (from selectedNode.label)
-    values.label = selectedNode?.label || "";
+    values.label = selectedNode?.data?.label || "";
 
     // Get existing config data from selectedNode.data if available
     const existingConfig = selectedNode?.data?.config || {};
@@ -483,7 +483,7 @@ const DatabaseNodeDialog = ({
             };
 
             console.log("Node update payload:", updatePayload);
-            // emit("node:update", updatePayload);
+            emit("node:update", updatePayload);
 
             // Optionally close the dialog after successful update
             // The server will send node:updated event which we can listen to
@@ -501,6 +501,7 @@ const DatabaseNodeDialog = ({
           values,
         }) => (
           <Form className="flex flex-col h-full max-h-[90dvh]">
+            {console.log(errors , "Verify Form Error")}
             {/* Custom Header with Title and Close Button */}
             <div className="flex items-center justify-between pt-4 px-6 pb-4 flex-shrink-0">
               <div>

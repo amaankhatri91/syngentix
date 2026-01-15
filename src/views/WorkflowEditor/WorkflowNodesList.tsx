@@ -4,11 +4,13 @@ import useTheme from "@/utils/hooks/useTheme";
 import { useMemo, useEffect } from "react";
 import DocumentIcon from "@/assets/app-icons/DocumentIcon";
 import { MenuIcon } from "@/assets/app-icons";
+import CancelIcon2 from "@/assets/app-icons/CancelIcon2";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   setSearchQuery,
   setExpandedCategories,
   toggleCategory,
+  setOpenNodeList,
 } from "@/store/workflowEditor/workflowEditorSlice";
 import {
   filterCategoriesBySearch,
@@ -71,6 +73,10 @@ const WorkflowNodesList = ({
     }
   };
 
+  const handleCloseSidebar = () => {
+    dispatch(setOpenNodeList(false));
+  };
+
   return (
     <div
       className={`h-full flex flex-col border rounded-2xl ${
@@ -89,11 +95,20 @@ const WorkflowNodesList = ({
           >
             Available Nodes
           </h3>
-          <Button
-            onClick={handleToggleAllCategories}
-            icon={<MenuIcon color="white" size={16} />}
-            className="px-2.5 rounded-2xl !py-2 !text-white !bg-gradient-to-r from-[#9133EA] to-[#2962EB]"
-          />
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleCloseSidebar}
+              icon={<CancelIcon2 color="white" size={18} />}
+              className={`px-2 rounded-2xl !py-1.5 !text-white ${
+                isDark ? "!bg-[#0C1116] border border-[#394757]" : ""
+              }`}
+            />
+            <Button
+              onClick={handleToggleAllCategories}
+              icon={<MenuIcon color="white" size={16} />}
+              className="px-2.5 rounded-2xl !py-2 !text-white !bg-gradient-to-r from-[#9133EA] to-[#2962EB]"
+            />
+          </div>
         </div>
         <SearchInput
           placeholder="Search Node"
