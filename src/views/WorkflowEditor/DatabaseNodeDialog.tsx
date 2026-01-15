@@ -77,7 +77,7 @@ const DatabaseNodeDialog = ({
   const [localOutputs, setLocalOutputs] = useState<NodePin[]>(outputs);
   const [localNextPins, setLocalNextPins] = useState<NodePin[]>(nextPins);
 
-  console.log(selectedNode , "verify Selected node")
+  console.log(selectedNode, "verify Selected node");
 
   // Update local state when nodeData changes
   React.useEffect(() => {
@@ -99,7 +99,7 @@ const DatabaseNodeDialog = ({
     if (configSchema?.properties) {
       Object.entries(configSchema.properties).forEach(([key, prop]) => {
         const property = prop as ConfigSchemaProperty;
-        
+
         // Use existing value from node data if available, otherwise use default
         if (existingConfig[key] !== undefined) {
           values[key] = existingConfig[key];
@@ -462,7 +462,7 @@ const DatabaseNodeDialog = ({
         onSubmit={async (values) => {
           try {
             console.log("Node Configuration values:", values);
-            
+
             if (!workflowId || !selectedNode?.id) {
               console.error("Missing workflowId or nodeId");
               return;
@@ -501,7 +501,7 @@ const DatabaseNodeDialog = ({
           values,
         }) => (
           <Form className="flex flex-col h-full max-h-[90dvh]">
-            {console.log(errors , "Verify Form Error")}
+            {console.log(errors, "Verify Form Error")}
             {/* Custom Header with Title and Close Button */}
             <div className="flex items-center justify-between pt-4 px-6 pb-4 flex-shrink-0">
               <div>
@@ -548,22 +548,24 @@ const DatabaseNodeDialog = ({
                 <div className="pb-4">
                   {/* Label Field */}
                   <div className="text-left w-full mb-4">
-                    <h5 className="block text-sm md:text-base mb-1">
-                      Label
-                    </h5>
+                    <h5 className="block text-sm md:text-base mb-1">Label</h5>
                     <Field name="label">
                       {({ field }: any) => (
                         <FormikInput
                           field={field}
                           type="text"
                           className={`!py-5 ${
-                            !isDark ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]" : ""
+                            !isDark
+                              ? "shadow-[0_4px_8px_0_rgba(1,5,17,0.1)]"
+                              : ""
                           }`}
                           placeholder="Enter node label"
                           errors={errors}
                           touched={touched}
                           onFieldTouched={() => setFieldTouched("label", true)}
-                          onFieldChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          onFieldChange={(
+                            e: React.ChangeEvent<HTMLInputElement>
+                          ) => {
                             setFieldValue("label", e.target.value);
                           }}
                         />
@@ -579,7 +581,7 @@ const DatabaseNodeDialog = ({
                   </div>
 
                   {/* Config Schema Properties */}
-                  {configSchema?.properties && 
+                  {configSchema?.properties &&
                     Object.entries(configSchema.properties).map(
                       ([fieldName, property]) =>
                         renderField(
@@ -591,8 +593,7 @@ const DatabaseNodeDialog = ({
                           setFieldTouched,
                           values
                         )
-                    )
-                  }
+                    )}
 
                   {/* Show message if no config properties */}
                   {!configSchema?.properties && (
