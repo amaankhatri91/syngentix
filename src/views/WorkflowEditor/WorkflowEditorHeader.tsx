@@ -4,7 +4,7 @@ import useIsSmallScreen from "@/utils/hooks/useIsSmallScreen";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   setEdgeThickness,
-  setOpenSettings,
+  setPanelStep,
   setClipboard,
   setPasteMode,
   toggleNotesVisibility,
@@ -479,7 +479,7 @@ const WorkflowEditorHeader = () => {
         </div>
         <Tooltip content="Settings" position="bottom">
           <button
-            onClick={() => dispatch(setOpenSettings(true))}
+            onClick={() => dispatch(setPanelStep("settings"))}
             className={`${getButtonBaseStyles(isDark)} ${getGroupedButtonStyles(
               isDark
             )}`}
@@ -529,6 +529,7 @@ const WorkflowEditorHeader = () => {
         </Tooltip>
         <Tooltip content="Test Run" position="bottom">
           <button
+            onClick={() => dispatch(setPanelStep("execution"))}
             className={`${getButtonBaseStyles(
               isDark
             )} bg-gradient-to-r from-[#9133EA] to-[#2962EB] hover:opacity-90`}

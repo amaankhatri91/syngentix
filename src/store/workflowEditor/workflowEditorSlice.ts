@@ -39,9 +39,11 @@ export interface ClipboardData {
   includeConnections: boolean;
 }
 
+export type PanelStep = "settings" | "execution" | null;
+
 export type WorkflowEditorState = {
   openNodeList: boolean;
-  openSettings: boolean;
+  panelStep: PanelStep;
   searchQuery: string;
   expandedCategories: string[];
   nodes: Node<CustomNodeData>[];
@@ -64,7 +66,7 @@ export type WorkflowEditorState = {
 
 const initialState: WorkflowEditorState = {
   openNodeList: false,
-  openSettings: false,
+  panelStep: null,
   searchQuery: "",
   expandedCategories: [],
   nodes: [],
@@ -92,8 +94,8 @@ const workflowEditorSlice = createSlice({
     setOpenNodeList: (state, action) => {
       state.openNodeList = action.payload;
     },
-    setOpenSettings: (state, action: PayloadAction<boolean>) => {
-      state.openSettings = action.payload;
+    setPanelStep: (state, action: PayloadAction<PanelStep>) => {
+      state.panelStep = action.payload;
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
@@ -317,7 +319,7 @@ const workflowEditorSlice = createSlice({
 
 export const {
   setOpenNodeList,
-  setOpenSettings,
+  setPanelStep,
   setSearchQuery,
   setExpandedCategories,
   toggleCategory,

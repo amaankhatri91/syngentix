@@ -13,9 +13,10 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import WorkflowNodeProperties from "./WorkflowNodeProperties";
 import { useGetNodesQuery } from "@/services/RtkQueryService";
+import WorkflowExecution from "./WorkflowExecution";
 
 const WorkflowEditor = () => {
-  const { openNodeList, openSettings, databaseDialogOpen, selectedNode } =
+  const { openNodeList, panelStep, databaseDialogOpen, selectedNode } =
     useAppSelector((state) => state.workflowEditor);
 
   const dispatch = useAppDispatch();
@@ -69,9 +70,14 @@ const WorkflowEditor = () => {
           <div className="transition-all duration-300 flex-1 min-w-0">
             <WorkflowCanvas nodesData={data} />
           </div>
-          {openSettings && (
+          {panelStep === "settings" && (
             <div className="w-[400px] min-w-0 flex-shrink-0">
               <WorkflowSettings />
+            </div>
+          )}
+          {panelStep === "execution" && (
+            <div className="w-[400px] min-w-0 flex-shrink-0">
+              <WorkflowExecution />
             </div>
           )}
         </div>

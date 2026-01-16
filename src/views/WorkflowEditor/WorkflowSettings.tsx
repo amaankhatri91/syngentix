@@ -4,7 +4,7 @@ import { FormikInput } from "@/components/FormikInput";
 import { FormikTextarea } from "@/components/FormikTextarea";
 import useTheme from "@/utils/hooks/useTheme";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { setOpenSettings } from "@/store/workflowEditor/workflowEditorSlice";
+import { setPanelStep } from "@/store/workflowEditor/workflowEditorSlice";
 import { updateWorkflowSettings } from "@/store/workflow/workflowSlice";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
@@ -42,8 +42,8 @@ const WorkflowSettings: React.FC = () => {
   }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const openSettings = useAppSelector(
-    (state) => state.workflowEditor.openSettings
+  const panelStep = useAppSelector(
+    (state) => state.workflowEditor.panelStep
   );
 
   const {
@@ -61,10 +61,10 @@ const WorkflowSettings: React.FC = () => {
   }) || {};
 
   const handleClose = () => {
-    dispatch(setOpenSettings(false));
+    dispatch(setPanelStep(null));
   };
 
-  if (!openSettings) return null;
+  if (panelStep !== "settings") return null;
 
   return (
     <div
@@ -150,7 +150,7 @@ const WorkflowSettings: React.FC = () => {
                   replace: true,
                 });
 
-                dispatch(setOpenSettings(false));
+                dispatch(setPanelStep(null));
               } else {
                 showErrorToast(
                   response?.data?.message ||
